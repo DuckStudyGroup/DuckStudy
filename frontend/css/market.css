@@ -1,0 +1,151 @@
+/* 分类导航样式 */
+.category-nav {
+    background: #fff;
+    padding: 15px 0;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.category-list {
+    display: flex;
+    gap: 20px;
+    padding: 0 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.category-item {
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: #666;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.category-item:hover {
+    color: #0d6efd;
+    background: #f8f9fa;
+}
+
+.category-item.active {
+    color: #fff;
+    background: #0d6efd;
+}
+
+/* 商品列表样式 */
+.market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+/* 商品卡片样式 */
+.market-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.market-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.market-card-img {
+    position: relative;
+    padding-top: 75%; /* 4:3 比例 */
+    overflow: hidden;
+}
+
+.market-card-img img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.market-card:hover .market-card-img img {
+    transform: scale(1.05);
+}
+
+.market-card-content {
+    padding: 15px;
+}
+
+.market-card-title {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.market-card-desc {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.market-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.price {
+    color: #dc3545;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.location {
+    color: #666;
+    font-size: 14px;
+}
+
+.location i {
+    margin-right: 4px;
+}
+
+.market-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.time {
+    color: #999;
+    font-size: 12px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .market-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .category-list {
+        padding: 0 15px;
+    }
+
+    .category-item {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .market-grid {
+        grid-template-columns: 1fr;
+    }
+} 

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发布帖子 - DuckStudy</title>
+    <link rel="icon" type="image/x-icon" href="../images/duckstudy.ico">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/create-post.css">
+</head>
+<body>
+    <div class="container-fluid main-container">
+        <!-- 顶部导航栏 -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <a class="navbar-brand" href="../index.html">DuckStudy</a>
+                <div class="d-flex align-items-center">
+                    <div class="nav-links">
+                        <a href="posts.html" class="nav-link active">论坛</a>
+                        <a href="market.html" class="nav-link">市场</a>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" placeholder="搜索帖子...">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    <div class="user-section">
+                        <div id="userSection">
+                            <!-- 用户登录状态将通过JavaScript动态加载 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <div class="create-post-container">
+                <h2>发布新帖子</h2>
+                <form id="createPostForm">
+                    <div class="form-group">
+                        <label for="postTitle">标题</label>
+                        <input type="text" class="form-control" id="postTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="postCategory">分类</label>
+                        <select class="form-select" id="postCategory" required>
+                            <option value="">请选择分类</option>
+                            <option value="study">学习交流</option>
+                            <option value="tech">技术讨论</option>
+                            <option value="experience">经验分享</option>
+                            <option value="help">问题求助</option>
+                            <option value="resource">资源分享</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="postContent">内容</label>
+                        <textarea class="form-control" id="postContent" rows="10" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="postTags">标签（用逗号分隔）</label>
+                        <input type="text" class="form-control" id="postTags" placeholder="例如：Python,编程,学习">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">发布</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../js/api.js"></script>
+    <script type="module" src="../js/create-post.js"></script>
+</body>
+</html> 
