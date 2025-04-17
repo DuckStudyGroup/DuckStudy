@@ -1,0 +1,30 @@
+{
+    "posts": [
+        {
+            "author": "admin",
+            "category": "study",
+            "content": "1",
+            "date": "2025/04/16",
+            "id": 1744789431836,
+            "likes": 0,
+            "tags": [
+                "1"
+            ],
+            "title": "测试帖子1",
+            "views": 1
+        },
+        {
+            "id": 1744790431961,
+            "title": "测试贴子2",
+            "author": "测试1",
+            "date": "2025/04/16",
+            "views": 0,
+            "likes": 0,
+            "category": "tech",
+            "tags": [
+                "Python，编程，学习"
+            ],
+            "content": "11243"
+        }
+    ]
+}

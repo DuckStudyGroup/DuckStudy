@@ -1,5 +1,109 @@
 import { userAPI, contentAPI } from './api.js';
 
+// 模拟数据
+const MOCK_REVIEWS = {
+    all: [
+        {
+            title: 'Python编程入门',
+            rating: 4.5,
+            content: '课程内容非常系统，从基础语法到实际应用都有详细讲解，特别适合初学者。',
+            author: '张三',
+            date: '2024-03-15',
+            category: 'programming'
+        },
+        {
+            title: 'UI设计基础',
+            rating: 4.0,
+            content: '课程内容很实用，特别是设计原则和工具使用的部分，让我受益匪浅。',
+            author: '李四',
+            date: '2024-03-10',
+            category: 'design'
+        },
+        {
+            title: '英语口语进阶',
+            rating: 4.8,
+            content: '老师的发音很标准，课程设计合理，通过大量练习提高了我的口语水平。',
+            author: '王五',
+            date: '2024-03-08',
+            category: 'language'
+        },
+        {
+            title: '项目管理实战',
+            rating: 4.2,
+            content: '课程结合实际案例，让我对项目管理有了更深入的理解，非常实用。',
+            author: '赵六',
+            date: '2024-03-05',
+            category: 'career'
+        },
+        {
+            title: '数字营销策略',
+            rating: 4.6,
+            content: '课程内容紧跟时代发展，提供了很多实用的营销工具和方法。',
+            author: '钱七',
+            date: '2024-03-01',
+            category: 'business'
+        }
+    ],
+    programming: [
+        {
+            title: 'Python编程入门',
+            rating: 4.5,
+            content: '课程内容非常系统，从基础语法到实际应用都有详细讲解，特别适合初学者。',
+            author: '张三',
+            date: '2024-03-15',
+            category: 'programming'
+        },
+        {
+            title: 'Web前端开发',
+            rating: 4.7,
+            content: '课程涵盖了HTML、CSS、JavaScript的基础知识，讲解清晰易懂。',
+            author: '李四',
+            date: '2024-03-12',
+            category: 'programming'
+        }
+    ],
+    design: [
+        {
+            title: 'UI设计基础',
+            rating: 4.0,
+            content: '课程内容很实用，特别是设计原则和工具使用的部分，让我受益匪浅。',
+            author: '李四',
+            date: '2024-03-10',
+            category: 'design'
+        }
+    ],
+    language: [
+        {
+            title: '英语口语进阶',
+            rating: 4.8,
+            content: '老师的发音很标准，课程设计合理，通过大量练习提高了我的口语水平。',
+            author: '王五',
+            date: '2024-03-08',
+            category: 'language'
+        }
+    ],
+    career: [
+        {
+            title: '项目管理实战',
+            rating: 4.2,
+            content: '课程结合实际案例，让我对项目管理有了更深入的理解，非常实用。',
+            author: '赵六',
+            date: '2024-03-05',
+            category: 'career'
+        }
+    ],
+    business: [
+        {
+            title: '数字营销策略',
+            rating: 4.6,
+            content: '课程内容紧跟时代发展，提供了很多实用的营销工具和方法。',
+            author: '钱七',
+            date: '2024-03-01',
+            category: 'business'
+        }
+    ]
+};
+
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -7,7 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await updateUserStatus();
         
         // 加载评价列表
-        await loadReviews();
+        await loadReviews('all');
         
         // 添加分类切换事件
         addCategoryEvents();
@@ -23,57 +127,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 // 更新用户状态
 async function updateUserStatus() {
     try {
-        console.log('开始获取用户状态...');
         const response = await userAPI.getStatus();
-        console.log('获取用户状态成功:', response);
         const userSection = document.getElementById('userSection');
-        
-        if (!userSection) {
-            console.error('未找到用户区域元素');
-            return;
-        }
         
         if (response.isLoggedIn) {
             userSection.innerHTML = `
                 <div class="user-profile">
-                    <div class="avatar-container">
-                        <div class="avatar">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <div class="dropdown-menu">
-                            <a href="profile.html" class="dropdown-item">
-                                <i class="bi bi-person"></i> 个人中心
-                            </a>
-                            <a href="favorites.html" class="dropdown-item">
-                                <i class="bi bi-heart"></i> 我的收藏
-                            </a>
-                            <a href="history.html" class="dropdown-item">
-                                <i class="bi bi-clock-history"></i> 历史观看
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item" id="logoutBtn">
-                                <i class="bi bi-box-arrow-right"></i> 退出登录
-                            </a>
-                        </div>
+                    <div class="avatar">
+                        <i class="bi bi-person-circle"></i>
                     </div>
                     <span class="username">${response.username}</span>
+                    <button class="btn btn-outline-primary btn-sm" id="logoutBtn">退出</button>
                 </div>
             `;
-
-            // 添加退出登录事件监听
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    try {
-                        await userAPI.logout();
-                        window.location.reload();
-                    } catch (error) {
-                        console.error('退出登录失败:', error);
-                        alert('退出登录失败，请重试');
-                    }
-                });
-            }
+            
+            // 添加退出登录事件
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                try {
+                    await userAPI.logout();
+                    window.location.reload();
+                } catch (error) {
+                    console.error('退出登录失败:', error);
+                    alert('退出登录失败，请重试');
+                }
+            });
         } else {
             userSection.innerHTML = `
                 <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
@@ -82,23 +159,22 @@ async function updateUserStatus() {
         }
     } catch (error) {
         console.error('获取用户状态失败:', error);
-        const userSection = document.getElementById('userSection');
-        if (userSection) {
-            userSection.innerHTML = `
-                <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="register.html" class="btn btn-primary">注册</a>
-            `;
-        }
+        userSection.innerHTML = `
+            <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
+            <a href="register.html" class="btn btn-primary">注册</a>
+        `;
     }
 }
 
 // 加载评价列表
-async function loadReviews() {
+async function loadReviews(category) {
     try {
         const reviewsContainer = document.getElementById('reviewsContainer');
-        const reviews = await contentAPI.getReviews();
+        // 在实际项目中，这里应该调用API获取数据
+        // const reviews = await contentAPI.getReviews(category);
+        const reviews = MOCK_REVIEWS[category] || [];
         
-        if (!reviews || reviews.length === 0) {
+        if (reviews.length === 0) {
             reviewsContainer.innerHTML = '<div class="text-center">暂无课程评价</div>';
             return;
         }
@@ -109,8 +185,8 @@ async function loadReviews() {
                     <div class="course-info">
                         <h3 class="course-title">${review.title}</h3>
                         <div class="course-meta">
-                            <span class="platform">Coursera</span>
-                            <span class="instructor">讲师：李教授</span>
+                            <span class="category">${getCategoryName(review.category)}</span>
+                            <span class="date">${review.date}</span>
                         </div>
                     </div>
                     <div class="rating">
@@ -122,7 +198,7 @@ async function loadReviews() {
                 </div>
                 <div class="review-content">
                     <div class="reviewer">
-                        <div class="avatar">
+                        <div class="reviewer-avatar">
                             <i class="bi bi-person-circle"></i>
                         </div>
                         <div class="reviewer-info">
@@ -179,10 +255,26 @@ function addCategoryEvents() {
             categoryItems.forEach(i => i.classList.remove('active'));
             // 添加active类到当前点击项
             item.classList.add('active');
-            // TODO: 根据分类加载评价
-            console.log('切换到分类:', item.textContent);
+            // 加载对应分类的评价
+            const category = item.dataset.category;
+            loadReviews(category);
         });
     });
+}
+
+// 获取分类名称
+function getCategoryName(category) {
+    const categoryNames = {
+        'programming': '编程开发',
+        'design': '设计创作',
+        'language': '语言学习',
+        'exam': '考试认证',
+        'career': '职场技能',
+        'business': '商业管理',
+        'art': '艺术创作',
+        'science': '科学教育'
+    };
+    return categoryNames[category] || '其他';
 }
 
 // 添加写评价按钮事件

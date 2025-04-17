@@ -1,8 +1,38 @@
 import { userAPI, contentAPI } from './api.js';
 
+// 初始化全局帖子列表
+async function initMockPosts() {
+    try {
+        // 使用API获取所有帖子
+        const data = await contentAPI.getPosts();
+        window.mockPosts = data.posts;
+    } catch (error) {
+        console.error('加载帖子数据失败:', error);
+        window.mockPosts = [];
+    }
+}
+
+// 保存帖子数据到JSON文件
+async function savePostsToJson() {
+    try {
+        const data = {
+            posts: window.mockPosts
+        };
+        // 注意：由于浏览器安全限制，这里只是模拟保存操作
+        // 实际项目中需要通过后端API来保存数据
+        console.log('保存帖子数据:', data);
+        // 这里可以添加与后端API的交互代码
+    } catch (error) {
+        console.error('保存帖子数据失败:', error);
+    }
+}
+
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        // 初始化帖子数据
+        await initMockPosts();
+        
         // 更新用户状态
         await updateUserStatus();
         
@@ -76,8 +106,8 @@ async function updateUserStatus() {
             }
         } else {
             userSection.innerHTML = `
-                <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="register.html" class="btn btn-primary">注册</a>
+                <a href="pages/login.html" class="btn btn-outline-primary me-2">登录</a>
+                <a href="pages/register.html" class="btn btn-primary">注册</a>
             `;
         }
     } catch (error) {
@@ -85,151 +115,32 @@ async function updateUserStatus() {
         const userSection = document.getElementById('userSection');
         if (userSection) {
             userSection.innerHTML = `
-                <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="register.html" class="btn btn-primary">注册</a>
+                <a href="pages/login.html" class="btn btn-outline-primary me-2">登录</a>
+                <a href="pages/register.html" class="btn btn-primary">注册</a>
             `;
         }
     }
 }
 
-// 模拟帖子数据
-const mockPosts = [
-    {
-        id: 1,
-        title: 'Python学习经验分享',
-        author: '张三',
-        date: '2024-03-15',
-        views: 256,
-        likes: 0,
-        category: 'study',
-        tags: ['Python', '编程', '学习'],
-        content: '这是一段帖子内容的预览，实际内容将通过API获取...'
-    },
-    {
-        id: 2,
-        title: 'JavaScript学习心得',
-        author: '李四',
-        date: '2024-03-16',
-        views: 128,
-        likes: 0,
-        category: 'study',
-        tags: ['JavaScript', '前端', '学习'],
-        content: '这是一段帖子内容的预览，实际内容将通过API获取...'
-    },
-    {
-        id: 3,
-        title: 'Flask框架使用技巧',
-        author: '王五',
-        date: '2024-03-17',
-        views: 89,
-        likes: 0,
-        category: 'tech',
-        tags: ['Flask', 'Python', '后端'],
-        content: '这是一段帖子内容的预览，实际内容将通过API获取...'
-    },
-    {
-        id: 4,
-        title: '如何提高编程效率',
-        author: '赵六',
-        date: '2024-03-18',
-        views: 167,
-        likes: 0,
-        category: 'experience',
-        tags: ['编程', '效率', '经验'],
-        content: '这是一段帖子内容的预览，实际内容将通过API获取...'
-    },
-    {
-        id: 5,
-        title: '遇到一个Python问题，求帮助',
-        author: '孙七',
-        date: '2024-03-19',
-        views: 45,
-        likes: 0,
-        category: 'help',
-        tags: ['Python', '问题', '求助'],
-        content: '这是一段帖子内容的预览，实际内容将通过API获取...'
-    },
-    {
-        id: 6,
-        title: '分享一些优质学习资源',
-        author: '周八',
-        date: '2024-03-20',
-        views: 234,
-        likes: 0,
-        category: 'resource',
-        tags: ['资源', '学习', '分享'],
-        content: '这是一段帖子内容的预览，实际内容将通过API获取...'
-    }
-];
-
-// 加载帖子列表
-async function loadPosts(category = '') {
-    try {
-        const postsContainer = document.getElementById('postsContainer');
-        
-        // 使用全局帖子列表
-        let posts = window.mockPosts || [...mockPosts];
-        if (category) {
-            posts = posts.filter(post => post.category === category);
-        }
-        
-        if (!posts || posts.length === 0) {
-            postsContainer.innerHTML = '<div class="text-center">暂无帖子</div>';
-            return;
-        }
-        
-        postsContainer.innerHTML = posts.map(post => `
-            <div class="post-card">
-                <div class="post-header">
-                    <div class="post-author">
-                        <div class="avatar">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <div class="author-info">
-                            <span class="author-name">${post.author}</span>
-                            <span class="post-time">${post.date}</span>
-                        </div>
-                    </div>
-                    <div class="post-category">${getCategoryName(post.category)}</div>
-                </div>
-                <div class="post-content">
-                    <h3 class="post-title">${post.title}</h3>
-                    <p class="post-excerpt">${post.content}</p>
-                    <div class="post-tags">
-                        ${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                    </div>
-                </div>
-                <div class="post-footer">
-                    <div class="post-stats">
-                        <span><i class="bi bi-eye"></i> ${post.views}</span>
-                        <span><i class="bi bi-chat"></i> 0</span>
-                        <span><i class="bi bi-hand-thumbs-up"></i> ${post.likes}</span>
-                    </div>
-                    <a href="post-detail.html?id=${post.id}" class="read-more">阅读全文 <i class="bi bi-arrow-right"></i></a>
-                </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('加载帖子失败:', error);
-        throw error;
-    }
-}
-
-// 获取分类名称
-function getCategoryName(category) {
+// 获取分类名称和对应的图标
+function getCategoryInfo(category) {
     const categoryMap = {
-        'study': '学习交流',
-        'tech': '技术讨论',
-        'experience': '经验分享',
-        'help': '问题求助',
-        'resource': '资源分享'
+        'study': { name: '学习交流', icon: 'bi-book' },
+        'tech': { name: '技术讨论', icon: 'bi-code-square' },
+        'experience': { name: '经验分享', icon: 'bi-share' },
+        'help': { name: '问题求助', icon: 'bi-question-circle' },
+        'resource': { name: '资源分享', icon: 'bi-link' }
     };
-    return categoryMap[category] || category;
+    return categoryMap[category] || { name: category, icon: 'bi-tag' };
 }
 
 // 添加分类切换事件
 function addCategoryEvents() {
     const categoryItems = document.querySelectorAll('.category-item');
+    
+    // 初始化分类统计
+    updateCategoryCount();
+    
     categoryItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
@@ -241,6 +152,66 @@ function addCategoryEvents() {
             const category = item.dataset.category || '';
             loadPosts(category);
         });
+    });
+    
+    // 添加搜索事件
+    const searchInput = document.querySelector('.search-box input');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(() => {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            const activeCategory = document.querySelector('.category-item.active').dataset.category || '';
+            loadPosts(activeCategory, searchTerm);
+        }, 300));
+    }
+}
+
+// 防抖函数，避免频繁触发搜索
+function debounce(func, delay) {
+    let timeout;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+    };
+}
+
+// 更新各分类的帖子数量
+function updateCategoryCount() {
+    // 获取所有分类
+    const categories = {};
+    const allCount = window.mockPosts.length;
+    
+    // 统计各分类的帖子数量
+    window.mockPosts.forEach(post => {
+        if (!categories[post.category]) {
+            categories[post.category] = 0;
+        }
+        categories[post.category]++;
+    });
+    
+    // 更新分类显示
+    const categoryItems = document.querySelectorAll('.category-item');
+    categoryItems.forEach(item => {
+        const category = item.dataset.category;
+        const countBadge = document.createElement('span');
+        countBadge.className = 'category-count';
+        
+        if (category) {
+            // 特定分类
+            countBadge.textContent = categories[category] || 0;
+        } else {
+            // 全部分类
+            countBadge.textContent = allCount;
+        }
+        
+        // 移除旧的计数标签
+        const oldBadge = item.querySelector('.category-count');
+        if (oldBadge) {
+            item.removeChild(oldBadge);
+        }
+        
+        item.appendChild(countBadge);
     });
 }
 
@@ -262,5 +233,99 @@ function addCreatePostEvent() {
                 alert('操作失败，请重试');
             }
         });
+    }
+}
+
+// 加载帖子列表
+async function loadPosts(category = '', searchTerm = '') {
+    try {
+        const postsContainer = document.getElementById('postsContainer');
+        
+        // 使用全局帖子列表
+        let posts = window.mockPosts;
+        
+        // 按分类筛选
+        if (category) {
+            posts = posts.filter(post => post.category === category);
+        }
+        
+        // 按搜索词筛选
+        if (searchTerm) {
+            posts = posts.filter(post => 
+                post.title.toLowerCase().includes(searchTerm) || 
+                post.content.toLowerCase().includes(searchTerm) ||
+                post.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+            );
+        }
+        
+        // 显示筛选结果数量
+        const resultCount = document.getElementById('resultCount');
+        if (resultCount) {
+            resultCount.textContent = `找到 ${posts.length} 个帖子`;
+            resultCount.style.display = searchTerm ? 'block' : 'none';
+        }
+        
+        if (!posts || posts.length === 0) {
+            postsContainer.innerHTML = '<div class="text-center py-5">暂无帖子</div>';
+            return;
+        }
+        
+        // 获取所有帖子的评论数据
+        const commentsData = await loadAllCommentsCount();
+        
+        postsContainer.innerHTML = posts.map(post => {
+            const categoryInfo = getCategoryInfo(post.category);
+            // 获取当前帖子的评论数量
+            const commentCount = commentsData[post.id] ? commentsData[post.id].length : 0;
+            
+            return `
+                <div class="post-card">
+                    <div class="post-header">
+                        <div class="post-author">
+                            <div class="avatar">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <div class="author-info">
+                                <span class="author-name">${post.author}</span>
+                                <span class="post-time">${post.date}</span>
+                            </div>
+                        </div>
+                        <div class="post-category">
+                            <i class="bi ${categoryInfo.icon}"></i>
+                            ${categoryInfo.name}
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <h3 class="post-title">${post.title}</h3>
+                        <p class="post-excerpt">${post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content}</p>
+                        <div class="post-tags">
+                            ${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="post-footer">
+                        <div class="post-stats">
+                            <span><i class="bi bi-eye"></i> ${post.views}</span>
+                            <span><i class="bi bi-chat"></i> ${commentCount}</span>
+                            <span><i class="bi bi-hand-thumbs-up"></i> ${post.likes}</span>
+                        </div>
+                        <a href="post-detail.html?id=${post.id}" class="read-more">阅读全文 <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('加载帖子失败:', error);
+        throw error;
+    }
+}
+
+// 加载所有帖子的评论数量
+async function loadAllCommentsCount() {
+    try {
+        // 使用contentAPI获取所有评论数据
+        return await contentAPI.getAllComments();
+    } catch (error) {
+        console.error('获取评论数据失败:', error);
+        return {};
     }
 } 

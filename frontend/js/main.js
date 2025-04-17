@@ -11,8 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             loadReviews(),
             loadMarketItems(),
             loadHotPosts(),
-            loadRecentViews(),
-            loadHotProjects()
+            loadRecentViews()
         ]);
     } catch (error) {
         console.error('加载数据失败:', error);
@@ -22,73 +21,75 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // 更新用户状态
 async function updateUserStatus() {
-    try {
-        console.log('开始获取用户状态...');
-        const response = await userAPI.getStatus();
-        console.log('获取用户状态成功:', response);
-        const userSection = document.getElementById('userSection');
-        
-        if (!userSection) {
-            console.error('未找到用户区域元素');
-            return;
-        }
-        
-        if (response.isLoggedIn) {
-            userSection.innerHTML = `
-                <div class="user-profile">
-                    <div class="avatar-container">
-                        <div class="avatar">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <div class="dropdown-menu">
-                            <a href="pages/profile.html" class="dropdown-item">
-                                <i class="bi bi-person"></i> 个人中心
-                            </a>
-                            <a href="pages/favorites.html" class="dropdown-item">
-                                <i class="bi bi-heart"></i> 我的收藏
-                            </a>
-                            <a href="pages/history.html" class="dropdown-item">
-                                <i class="bi bi-clock-history"></i> 历史观看
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item" id="logoutBtn">
-                                <i class="bi bi-box-arrow-right"></i> 退出登录
-                            </a>
-                        </div>
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    const userSection = document.getElementById('userSection');
+    
+    if (!userSection) {
+        console.error('未找到用户区域元素');
+        return;
+    }
+    
+    if (userData) {
+        userSection.innerHTML = `
+            <div class="user-profile">
+                <div class="avatar-container">
+                    <div class="avatar">
+                        <i class="bi bi-person-circle"></i>
                     </div>
-                    <span class="username">${response.username}</span>
+                    <div class="dropdown-menu">
+                        <a href="/pages/profile.html" class="dropdown-item">
+                            <i class="bi bi-person"></i> 个人中心
+                        </a>
+                        <a href="/pages/favorites.html" class="dropdown-item">
+                            <i class="bi bi-heart"></i> 我的收藏
+                        </a>
+                        <a href="/pages/history.html" class="dropdown-item">
+                            <i class="bi bi-clock-history"></i> 历史观看
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="logoutBtn">
+                            <i class="bi bi-box-arrow-right"></i> 退出登录
+                        </a>
+                    </div>
                 </div>
-            `;
-
-            // 添加退出登录事件监听
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    try {
-                        await userAPI.logout();
-                        window.location.reload();
-                    } catch (error) {
-                        console.error('退出登录失败:', error);
-                        alert('退出登录失败，请重试');
-                    }
-                });
-            }
-        } else {
-            userSection.innerHTML = `
-                <a href="pages/login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="pages/register.html" class="btn btn-primary">注册</a>
-            `;
+                <span class="username">${userData.username}</span>
+            </div>
+        `;
+        
+        // 添加退出登录事件
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('userData');
+                window.location.reload();
+            });
         }
-    } catch (error) {
-        console.error('获取用户状态失败:', error);
-        const userSection = document.getElementById('userSection');
-        if (userSection) {
-            userSection.innerHTML = `
-                <a href="pages/login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="pages/register.html" class="btn btn-primary">注册</a>
-            `;
+        
+        // 添加头像下拉菜单事件
+        const avatarContainer = document.querySelector('.avatar-container');
+        if (avatarContainer) {
+            avatarContainer.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dropdownMenu = avatarContainer.querySelector('.dropdown-menu');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.toggle('show');
+                }
+            });
+            
+            // 点击其他地方关闭下拉菜单
+            document.addEventListener('click', () => {
+                const dropdownMenu = avatarContainer.querySelector('.dropdown-menu');
+                if (dropdownMenu && dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.classList.remove('show');
+                }
+            });
         }
+    } else {
+        userSection.innerHTML = `
+            <a href="/pages/login.html" class="btn btn-outline-primary me-2">登录</a>
+            <a href="/pages/register.html" class="btn btn-primary">注册</a>
+        `;
     }
 }
 
@@ -198,33 +199,6 @@ async function loadRecentViews() {
         `).join('');
     } catch (error) {
         console.error('加载最近观看失败:', error);
-        throw error;
-    }
-}
-
-// 加载热门项目
-async function loadHotProjects() {
-    try {
-        const projectsGrid = document.getElementById('projectsGrid');
-        const projects = await contentAPI.getHotProjects();
-        
-        if (!projects || projects.length === 0) {
-            projectsGrid.innerHTML = '<div class="text-center">暂无热门项目</div>';
-            return;
-        }
-        
-        projectsGrid.innerHTML = projects.map(project => `
-            <div class="project-card">
-                <h3>${project.title}</h3>
-                <div class="project-description">${project.description}</div>
-                <div class="project-stats">
-                    <span><i class="bi bi-star"></i> ${project.stars}</span>
-                    <span><i class="bi bi-git-fork"></i> ${project.forks}</span>
-                </div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('加载热门项目失败:', error);
         throw error;
     }
 } 
