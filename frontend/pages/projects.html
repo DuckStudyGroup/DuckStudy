@@ -37,108 +37,134 @@
         <!-- 主要内容区 -->
         <div class="main-content">
             <div class="container">
-                <div class="row">
-                    <!-- 左侧筛选栏 -->
-                    <div class="col-md-3">
-                        <div class="filter-section">
-                            <div class="filter-header">
-                                <h3>筛选条件</h3>
+                <!-- 项目类型选项卡 -->
+                <div class="mb-4">
+                    <ul class="nav nav-tabs" id="projectTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="trending-tab" data-bs-toggle="tab" data-bs-target="#trendingTab" type="button" role="tab" aria-controls="trendingTab" aria-selected="true">GitHub趋势项目</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="common-tab" data-bs-toggle="tab" data-bs-target="#commonTab" type="button" role="tab" aria-controls="commonTab" aria-selected="false">常用项目</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-3">
+                        <!-- 趋势项目标签页 -->
+                        <div class="tab-pane fade show active" id="trendingTab" role="tabpanel" aria-labelledby="trending-tab">
+                            <div class="projects-content">
+                                <div class="content-header">
+                                    <h2>GitHub热门趋势项目</h2>
+                                    <div class="view-options">
+                                        <button class="btn btn-outline-secondary active" data-view="grid">
+                                            <i class="bi bi-grid"></i> 网格视图
+                                        </button>
+                                        <button class="btn btn-outline-secondary" data-view="list">
+                                            <i class="bi bi-list"></i> 列表视图
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 项目列表 -->
+                                <div class="projects-grid" id="projectsGrid">
+                                    <!-- 项目将通过JavaScript动态加载 -->
+                                </div>
+
+                                <!-- 空状态 -->
+                                <div class="empty-state" id="emptyState" style="display: none;">
+                                    <i class="bi bi-folder"></i>
+                                    <p>暂无符合条件的项目</p>
+                                </div>
+
+                                <!-- 加载更多 -->
+                                <div class="load-more">
+                                    <button class="btn btn-outline-primary" id="loadMoreBtn">
+                                        加载更多
+                                    </button>
+                                </div>
                             </div>
-                            <div class="filter-content">
-                                <!-- 技术栈筛选 -->
-                                <div class="filter-group">
-                                    <h4>技术栈</h4>
-                                    <div class="filter-options">
-                                        <label class="filter-option">
-                                            <input type="checkbox" value="frontend"> 前端开发
-                                        </label>
-                                        <label class="filter-option">
-                                            <input type="checkbox" value="backend"> 后端开发
-                                        </label>
-                                        <label class="filter-option">
-                                            <input type="checkbox" value="mobile"> 移动开发
-                                        </label>
-                                        <label class="filter-option">
-                                            <input type="checkbox" value="ai"> 人工智能
-                                        </label>
+                        </div>
+                        
+                        <!-- 常用项目标签页 -->
+                        <div class="tab-pane fade" id="commonTab" role="tabpanel" aria-labelledby="common-tab">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <h5>技术栈</h5>
+                                            <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="技术栈筛选">
+                                                <button type="button" class="btn btn-outline-primary m-1" data-tech="all">全部</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-tech="python">Python</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-tech="javascript">JavaScript</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-tech="java">Java</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-tech="c++">C++</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-tech="typescript">TypeScript</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-tech="c#">C#</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-tech="dart">Dart</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>项目类型</h5>
+                                            <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="项目类型筛选">
+                                                <button type="button" class="btn btn-outline-primary m-1" data-type="all">全部</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-type="web">Web应用</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-type="mobile">移动应用</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-type="desktop">桌面应用</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-type="game">游戏开发</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-type="tool">工具应用</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-type="ai">AI/机器学习</button>
+                                                <button type="button" class="btn btn-outline-primary m-1" data-type="framework">框架</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <!-- 难度等级 -->
-                                <div class="filter-group">
-                                    <h4>难度等级</h4>
-                                    <div class="filter-options">
-                                        <label class="filter-option">
-                                            <input type="checkbox" value="beginner"> 入门级
-                                        </label>
-                                        <label class="filter-option">
-                                            <input type="checkbox" value="intermediate"> 中级
-                                        </label>
-                                        <label class="filter-option">
-                                            <input type="checkbox" value="advanced"> 高级
-                                        </label>
+                            </div>
+                            <div id="commonProjects" class="projects-grid">
+                                <!-- 常用项目将在这里动态加载 -->
+                                <div class="loading-placeholder">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
                                     </div>
+                                    <p class="mt-2">加载项目中...</p>
                                 </div>
-
-                                <!-- 项目类型 -->
-                                <div class="filter-group">
-                                    <h4>项目类型</h4>
-                                    <div class="filter-options">
-                                        <label class="filter-option">
-                                            <input type="checkbox" value="web"> Web应用
-                                        </label>
-                                        <label class="filter-option">
-                                            <input type="checkbox" value="mobile"> 移动应用
-                                        </label>
-                                        <label class="filter-option">
-                                            <input type="checkbox" value="desktop"> 桌面应用
-                                        </label>
-                                        <label class="filter-option">
-                                            <input type="checkbox" value="game"> 游戏开发
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <!-- 应用按钮 -->
-                                <button class="btn btn-primary w-100" id="applyFilters">
-                                    应用筛选
-                                </button>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <!-- 右侧项目列表 -->
-                    <div class="col-md-9">
-                        <div class="projects-content">
-                            <div class="content-header">
-                                <h2>热门项目</h2>
-                                <div class="view-options">
-                                    <button class="btn btn-outline-secondary active" data-view="grid">
-                                        <i class="bi bi-grid"></i> 网格视图
-                                    </button>
-                                    <button class="btn btn-outline-secondary" data-view="list">
-                                        <i class="bi bi-list"></i> 列表视图
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- 项目列表 -->
-                            <div class="projects-grid" id="projectsGrid">
-                                <!-- 项目将通过JavaScript动态加载 -->
-                            </div>
-
-                            <!-- 空状态 -->
-                            <div class="empty-state" id="emptyState" style="display: none;">
-                                <i class="bi bi-folder"></i>
-                                <p>暂无符合条件的项目</p>
-                            </div>
-
-                            <!-- 加载更多 -->
-                            <div class="load-more">
-                                <button class="btn btn-outline-primary" id="loadMoreBtn">
-                                    加载更多
-                                </button>
-                            </div>
+    <!-- 项目详情模态框 -->
+    <div class="modal fade" id="projectModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="projectModalTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>基本信息</h6>
+                            <p id="projectDescription"></p>
+                            <p><strong>创建时间：</strong><span id="projectCreated"></span></p>
+                            <p><strong>最后更新：</strong><span id="projectUpdated"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>统计信息</h6>
+                            <p><strong>Stars：</strong><span id="projectStars"></span></p>
+                            <p><strong>Forks：</strong><span id="projectForks"></span></p>
+                            <p><strong>Watchers：</strong><span id="projectWatchers"></span></p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6>使用语言</h6>
+                            <div id="projectLanguages" class="mb-3"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>主要贡献者</h6>
+                            <div id="projectContributors"></div>
                         </div>
                     </div>
                 </div>
@@ -150,4 +176,4 @@
     <script type="module" src="../js/api.js"></script>
     <script type="module" src="../js/projects.js"></script>
 </body>
-</html> 
+</html>

@@ -4,6 +4,9 @@
     padding: 1rem 0;
     margin-bottom: 2rem;
     border-bottom: 1px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .category-list {
@@ -12,6 +15,12 @@
     overflow-x: auto;
     padding: 0 1rem;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.category-list::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .category-item {
@@ -21,16 +30,21 @@
     border-radius: 20px;
     white-space: nowrap;
     transition: all 0.3s ease;
+    background-color: #fff;
+    border: 1px solid #e9ecef;
 }
 
 .category-item:hover {
     color: #0d6efd;
     background-color: #e9ecef;
+    transform: translateY(-2px);
 }
 
 .category-item.active {
     color: #fff;
     background-color: #0d6efd;
+    border-color: #0d6efd;
+    font-weight: 500;
 }
 
 /* 评价列表样式 */

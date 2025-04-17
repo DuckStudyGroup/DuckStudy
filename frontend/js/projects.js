@@ -1,5 +1,10 @@
 import { userAPI, contentAPI } from './api.js';
 
+// 全局变量
+let currentPage = 1;
+let currentView = 'grid';
+let isLoading = false;
+
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -9,14 +14,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 添加视图切换事件
         addViewToggleEvents();
         
-        // 添加筛选事件
-        addFilterEvents();
+        // 添加分类筛选事件
+        addCategoryEvents();
+        
+        // 添加加载更多事件
+        addLoadMoreEvent();
         
         // 加载项目列表
         await loadProjects();
         
-        // 添加加载更多事件
-        addLoadMoreEvent();
+        // 加载常用项目列表
+        await loadCommonProjects();
     } catch (error) {
         console.error('加载数据失败:', error);
         alert('加载数据失败，请刷新页面重试');
@@ -26,15 +34,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 // 更新用户状态
 async function updateUserStatus() {
     try {
-        const response = await userAPI.getStatus();
+        const response = await fetch('/api/user/status');
+        const data = await response.json();
         const userSection = document.getElementById('userSection');
         
-        if (!userSection) {
-            console.error('未找到用户区域元素');
-            return;
-        }
-        
-        if (response.isLoggedIn) {
+        if (data.isLoggedIn) {
             userSection.innerHTML = `
                 <div class="user-profile">
                     <div class="avatar-container">
@@ -57,7 +61,7 @@ async function updateUserStatus() {
                             </a>
                         </div>
                     </div>
-                    <span class="username">${response.username}</span>
+                    <span class="username">${data.username}</span>
                 </div>
             `;
 
@@ -67,7 +71,7 @@ async function updateUserStatus() {
                 logoutBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
                     try {
-                        await userAPI.logout();
+                        await fetch('/api/user/logout', { method: 'POST' });
                         window.location.href = '../index.html';
                     } catch (error) {
                         console.error('退出登录失败:', error);
@@ -88,147 +92,174 @@ async function updateUserStatus() {
 }
 
 // 加载项目列表
-async function loadProjects(filters = {}) {
+async function loadProjects() {
+    if (isLoading) return;
+    isLoading = true;
+
     try {
         const projectsGrid = document.getElementById('projectsGrid');
         const emptyState = document.getElementById('emptyState');
         
-        if (!projectsGrid) {
-            console.error('未找到项目列表元素');
-            return;
-        }
-        
         // 显示加载状态
-        projectsGrid.innerHTML = `
-            <div class="loading">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">加载中...</span>
+        if (currentPage === 1) {
+            projectsGrid.innerHTML = `
+                <div class="loading-placeholder">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <p class="mt-2">加载项目中...</p>
                 </div>
-            </div>
-        `;
-        
-        // 这里应该调用后端API获取项目列表
-        // 目前使用模拟数据
-        const mockProjects = [
-            {
-                id: 1,
-                title: '在线学习平台',
-                description: '基于Vue.js和Django的在线学习平台，支持课程管理、视频播放、作业提交等功能。',
-                image: '../images/project1.jpg',
-                author: '张老师',
-                stars: 128,
-                forks: 45,
-                tags: ['Vue.js', 'Django', 'Python', 'Web开发'],
-                difficulty: '中级',
-                type: 'web',
-                tech: ['frontend', 'backend']
-            },
-            {
-                id: 2,
-                title: '个人博客系统',
-                description: '使用React和Node.js开发的个人博客系统，支持文章管理、评论系统、用户认证等功能。',
-                image: '../images/project2.jpg',
-                author: '李同学',
-                stars: 96,
-                forks: 32,
-                tags: ['React', 'Node.js', 'MongoDB', 'Web开发'],
-                difficulty: '入门级',
-                type: 'web',
-                tech: ['frontend', 'backend']
-            },
-            {
-                id: 3,
-                title: '移动端商城',
-                description: '基于Flutter开发的跨平台移动商城应用，支持商品展示、购物车、订单管理等功能。',
-                image: '../images/project3.jpg',
-                author: '王工程师',
-                stars: 156,
-                forks: 67,
-                tags: ['Flutter', 'Dart', '移动开发'],
-                difficulty: '高级',
-                type: 'mobile',
-                tech: ['mobile']
-            }
-        ];
-        
-        // 应用筛选条件
-        let filteredProjects = mockProjects;
-        if (Object.keys(filters).length > 0) {
-            filteredProjects = mockProjects.filter(project => {
-                if (filters.tech && filters.tech.length > 0) {
-                    if (!filters.tech.some(tech => project.tech.includes(tech))) {
-                        return false;
-                    }
-                }
-                if (filters.difficulty && filters.difficulty.length > 0) {
-                    if (!filters.difficulty.includes(project.difficulty)) {
-                        return false;
-                    }
-                }
-                if (filters.type && filters.type.length > 0) {
-                    if (!filters.type.includes(project.type)) {
-                        return false;
-                    }
-                }
-                return true;
-            });
+            `;
         }
         
-        if (filteredProjects.length === 0) {
-            projectsGrid.style.display = 'none';
-            if (emptyState) {
+        // 获取GitHub热门项目
+        const response = await fetch(`/api/github/trending?page=${currentPage}`);
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message);
+        }
+        
+        const projects = data.data;
+        
+        if (projects.length === 0) {
+            if (currentPage === 1) {
+                projectsGrid.innerHTML = '';
                 emptyState.style.display = 'block';
             }
             return;
         }
         
-        // 显示项目列表
-        projectsGrid.style.display = 'grid';
-        if (emptyState) {
-            emptyState.style.display = 'none';
+        // 隐藏空状态
+        emptyState.style.display = 'none';
+        
+        // 渲染项目列表
+        const projectsHTML = projects.map(project => `
+            <div class="project-card">
+                <div class="project-header">
+                    <h3 class="project-title">${project.name}</h3>
+                    <span class="project-author">${project.owner.login}</span>
+                </div>
+                <p class="project-description">${project.description || '暂无描述'}</p>
+                <div class="project-meta">
+                    <span class="project-stars">
+                        <i class="bi bi-star"></i> ${project.stargazers_count}
+                    </span>
+                    <span class="project-forks">
+                        <i class="bi bi-git-fork"></i> ${project.forks_count}
+                    </span>
+                    <span class="project-language">
+                        <i class="bi bi-circle-fill"></i> ${project.language || '未知'}
+                    </span>
+                </div>
+                <div class="project-actions">
+                    <button class="btn btn-primary btn-sm" onclick="viewProjectDetails('${project.owner.login}', '${project.name}')">
+                        <i class="bi bi-eye"></i> 查看详情
+                    </button>
+                    <a href="${project.html_url}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-github"></i> 访问仓库
+                    </a>
+                </div>
+            </div>
+        `).join('');
+        
+        // 更新项目列表
+        if (currentPage === 1) {
+            projectsGrid.innerHTML = projectsHTML;
+        } else {
+            projectsGrid.insertAdjacentHTML('beforeend', projectsHTML);
+        }
+        
+    } catch (error) {
+        console.error('加载项目列表失败:', error);
+        const projectsGrid = document.getElementById('projectsGrid');
+        if (projectsGrid) {
+            projectsGrid.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-exclamation-circle text-danger"></i>
+                    <p>加载失败，请重试</p>
+                    <button class="btn btn-primary mt-2" onclick="location.reload()">刷新页面</button>
+                </div>
+            `;
+        }
+    } finally {
+        isLoading = false;
+    }
+}
+
+// 加载常用项目
+async function loadCommonProjects(tech = 'all', type = 'all') {
+    try {
+        const commonProjectsContainer = document.getElementById('commonProjects');
+        
+        // 显示加载状态
+        commonProjectsContainer.innerHTML = `
+            <div class="loading-placeholder">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <p class="mt-2">加载项目中...</p>
+            </div>
+        `;
+        
+        // 获取GitHub常用项目
+        const response = await fetch(`/api/github/common?tech=${tech}&type=${type}`);
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message);
+        }
+        
+        const projects = data.data;
+        
+        if (projects.length === 0) {
+            commonProjectsContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="bi bi-folder"></i>
+                    <p>暂无符合条件的项目</p>
+                </div>
+            `;
+            return;
         }
         
         // 渲染项目列表
-        projectsGrid.innerHTML = filteredProjects.map(project => `
+        commonProjectsContainer.innerHTML = projects.map(project => `
             <div class="project-card">
-                <img src="${project.image}" alt="${project.title}" class="project-image">
-                <div class="project-info">
-                    <h3 class="project-title">${project.title}</h3>
-                    <p class="project-description">${project.description}</p>
-                    <div class="project-meta">
-                        <span>
-                            <i class="bi bi-person"></i> ${project.author}
-                        </span>
-                        <span>
-                            <i class="bi bi-star"></i> ${project.stars}
-                        </span>
-                        <span>
-                            <i class="bi bi-git-fork"></i> ${project.forks}
-                        </span>
-                    </div>
-                    <div class="project-tags">
-                        ${project.tags.map(tag => `
-                            <span class="project-tag">${tag}</span>
-                        `).join('')}
-                    </div>
-                    <div class="project-actions">
-                        <button class="btn btn-primary" onclick="viewProject(${project.id})">
-                            <i class="bi bi-eye"></i> 查看详情
-                        </button>
-                        <button class="btn btn-outline-primary" onclick="forkProject(${project.id})">
-                            <i class="bi bi-git-fork"></i> Fork
-                        </button>
-                    </div>
+                <div class="project-header">
+                    <h3 class="project-title">${project.name}</h3>
+                    <span class="project-author">${project.owner.login}</span>
+                </div>
+                <p class="project-description">${project.description || '暂无描述'}</p>
+                <div class="project-meta">
+                    <span class="project-stars">
+                        <i class="bi bi-star"></i> ${project.stargazers_count}
+                    </span>
+                    <span class="project-forks">
+                        <i class="bi bi-git-fork"></i> ${project.forks_count}
+                    </span>
+                    <span class="project-language">
+                        <i class="bi bi-circle-fill"></i> ${project.language || '未知'}
+                    </span>
+                </div>
+                <div class="project-actions">
+                    <button class="btn btn-primary btn-sm" onclick="viewProjectDetails('${project.owner.login}', '${project.name}')">
+                        <i class="bi bi-eye"></i> 查看详情
+                    </button>
+                    <a href="${project.html_url}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-github"></i> 访问仓库
+                    </a>
                 </div>
             </div>
         `).join('');
         
     } catch (error) {
-        console.error('加载项目列表失败:', error);
-        projectsGrid.innerHTML = `
-            <div class="error-state">
-                <i class="bi bi-exclamation-circle"></i>
+        console.error('加载常用项目列表失败:', error);
+        const commonProjectsContainer = document.getElementById('commonProjects');
+        commonProjectsContainer.innerHTML = `
+            <div class="empty-state">
+                <i class="bi bi-exclamation-circle text-danger"></i>
                 <p>加载失败，请重试</p>
+                <button class="btn btn-primary mt-2" onclick="location.reload()">刷新页面</button>
             </div>
         `;
     }
@@ -248,8 +279,8 @@ function addViewToggleEvents() {
             button.classList.add('active');
             
             // 切换视图
-            const view = button.getAttribute('data-view');
-            if (view === 'list') {
+            currentView = button.getAttribute('data-view');
+            if (currentView === 'list') {
                 projectsGrid.classList.add('list-view');
             } else {
                 projectsGrid.classList.remove('list-view');
@@ -258,27 +289,39 @@ function addViewToggleEvents() {
     });
 }
 
-// 添加筛选事件
-function addFilterEvents() {
-    const applyButton = document.getElementById('applyFilters');
-    if (!applyButton) return;
-    
-    applyButton.addEventListener('click', () => {
-        const filters = {
-            tech: getSelectedValues('技术栈'),
-            difficulty: getSelectedValues('难度等级'),
-            type: getSelectedValues('项目类型')
-        };
-        
-        loadProjects(filters);
+// 添加分类筛选事件
+function addCategoryEvents() {
+    // 技术栈筛选
+    const techButtons = document.querySelectorAll('[data-tech]');
+    techButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            techButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            const tech = button.getAttribute('data-tech');
+            const type = document.querySelector('[data-type].active')?.getAttribute('data-type') || 'all';
+            
+            loadCommonProjects(tech, type);
+        });
     });
-}
-
-// 获取选中值
-function getSelectedValues(groupName) {
-    const group = document.querySelector(`.filter-group h4:contains('${groupName}')`).nextElementSibling;
-    const checkboxes = group.querySelectorAll('input[type="checkbox"]:checked');
-    return Array.from(checkboxes).map(checkbox => checkbox.value);
+    
+    // 项目类型筛选
+    const typeButtons = document.querySelectorAll('[data-type]');
+    typeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            typeButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            const type = button.getAttribute('data-type');
+            const tech = document.querySelector('[data-tech].active')?.getAttribute('data-tech') || 'all';
+            
+            loadCommonProjects(tech, type);
+        });
+    });
+    
+    // 默认激活"全部"筛选按钮
+    document.querySelector('[data-tech="all"]')?.classList.add('active');
+    document.querySelector('[data-type="all"]')?.classList.add('active');
 }
 
 // 添加加载更多事件
@@ -288,43 +331,83 @@ function addLoadMoreEvent() {
     
     loadMoreBtn.addEventListener('click', async () => {
         try {
-            // 这里应该调用后端API加载更多项目
-            // 目前只是模拟加载
-            loadMoreBtn.disabled = true;
-            loadMoreBtn.innerHTML = `
-                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                加载中...
-            `;
-            
-            // 模拟API调用延迟
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // 恢复按钮状态
-            loadMoreBtn.disabled = false;
-            loadMoreBtn.innerHTML = '加载更多';
-            
-            // 这里应该添加新加载的项目到列表中
-            // 目前只是显示提示
-            alert('没有更多项目了');
+            currentPage++;
+            await loadProjects();
         } catch (error) {
             console.error('加载更多项目失败:', error);
-            loadMoreBtn.disabled = false;
-            loadMoreBtn.innerHTML = '加载更多';
             alert('加载失败，请重试');
         }
     });
 }
 
 // 查看项目详情
-function viewProject(projectId) {
-    // 这里应该跳转到项目详情页面
-    console.log('查看项目:', projectId);
-    alert('项目详情功能正在开发中...');
-}
+window.viewProjectDetails = async function(owner, repo) {
+    try {
+        const response = await fetch(`/api/github/repo/${owner}/${repo}`);
+        const data = await response.json();
 
-// Fork项目
-function forkProject(projectId) {
-    // 这里应该调用后端API进行fork操作
-    console.log('Fork项目:', projectId);
-    alert('Fork功能正在开发中...');
-} 
+        if (data.success) {
+            const projectData = data.data;
+            const modal = new bootstrap.Modal(document.getElementById('projectModal'));
+            
+            // 设置基本信息
+            document.getElementById('projectModalTitle').textContent = repo;
+            document.getElementById('projectDescription').textContent = projectData.info.description || '暂无描述';
+            document.getElementById('projectCreated').textContent = new Date(projectData.info.created_at).toLocaleString();
+            document.getElementById('projectUpdated').textContent = new Date(projectData.info.updated_at).toLocaleString();
+            
+            // 设置统计信息
+            document.getElementById('projectStars').textContent = projectData.info.stargazers_count;
+            document.getElementById('projectForks').textContent = projectData.info.forks_count;
+            document.getElementById('projectWatchers').textContent = projectData.info.watchers_count;
+            
+            // 设置语言信息
+            const languagesContainer = document.getElementById('projectLanguages');
+            languagesContainer.innerHTML = '';
+            
+            if (Object.keys(projectData.languages).length === 0) {
+                languagesContainer.innerHTML = '<p class="text-muted">暂无语言信息</p>';
+            } else {
+                const totalBytes = Object.values(projectData.languages).reduce((a, b) => a + b, 0);
+                
+                Object.entries(projectData.languages).forEach(([lang, bytes]) => {
+                    const percentage = ((bytes / totalBytes) * 100).toFixed(1);
+                    languagesContainer.innerHTML += `
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>${lang}</span>
+                                <span>${percentage}%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // 设置贡献者信息
+            const contributorsContainer = document.getElementById('projectContributors');
+            contributorsContainer.innerHTML = '';
+            
+            if (projectData.contributors.length === 0) {
+                contributorsContainer.innerHTML = '<p class="text-muted">暂无贡献者信息</p>';
+            } else {
+                projectData.contributors.slice(0, 5).forEach(contributor => {
+                    contributorsContainer.innerHTML += `
+                        <div class="d-flex align-items-center mb-2">
+                            <img src="${contributor.avatar_url}" class="contributor-avatar" alt="${contributor.login}">
+                            <span>${contributor.login}</span>
+                        </div>
+                    `;
+                });
+            }
+            
+            modal.show();
+        } else {
+            alert('获取项目详情失败：' + data.message);
+        }
+    } catch (error) {
+        alert('请求失败：' + error.message);
+    }
+};
