@@ -127,12 +127,6 @@ def hash_password(password):
     # 使用SHA-256进行简单加密
     return hashlib.sha256(password.encode()).hexdigest()
 
-# 添加静态文件路由
-@app.route('/<path:path>')
-def serve_static(path):
-    # 处理所有静态文件请求
-    return send_from_directory(os.path.join(BASE_DIR, 'frontend'), path)
-
 # 添加根路由
 @app.route('/')
 def index():
@@ -626,6 +620,12 @@ def generate_mock_common_projects(tech, project_type):
         filtered_projects = [p for p in filtered_projects if p["type"].lower() == project_type.lower()]
     
     return filtered_projects
+
+# 添加静态文件路由（放在最后作为catch-all路由）
+@app.route('/<path:path>')
+def serve_static(path):
+    # 处理所有静态文件请求
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend'), path)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000) 
