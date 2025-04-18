@@ -6,6 +6,8 @@ import datetime
 import json
 import os
 from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
+import re
 
 # 获取当前文件所在目录的父目录的父目录（项目根目录）
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -102,11 +104,11 @@ class GitHubService:
         """
         获取GitHub趋势项目
         :param language: 编程语言
-        :param since: 时间范围 (daily, weekly, monthly, yearly, 或 all)
+        :param since: 时间范围 (daily, weekly, monthly, 或 all)
         :param count: 返回的项目数量
         :return: 项目列表
         """
-        print(f"\n======== GitHub API 请求开始 ========")
+        print(f"\n======== GitHub 趋势项目请求开始 ========")
         print(f"参数: language={language}, since={since}, count={count}")
         
         # 生成缓存键
@@ -115,41 +117,22 @@ class GitHubService:
         if cached_data:
             print(f"【缓存】使用缓存数据: {cache_key}")
             return cached_data
-            
-        # 检查是否有GitHub Token
-        has_token = self.token is not None and self.token.strip() != "" and self.token != 'your_github_token_here'
-        print(f"GitHub Token是否存在: {has_token}")
         
-        # 根据时间范围构建查询参数
-        query_params = {}
-        if language and language != 'all':
-            query_params['language'] = language
-        
-        # 转换时间范围到GitHub API参数
-        if since == 'daily':
-            query_params['since'] = 'daily'
-        elif since == 'weekly':
-            query_params['since'] = 'weekly'
-        elif since == 'monthly':
-            query_params['since'] = 'monthly'
-        # GitHub API不支持yearly，我们用search API代替
-            
-        print(f"构建的查询参数: {query_params}")
-            
         try:
-            # GitHub Trending API特殊处理
-            headers = {
-                'Accept': 'application/vnd.github.v3+json'
-            }
+            # 首先尝试从 GitHub Trending 页面获取数据
+            trending_projects = self.get_trending_repos_from_web(language, since, count)
+            if trending_projects and len(trending_projects) > 0:
+                # 缓存结果
+                self.cache.set(cache_key, trending_projects)
+                return trending_projects
+                
+            # 如果从网页获取失败，尝试使用 API
+            print("从 GitHub Trending 页面获取数据失败，尝试使用 API...")
             
-            if has_token:
-                headers['Authorization'] = f'token {self.token}'
-                print(f"已添加Authorization头")
-            else:
-                print(f"无GitHub Token，可能受到API请求限制")
-            
-            # 构建URL
-            api_url = 'https://api.github.com/search/repositories'
+            # 下面是原来的 API 请求逻辑
+            # 检查是否有GitHub Token
+            has_token = self.token is not None and self.token.strip() != "" and self.token != 'your_github_token_here'
+            print(f"GitHub Token是否存在: {has_token}")
             
             # 构建搜索查询
             search_query = []
@@ -168,14 +151,16 @@ class GitHubService:
             elif since == 'monthly':
                 created_date = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
                 search_query.append(f"created:>={created_date}")
-            elif since == 'yearly':
-                created_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
-                search_query.append(f"created:>={created_date}")
+            else:  # yearly 或 all
+                if since == 'yearly':
+                    created_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
+                    search_query.append(f"created:>={created_date}")
             
             # 添加排序
             sort_param = "sort=stars&order=desc"
             
             # 构建完整查询
+            api_url = 'https://api.github.com/search/repositories'
             if search_query:
                 query_str = "+".join(search_query)
                 final_url = f"{api_url}?q={query_str}&{sort_param}&per_page={count}"
@@ -184,6 +169,11 @@ class GitHubService:
                 
             print(f"最终请求URL: {final_url}")
             
+            # 准备请求头
+            headers = {'Accept': 'application/vnd.github.v3+json'}
+            if has_token:
+                headers['Authorization'] = f'token {self.token}'
+                
             # 发送请求
             response = requests.get(final_url, headers=headers, timeout=10)
             status_code = response.status_code
@@ -204,31 +194,176 @@ class GitHubService:
                     print(f"API响应中没有'items'字段: {data}")
             elif status_code == 403:
                 print(f"【错误】API限流 (403): {response.text}")
-                rate_limit = response.headers.get('X-RateLimit-Limit')
-                rate_remaining = response.headers.get('X-RateLimit-Remaining')
-                rate_reset = response.headers.get('X-RateLimit-Reset')
-                print(f"速率限制信息: 限制={rate_limit}, 剩余={rate_remaining}, 重置时间={rate_reset}")
             elif status_code == 401:
                 print(f"【错误】认证失败 (401): Token可能无效 - {response.text}")
             else:
                 print(f"【错误】API请求失败 ({status_code}): {response.text}")
-                
-        except requests.exceptions.Timeout:
-            print("【错误】GitHub API请求超时")
-        except requests.exceptions.ConnectionError:
-            print("【错误】GitHub API连接错误")
+            
         except Exception as e:
-            print(f"【错误】GitHub API请求异常: {str(e)}")
+            print(f"【错误】GitHub请求异常: {str(e)}")
             import traceback
             print(traceback.format_exc())
         
-        print("使用模拟数据作为回退方案")
-        print("======== GitHub API 请求结束 ========\n")
+        print("所有请求方式均失败，使用模拟数据作为回退方案")
+        print("======== GitHub 趋势项目请求结束 ========\n")
         
-        # 如果API请求失败，返回模拟数据
+        # 如果所有请求都失败，返回模拟数据
         mock_data = self._get_mock_trending_repos(language, since, count)
         self.cache.set(cache_key, mock_data)  # 缓存模拟数据
         return mock_data
+
+    @cached(ttl=3600)  # 缓存1小时
+    def get_trending_repos_from_web(self, language=None, since=None, count=10) -> List[Dict]:
+        """
+        直接从 GitHub Trending 页面获取趋势项目
+        :param language: 编程语言
+        :param since: 时间范围 (daily, weekly, monthly)
+        :param count: 返回的项目数量
+        :return: 项目列表
+        """
+        try:
+            print("开始从 GitHub Trending 页面获取数据...")
+            
+            # 构建URL
+            url = "https://github.com/trending"
+            
+            # 添加语言参数
+            if language and language != 'all':
+                url += f"/{language}"
+                
+            # 添加时间范围参数
+            if since == 'daily':
+                url += "?since=daily"
+            elif since == 'weekly':
+                url += "?since=weekly"
+            elif since == 'monthly':
+                url += "?since=monthly"
+            
+            print(f"请求 GitHub Trending 页面: {url}")
+            
+            # 发送请求
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml'
+            }
+            
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            
+            # 解析HTML
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # 获取趋势项目列表
+            repo_list = []
+            
+            # 查找所有项目卡片
+            project_cards = soup.select('article.Box-row')
+            
+            for i, card in enumerate(project_cards):
+                if i >= count:
+                    break
+                    
+                try:
+                    # 解析项目数据
+                    
+                    # 项目名称和作者
+                    repo_name_element = card.select_one('h2.h3 a')
+                    if not repo_name_element:
+                        continue
+                        
+                    repo_path = repo_name_element.get('href', '').strip('/')
+                    if not repo_path or '/' not in repo_path:
+                        continue
+                        
+                    owner, name = repo_path.split('/', 1)
+                    
+                    # 项目描述
+                    description_element = card.select_one('p')
+                    description = description_element.text.strip() if description_element else ''
+                    
+                    # 项目语言
+                    language_element = card.select_one('span[itemprop="programmingLanguage"]')
+                    language_name = language_element.text.strip() if language_element else None
+                    
+                    # Star 数量
+                    stars_element = card.select('a.Link--muted')[0] if len(card.select('a.Link--muted')) > 0 else None
+                    stars_text = stars_element.text.strip() if stars_element else '0'
+                    stars_count = self._parse_number(stars_text)
+                    
+                    # Fork 数量
+                    forks_element = card.select('a.Link--muted')[1] if len(card.select('a.Link--muted')) > 1 else None
+                    forks_text = forks_element.text.strip() if forks_element else '0'
+                    forks_count = self._parse_number(forks_text)
+                    
+                    # 今日新增 Star
+                    today_stars_element = card.select_one('span.d-inline-block.float-sm-right')
+                    today_stars_text = today_stars_element.text.strip() if today_stars_element else ''
+                    today_stars = self._parse_today_stars(today_stars_text)
+                    
+                    # 构建项目数据
+                    repo_data = {
+                        'id': i + 1,
+                        'name': name,
+                        'full_name': f"{owner}/{name}",
+                        'html_url': f"https://github.com/{owner}/{name}",
+                        'description': description,
+                        'language': language_name,
+                        'stargazers_count': stars_count,
+                        'forks_count': forks_count,
+                        'today_stars': today_stars,
+                        'owner': {
+                            'login': owner,
+                            'html_url': f"https://github.com/{owner}"
+                        }
+                    }
+                    
+                    repo_list.append(repo_data)
+                    
+                except Exception as e:
+                    print(f"解析项目卡片失败: {str(e)}")
+                    continue
+            
+            print(f"从 GitHub Trending 页面成功获取 {len(repo_list)} 个项目")
+            return repo_list
+            
+        except Exception as e:
+            print(f"从 GitHub Trending 页面获取数据失败: {str(e)}")
+            return []
+            
+    def _parse_number(self, text: str) -> int:
+        """解析数字（支持k, m等后缀）"""
+        if not text:
+            return 0
+            
+        text = text.lower().replace(',', '')
+        match = re.search(r'([\d.]+)([km]?)', text)
+        if not match:
+            return 0
+            
+        number, unit = match.groups()
+        number = float(number)
+        
+        if unit == 'k':
+            number *= 1000
+        elif unit == 'm':
+            number *= 1000000
+            
+        return int(number)
+        
+    def _parse_today_stars(self, text: str) -> int:
+        """解析今日新增 Star 数量"""
+        if not text:
+            return 0
+            
+        match = re.search(r'([\d,]+)\s+stars\s+today', text.lower())
+        if match:
+            return self._parse_number(match.group(1))
+            
+        match = re.search(r'([\d,]+)\s+stars\s+this\s+(week|month)', text.lower())
+        if match:
+            return self._parse_number(match.group(1))
+            
+        return 0
 
     def check_rate_limit(self) -> Dict:
         """检查API速率限制"""

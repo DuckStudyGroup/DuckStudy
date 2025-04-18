@@ -463,14 +463,15 @@ def get_trending_repos():
         # 将前端传来的timeRange转换为API的格式
         time_map = {
             'all': 'all',
-            'year': 'year',
-            'month': 'month',
-            'week': 'week'
+            'yearly': 'yearly',
+            'monthly': 'monthly',
+            'weekly': 'weekly',
+            'daily': 'daily'
         }
         
         api_time_range = time_map.get(time_range, 'all')
         
-        repos = github_service.get_trending_repos(api_time_range, language, page)
+        repos = github_service.get_trending_repos(language, api_time_range, 10)
         return jsonify({
             'success': True,
             'data': repos
