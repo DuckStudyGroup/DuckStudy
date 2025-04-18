@@ -1,10 +1,11 @@
 import requests
 from typing import Dict, List, Optional
 from config.config import GITHUB_API_URL, GITHUB_TOKEN, API_RATE_LIMIT
-from utils.cache import cached
+from utils.cache import cached, Cache
 import datetime
 import json
 import os
+from datetime import datetime, timedelta
 
 # 获取当前文件所在目录的父目录的父目录（项目根目录）
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -12,16 +13,35 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 class GitHubService:
     def __init__(self):
         # 如果提供了Token，则使用，否则不添加授权头
+        print(f"【配置】GitHub API URL: {GITHUB_API_URL}")
+        print(f"【配置】GitHub Token是否配置: {bool(GITHUB_TOKEN)}")
+        print(f"【配置】GitHub Token是否为默认值: {GITHUB_TOKEN == 'your_github_token_here' if GITHUB_TOKEN else 'Token未设置'}")
+        
+        # 初始化cache实例
+        self.cache = Cache(maxsize=100, ttl=3600)
+        
+        # 保存token
+        self.token = GITHUB_TOKEN
+        
         if GITHUB_TOKEN and GITHUB_TOKEN != 'your_github_token_here':
             self.headers = {
                 'Authorization': f'token {GITHUB_TOKEN}',
                 'Accept': 'application/vnd.github.v3+json'
             }
+            print("【配置】已使用GitHub Token配置API请求头")
         else:
             self.headers = {
                 'Accept': 'application/vnd.github.v3+json'
             }
-            print("警告：未提供GitHub Token或Token无效，API请求将受到更严格的速率限制")
+            print("【警告】未提供GitHub Token或Token无效，API请求将受到更严格的速率限制")
+            
+        # 检查连接并立即验证Token
+        try:
+            rate_limit = self.check_rate_limit()
+            print(f"【验证】GitHub API连接成功，当前速率限制: 剩余{rate_limit['resources']['core']['remaining']}/{rate_limit['resources']['core']['limit']}次请求")
+        except Exception as e:
+            print(f"【错误】GitHub API连接测试失败: {str(e)}")
+            print("【提示】请检查网络连接、Token配置是否正确")
 
     @cached(ttl=3600)
     def get_user_repos(self, username: str) -> List[Dict]:
@@ -78,70 +98,137 @@ class GitHubService:
                 {"login": "user2", "avatar_url": "https://placehold.jp/32x32.png", "contributions": 50}
             ]
 
-    @cached(ttl=1800)  # 缓存30分钟
-    def get_trending_repos(self, time_range: str = 'all', language: str = None, page: int = 1) -> List[Dict]:
+    def get_trending_repos(self, language=None, since=None, count=10) -> List[Dict]:
         """
-        获取GitHub热门仓库
+        获取GitHub趋势项目
+        :param language: 编程语言
+        :param since: 时间范围 (daily, weekly, monthly, yearly, 或 all)
+        :param count: 返回的项目数量
+        :return: 项目列表
+        """
+        print(f"\n======== GitHub API 请求开始 ========")
+        print(f"参数: language={language}, since={since}, count={count}")
         
-        Args:
-            time_range: 时间范围，可选值: 'week', 'month', 'year', 'all'
-            language: 编程语言过滤
-            page: 页码，从1开始
+        # 生成缓存键
+        cache_key = f"github:trending:{language}:{since}:{count}"
+        cached_data = self.cache.get(cache_key)
+        if cached_data:
+            print(f"【缓存】使用缓存数据: {cache_key}")
+            return cached_data
             
-        Returns:
-            热门仓库列表
-        """
+        # 检查是否有GitHub Token
+        has_token = self.token is not None and self.token.strip() != "" and self.token != 'your_github_token_here'
+        print(f"GitHub Token是否存在: {has_token}")
+        
+        # 根据时间范围构建查询参数
+        query_params = {}
+        if language and language != 'all':
+            query_params['language'] = language
+        
+        # 转换时间范围到GitHub API参数
+        if since == 'daily':
+            query_params['since'] = 'daily'
+        elif since == 'weekly':
+            query_params['since'] = 'weekly'
+        elif since == 'monthly':
+            query_params['since'] = 'monthly'
+        # GitHub API不支持yearly，我们用search API代替
+            
+        print(f"构建的查询参数: {query_params}")
+            
         try:
-            # 基础查询参数：按Star数量排序
-            query_params = {
-                'sort': 'stars',
-                'order': 'desc',
-                'per_page': 10,
-                'page': page
+            # GitHub Trending API特殊处理
+            headers = {
+                'Accept': 'application/vnd.github.v3+json'
             }
             
-            # 根据时间范围设置查询条件
-            if time_range != 'all':
-                today = datetime.datetime.now()
-                
-                if time_range == 'week':
-                    # 一周前的日期
-                    date = today - datetime.timedelta(days=7)
-                elif time_range == 'month':
-                    # 一个月前的日期
-                    date = today - datetime.timedelta(days=30)
-                elif time_range == 'year':
-                    # 一年前的日期
-                    date = today - datetime.timedelta(days=365)
-                else:
-                    date = None
-                    
-                if date:
-                    # 格式化日期为 YYYY-MM-DD
-                    query_params['q'] = f'created:>{date.strftime("%Y-%m-%d")}'
+            if has_token:
+                headers['Authorization'] = f'token {self.token}'
+                print(f"已添加Authorization头")
+            else:
+                print(f"无GitHub Token，可能受到API请求限制")
+            
+            # 构建URL
+            api_url = 'https://api.github.com/search/repositories'
+            
+            # 构建搜索查询
+            search_query = []
             
             # 添加语言过滤
-            if language:
-                if 'q' in query_params:
-                    query_params['q'] += f' language:{language}'
+            if language and language != 'all':
+                search_query.append(f"language:{language}")
+            
+            # 添加时间过滤
+            if since == 'daily':
+                created_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+                search_query.append(f"created:>={created_date}")
+            elif since == 'weekly':
+                created_date = (datetime.now() - timedelta(weeks=1)).strftime('%Y-%m-%d')
+                search_query.append(f"created:>={created_date}")
+            elif since == 'monthly':
+                created_date = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+                search_query.append(f"created:>={created_date}")
+            elif since == 'yearly':
+                created_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
+                search_query.append(f"created:>={created_date}")
+            
+            # 添加排序
+            sort_param = "sort=stars&order=desc"
+            
+            # 构建完整查询
+            if search_query:
+                query_str = "+".join(search_query)
+                final_url = f"{api_url}?q={query_str}&{sort_param}&per_page={count}"
+            else:
+                final_url = f"{api_url}?q=stars:>1000&{sort_param}&per_page={count}"
+                
+            print(f"最终请求URL: {final_url}")
+            
+            # 发送请求
+            response = requests.get(final_url, headers=headers, timeout=10)
+            status_code = response.status_code
+            
+            print(f"API响应状态码: {status_code}")
+            
+            # 检查响应状态
+            if status_code == 200:
+                data = response.json()
+                if 'items' in data:
+                    repos = data['items']
+                    print(f"【成功】获取到{len(repos)}个GitHub项目")
+                    
+                    # 缓存结果
+                    self.cache.set(cache_key, repos)
+                    return repos
                 else:
-                    query_params['q'] = f'language:{language}'
-            
-            # 如果没有q参数，添加星星数大于100的条件
-            if 'q' not in query_params:
-                query_params['q'] = 'stars:>100'
-            
-            url = f"{GITHUB_API_URL}/search/repositories"
-            response = requests.get(url, headers=self.headers, params=query_params)
-            response.raise_for_status()
-            
-            result = response.json()
-            return result.get('items', [])
-            
+                    print(f"API响应中没有'items'字段: {data}")
+            elif status_code == 403:
+                print(f"【错误】API限流 (403): {response.text}")
+                rate_limit = response.headers.get('X-RateLimit-Limit')
+                rate_remaining = response.headers.get('X-RateLimit-Remaining')
+                rate_reset = response.headers.get('X-RateLimit-Reset')
+                print(f"速率限制信息: 限制={rate_limit}, 剩余={rate_remaining}, 重置时间={rate_reset}")
+            elif status_code == 401:
+                print(f"【错误】认证失败 (401): Token可能无效 - {response.text}")
+            else:
+                print(f"【错误】API请求失败 ({status_code}): {response.text}")
+                
+        except requests.exceptions.Timeout:
+            print("【错误】GitHub API请求超时")
+        except requests.exceptions.ConnectionError:
+            print("【错误】GitHub API连接错误")
         except Exception as e:
-            print(f"获取热门仓库失败: {str(e)}")
-            # 返回模拟数据
-            return self._get_mock_trending_repos(time_range, language, page)
+            print(f"【错误】GitHub API请求异常: {str(e)}")
+            import traceback
+            print(traceback.format_exc())
+        
+        print("使用模拟数据作为回退方案")
+        print("======== GitHub API 请求结束 ========\n")
+        
+        # 如果API请求失败，返回模拟数据
+        mock_data = self._get_mock_trending_repos(language, since, count)
+        self.cache.set(cache_key, mock_data)  # 缓存模拟数据
+        return mock_data
 
     def check_rate_limit(self) -> Dict:
         """检查API速率限制"""
@@ -218,246 +305,256 @@ class GitHubService:
             # 返回模拟数据
             return self._get_mock_common_projects(tech, project_type)
 
-    def _get_mock_trending_repos(self, time_range: str, language: str = None, page: int = 1) -> List[Dict]:
+    def _get_mock_trending_repos(self, language: str, since: str, count: int) -> List[Dict]:
         """获取模拟的热门仓库数据"""
+        print(f"【模拟】生成模拟数据: 语言={language}, 时间范围={since}, 数量={count}")
+        
         # 根据时间范围调整数据
         time_suffix = ""
-        if time_range == 'week':
+        if since == 'daily':
+            time_suffix = " (今日热门)"
+        elif since == 'weekly':
             time_suffix = " (本周热门)"
-        elif time_range == 'month':
+        elif since == 'monthly':
             time_suffix = " (本月热门)"
-        elif time_range == 'year':
+        elif since == 'yearly':
             time_suffix = " (今年热门)"
         
-        # 尝试从JSON文件读取模拟数据
-        try:
-            mock_file = os.path.join(BASE_DIR, 'frontend', 'data', 'mock_repos.json')
-            if os.path.exists(mock_file):
-                with open(mock_file, 'r', encoding='utf-8') as f:
-                    mock_data = json.load(f)
-                
-                # 实现分页
-                page_size = 10
-                start_idx = (page - 1) * page_size
-                end_idx = start_idx + page_size
-                return mock_data[start_idx:end_idx]
-        except Exception as e:
-            print(f"读取模拟仓库数据失败: {str(e)}")
+        # 根据语言过滤仓库
+        language_filter = language if language and language != 'all' else None
         
-        # 默认模拟数据 - 使用当前GitHub trending项目
-        all_repos = [
+        # 生成模拟数据
+        current_time = datetime.now().isoformat()
+        three_days_ago = (datetime.now() - timedelta(days=3)).isoformat()
+        
+        mock_repos = [
             {
-                "id": 1,
-                "name": f"ai-hedge-fund{time_suffix}",
-                "owner": {"login": "virattt"},
-                "html_url": "https://github.com/virattt/ai-hedge-fund",
-                "description": "一个AI对冲基金团队，专注于使用人工智能技术进行投资决策",
-                "stargazers_count": 23308,
-                "forks_count": 4088,
-                "language": "Python"
+                'id': 1000001,
+                'name': f'react-awesome-app{time_suffix}',
+                'full_name': f'facebook/react-awesome-app{time_suffix}',
+                'description': '一个优秀的React应用示例，包含最佳实践和性能优化',
+                'html_url': 'https://github.com/facebook/react-example',
+                'language': 'JavaScript',
+                'stargazers_count': 28000,
+                'forks_count': 5600,
+                'open_issues_count': 123,
+                'owner': {
+                    'login': 'facebook',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/69631?v=4',
+                    'html_url': 'https://github.com/facebook'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             },
             {
-                "id": 2,
-                "name": f"Awesome-Dify-Workflow{time_suffix}",
-                "owner": {"login": "svcvit"},
-                "html_url": "https://github.com/svcvit/Awesome-Dify-Workflow",
-                "description": "分享一些好用的 Dify DSL 工作流程，自用、学习两相宜。",
-                "stargazers_count": 5841,
-                "forks_count": 579,
-                "language": "Markdown"
+                'id': 1000002,
+                'name': f'python-data-science{time_suffix}',
+                'full_name': f'microsoft/python-data-science{time_suffix}',
+                'description': '数据科学与机器学习Python工具包，包含大量实用例子',
+                'html_url': 'https://github.com/microsoft/python-ds',
+                'language': 'Python',
+                'stargazers_count': 25000,
+                'forks_count': 4800,
+                'open_issues_count': 90,
+                'owner': {
+                    'login': 'microsoft',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/6154722?v=4',
+                    'html_url': 'https://github.com/microsoft'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             },
             {
-                "id": 3,
-                "name": f"vanna{time_suffix}",
-                "owner": {"login": "vanna-ai"},
-                "html_url": "https://github.com/vanna-ai/vanna",
-                "description": "🤖 与您的SQL数据库聊天 📊。通过RAG使用LLMs实现准确的文本到SQL生成",
-                "stargazers_count": 15745,
-                "forks_count": 1408,
-                "language": "Python"
+                'id': 1000003,
+                'name': f'vue-dashboard{time_suffix}',
+                'full_name': f'vuejs/vue-dashboard{time_suffix}',
+                'description': '基于Vue3的现代化响应式仪表盘，支持自定义主题和组件',
+                'html_url': 'https://github.com/vuejs/dashboard',
+                'language': 'Vue',
+                'stargazers_count': 22000,
+                'forks_count': 4200,
+                'open_issues_count': 75,
+                'owner': {
+                    'login': 'vuejs',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/6128107?v=4',
+                    'html_url': 'https://github.com/vuejs'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             },
             {
-                "id": 4,
-                "name": f"meeting-minutes{time_suffix}",
-                "owner": {"login": "Zackriya-Solutions"},
-                "html_url": "https://github.com/Zackriya-Solutions/meeting-minutes",
-                "description": "一个免费开源的、自托管的基于AI的实时会议笔记记录器和会议纪要生成器",
-                "stargazers_count": 3180,
-                "forks_count": 219,
-                "language": "C++"
+                'id': 1000004,
+                'name': f'go-microservices{time_suffix}',
+                'full_name': f'golang/go-microservices{time_suffix}',
+                'description': 'Go语言微服务框架，提供高性能、高可用的服务架构',
+                'html_url': 'https://github.com/golang/microservices',
+                'language': 'Go',
+                'stargazers_count': 19000,
+                'forks_count': 3500,
+                'open_issues_count': 62,
+                'owner': {
+                    'login': 'golang',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/4314092?v=4',
+                    'html_url': 'https://github.com/golang'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             },
             {
-                "id": 5,
-                "name": f"og-equity-compensation{time_suffix}",
-                "owner": {"login": "jlevy"},
-                "html_url": "https://github.com/jlevy/og-equity-compensation",
-                "description": "股票期权、RSU、税收 — 阅读最新版本",
-                "stargazers_count": 10854,
-                "forks_count": 516,
-                "language": "Markdown"
+                'id': 1000005,
+                'name': f'rust-game-engine{time_suffix}',
+                'full_name': f'rust-lang/rust-game-engine{time_suffix}',
+                'description': '使用Rust编写的高性能游戏引擎，具有内存安全和并发特性',
+                'html_url': 'https://github.com/rust-lang/game-engine',
+                'language': 'Rust',
+                'stargazers_count': 18000,
+                'forks_count': 3200,
+                'open_issues_count': 58,
+                'owner': {
+                    'login': 'rust-lang',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/5430905?v=4',
+                    'html_url': 'https://github.com/rust-lang'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             },
             {
-                "id": 6,
-                "name": f"cursor-free-vip{time_suffix}",
-                "owner": {"login": "yeongpin"},
-                "html_url": "https://github.com/yeongpin/cursor-free-vip",
-                "description": "Cursor AI 机器ID重置和绕过更高的令牌限制",
-                "stargazers_count": 17613,
-                "forks_count": 2097,
-                "language": "Python"
+                'id': 1000006,
+                'name': f'java-spring-cloud{time_suffix}',
+                'full_name': f'spring-projects/java-spring-cloud{time_suffix}',
+                'description': 'Spring Cloud全栈应用开发框架，简化分布式系统构建',
+                'html_url': 'https://github.com/spring-projects/spring-cloud',
+                'language': 'Java',
+                'stargazers_count': 17000,
+                'forks_count': 3000,
+                'open_issues_count': 55,
+                'owner': {
+                    'login': 'spring-projects',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/317776?v=4',
+                    'html_url': 'https://github.com/spring-projects'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             },
             {
-                "id": 7,
-                "name": f"netdata{time_suffix}",
-                "owner": {"login": "netdata"},
-                "html_url": "https://github.com/netdata/netdata",
-                "description": "为您的基础设施提供X射线视觉效果！",
-                "stargazers_count": 74254,
-                "forks_count": 6046,
-                "language": "C"
+                'id': 1000007,
+                'name': f'cpp-game-framework{time_suffix}',
+                'full_name': f'microsoft/cpp-game-framework{time_suffix}',
+                'description': 'C++游戏开发框架，提供跨平台支持和高性能图形渲染',
+                'html_url': 'https://github.com/microsoft/cpp-framework',
+                'language': 'C++',
+                'stargazers_count': 15000,
+                'forks_count': 2800,
+                'open_issues_count': 48,
+                'owner': {
+                    'login': 'microsoft',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/6154722?v=4',
+                    'html_url': 'https://github.com/microsoft'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             },
             {
-                "id": 8,
-                "name": f"fiber{time_suffix}",
-                "owner": {"login": "gofiber"},
-                "html_url": "https://github.com/gofiber/fiber",
-                "description": "⚡️ Express风格的Go语言web框架",
-                "stargazers_count": 36086,
-                "forks_count": 1760,
-                "language": "Go"
+                'id': 1000008,
+                'name': f'swift-ui-kit{time_suffix}',
+                'full_name': f'apple/swift-ui-kit{time_suffix}',
+                'description': 'Swift UI工具包，为iOS和macOS应用提供现代化界面组件',
+                'html_url': 'https://github.com/apple/swift-ui',
+                'language': 'Swift',
+                'stargazers_count': 14000,
+                'forks_count': 2500,
+                'open_issues_count': 42,
+                'owner': {
+                    'login': 'apple',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/10639145?v=4',
+                    'html_url': 'https://github.com/apple'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             },
             {
-                "id": 9,
-                "name": f"ai-agents-for-beginners{time_suffix}",
-                "owner": {"login": "microsoft"},
-                "html_url": "https://github.com/microsoft/ai-agents-for-beginners",
-                "description": "10堂课程帮助您开始构建AI代理",
-                "stargazers_count": 15117,
-                "forks_count": 3625,
-                "language": "Jupyter Notebook"
+                'id': 1000009,
+                'name': f'typescript-node-framework{time_suffix}',
+                'full_name': f'microsoft/typescript-node-framework{time_suffix}',
+                'description': 'TypeScript服务端框架，集成ORM和GraphQL支持',
+                'html_url': 'https://github.com/microsoft/ts-node',
+                'language': 'TypeScript',
+                'stargazers_count': 13000,
+                'forks_count': 2300,
+                'open_issues_count': 38,
+                'owner': {
+                    'login': 'microsoft',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/6154722?v=4',
+                    'html_url': 'https://github.com/microsoft'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             },
             {
-                "id": 10,
-                "name": f"nautilus_trader{time_suffix}",
-                "owner": {"login": "nautechsystems"},
-                "html_url": "https://github.com/nautechsystems/nautilus_trader",
-                "description": "高性能算法交易平台和事件驱动的回测器",
-                "stargazers_count": 5482,
-                "forks_count": 788,
-                "language": "Python"
+                'id': 1000010,
+                'name': f'kotlin-android-starter{time_suffix}',
+                'full_name': f'google/kotlin-android-starter{time_suffix}',
+                'description': 'Kotlin Android应用起始项目，集成Jetpack组件和最佳实践',
+                'html_url': 'https://github.com/google/kotlin-android',
+                'language': 'Kotlin',
+                'stargazers_count': 12000,
+                'forks_count': 2100,
+                'open_issues_count': 35,
+                'owner': {
+                    'login': 'google',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/1342004?v=4',
+                    'html_url': 'https://github.com/google'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             },
             {
-                "id": 11,
-                "name": f"fumadocs{time_suffix}",
-                "owner": {"login": "fuma-nama"},
-                "html_url": "https://github.com/fuma-nama/fumadocs",
-                "description": "漂亮的Next.js文档框架",
-                "stargazers_count": 4641,
-                "forks_count": 262,
-                "language": "TypeScript"
+                'id': 1000011,
+                'name': f'php-laravel-cms{time_suffix}',
+                'full_name': f'laravel/php-laravel-cms{time_suffix}',
+                'description': '基于Laravel的现代内容管理系统，支持多语言和多站点',
+                'html_url': 'https://github.com/laravel/cms',
+                'language': 'PHP',
+                'stargazers_count': 11000,
+                'forks_count': 1900,
+                'open_issues_count': 32,
+                'owner': {
+                    'login': 'laravel',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/958072?v=4',
+                    'html_url': 'https://github.com/laravel'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             },
             {
-                "id": 12,
-                "name": f"KrillinAI{time_suffix}",
-                "owner": {"login": "krillinai"},
-                "html_url": "https://github.com/krillinai/KrillinAI",
-                "description": "一个视频翻译和配音工具，由LLM提供支持，可生成适用于YouTube、TikTok和Shorts等平台的内容",
-                "stargazers_count": 4702,
-                "forks_count": 348,
-                "language": "Go"
-            },
-            {
-                "id": 13,
-                "name": f"aoi{time_suffix}",
-                "owner": {"login": "microsoft"},
-                "html_url": "https://github.com/microsoft/aoi",
-                "description": "使用AOI内容过滤系统保护应用程序",
-                "stargazers_count": 4602,
-                "forks_count": 348,
-                "language": "Python"
-            },
-            {
-                "id": 14,
-                "name": f"ente{time_suffix}",
-                "owner": {"login": "ente-io"},
-                "html_url": "https://github.com/ente-io/ente",
-                "description": "完全加密的照片和文件管理器",
-                "stargazers_count": 3602,
-                "forks_count": 248,
-                "language": "Dart"
-            },
-            {
-                "id": 15,
-                "name": f"vue-terminal{time_suffix}",
-                "owner": {"login": "dongsuo"},
-                "html_url": "https://github.com/dongsuo/vue-terminal",
-                "description": "基于Vue的网页终端模拟器",
-                "stargazers_count": 562,
-                "forks_count": 148,
-                "language": "Vue"
-            },
-            {
-                "id": 16,
-                "name": f"terminal-copilot{time_suffix}",
-                "owner": {"login": "nvim-jo"},
-                "html_url": "https://github.com/nvim-jo/terminal-copilot",
-                "description": "AI增强的终端助手",
-                "stargazers_count": 1602,
-                "forks_count": 88,
-                "language": "Python"
-            },
-            {
-                "id": 17,
-                "name": f"pdfplumber{time_suffix}",
-                "owner": {"login": "jsvine"},
-                "html_url": "https://github.com/jsvine/pdfplumber",
-                "description": "从PDF文件中提取信息的Python库",
-                "stargazers_count": 4312,
-                "forks_count": 438,
-                "language": "Python"
-            },
-            {
-                "id": 18,
-                "name": f"playwright{time_suffix}",
-                "owner": {"login": "microsoft"},
-                "html_url": "https://github.com/microsoft/playwright",
-                "description": "跨浏览器Web测试和自动化框架",
-                "stargazers_count": 58312,
-                "forks_count": 2438,
-                "language": "TypeScript"
-            },
-            {
-                "id": 19,
-                "name": f"stable-diffusion-xl-demo{time_suffix}",
-                "owner": {"login": "huggingface"},
-                "html_url": "https://github.com/huggingface/stable-diffusion-xl-demo",
-                "description": "Stable Diffusion XL演示和调整",
-                "stargazers_count": 3312,
-                "forks_count": 438,
-                "language": "Python"
-            },
-            {
-                "id": 20,
-                "name": f"upscayl{time_suffix}",
-                "owner": {"login": "upscayl"},
-                "html_url": "https://github.com/upscayl/upscayl",
-                "description": "使用AI轻松放大图像",
-                "stargazers_count": 22312,
-                "forks_count": 1438,
-                "language": "TypeScript"
+                'id': 1000012,
+                'name': f'ruby-rails-api{time_suffix}',
+                'full_name': f'rails/ruby-rails-api{time_suffix}',
+                'description': 'Ruby on Rails API框架，快速构建RESTful接口和微服务',
+                'html_url': 'https://github.com/rails/rails-api',
+                'language': 'Ruby',
+                'stargazers_count': 10000,
+                'forks_count': 1700,
+                'open_issues_count': 28,
+                'owner': {
+                    'login': 'rails',
+                    'avatar_url': 'https://avatars.githubusercontent.com/u/4223?v=4',
+                    'html_url': 'https://github.com/rails'
+                },
+                'created_at': three_days_ago,
+                'updated_at': current_time
             }
         ]
         
-        # 实现分页
-        page_size = 10
-        start_idx = (page - 1) * page_size
-        end_idx = start_idx + page_size
+        # 语言过滤
+        if language_filter:
+            filtered_repos = [repo for repo in mock_repos if repo['language'] and repo['language'].lower() == language_filter.lower()]
+            result = filtered_repos if filtered_repos else mock_repos[:count]  # 如果过滤后为空，返回前count个
+        else:
+            result = mock_repos[:count]
         
-        # 如果请求的页码超出范围，返回空列表
-        if start_idx >= len(all_repos):
-            return []
-            
-        return all_repos[start_idx:end_idx]
+        print(f"【模拟】返回{len(result)}个模拟数据")
+        return result
 
     def _get_mock_common_projects(self, tech: str, project_type: str) -> List[Dict]:
         """获取模拟的常用项目数据"""
