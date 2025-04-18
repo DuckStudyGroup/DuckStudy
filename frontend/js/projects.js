@@ -4,6 +4,7 @@ import { userAPI, contentAPI } from './api.js';
 let currentPage = 1;
 let currentView = 'grid';
 let isLoading = false;
+let currentTimeRange = 'all'; // 当前选择的时间范围，默认为 'all'
 
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', async () => {
@@ -19,6 +20,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // 添加加载更多事件
         addLoadMoreEvent();
+        
+        // 添加时间范围筛选事件
+        addTimeRangeEvents();
         
         // 加载项目列表
         await loadProjects();
@@ -112,8 +116,16 @@ async function loadProjects() {
             `;
         }
         
+        // 构建API请求URL，包含时间范围参数
+        let apiUrl = `/api/github/trending?page=${currentPage}`;
+        
+        // 添加时间范围参数
+        if (currentTimeRange !== 'all') {
+            apiUrl += `&timeRange=${currentTimeRange}`;
+        }
+        
         // 获取GitHub热门项目
-        const response = await fetch(`/api/github/trending?page=${currentPage}`);
+        const response = await fetch(apiUrl);
         const data = await response.json();
         
         if (!data.success) {
@@ -151,6 +163,11 @@ async function loadProjects() {
                     <span class="project-language">
                         <i class="bi bi-circle-fill"></i> ${project.language || '未知'}
                     </span>
+                    ${project.today_stars ? `
+                    <span class="project-today-stars">
+                        <i class="bi bi-star-fill text-warning"></i> +${project.today_stars} 今日
+                    </span>
+                    ` : ''}
                 </div>
                 <div class="project-actions">
                     <button class="btn btn-primary btn-sm" onclick="viewProjectDetails('${project.owner.login}', '${project.name}')">
@@ -337,6 +354,29 @@ function addLoadMoreEvent() {
             console.error('加载更多项目失败:', error);
             alert('加载失败，请重试');
         }
+    });
+}
+
+// 添加时间范围筛选事件
+function addTimeRangeEvents() {
+    const timeRangeButtons = document.querySelectorAll('[data-time-range]');
+    if (!timeRangeButtons || timeRangeButtons.length === 0) return;
+    
+    timeRangeButtons.forEach(button => {
+        button.addEventListener('click', async () => {
+            // 移除所有按钮的活动状态
+            timeRangeButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // 添加当前按钮的活动状态
+            button.classList.add('active');
+            
+            // 更新当前时间范围
+            currentTimeRange = button.getAttribute('data-time-range');
+            
+            // 重置页码并重新加载项目
+            currentPage = 1;
+            await loadProjects();
+        });
     });
 }
 

@@ -38,92 +38,21 @@
             <!-- 分类导航 -->
             <div class="category-nav">
                 <div class="category-list">
-                    <a href="#" class="category-item active">全部</a>
-                    <a href="#" class="category-item">教材教辅</a>
-                    <a href="#" class="category-item">电子产品</a>
-                    <a href="#" class="category-item">学习用品</a>
-                    <a href="#" class="category-item">生活用品</a>
-                    <a href="#" class="category-item">其他</a>
+                    <a href="#" class="category-item active" data-category="all">全部</a>
+                    <a href="#" class="category-item" data-category="textbook">教材教辅</a>
+                    <a href="#" class="category-item" data-category="electronics">电子产品</a>
+                    <a href="#" class="category-item" data-category="study">学习用品</a>
+                    <a href="#" class="category-item" data-category="life">生活用品</a>
+                    <a href="#" class="category-item" data-category="others">其他</a>
                 </div>
             </div>
 
+            <!-- 搜索结果提示 -->
+            <div class="search-result-count" id="resultCount" style="display: none;"></div>
+
             <!-- 商品列表 -->
             <div class="market-grid">
-                <!-- 商品卡片1 -->
-                <div class="market-card">
-                    <div class="market-card-img">
-                        <img src="https://via.placeholder.com/200" alt="商品图片">
-                    </div>
-                    <div class="market-card-content">
-                        <h3 class="market-card-title">Python编程入门教材</h3>
-                        <p class="market-card-desc">九成新，无笔记，适合初学者</p>
-                        <div class="market-card-meta">
-                            <span class="price">¥35</span>
-                            <span class="location"><i class="bi bi-geo-alt"></i> 北京</span>
-                        </div>
-                        <div class="market-card-footer">
-                            <span class="time">2小时前</span>
-                            <button class="btn btn-outline-primary btn-sm">联系卖家</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 商品卡片2 -->
-                <div class="market-card">
-                    <div class="market-card-img">
-                        <img src="https://via.placeholder.com/200" alt="商品图片">
-                    </div>
-                    <div class="market-card-content">
-                        <h3 class="market-card-title">二手笔记本电脑</h3>
-                        <p class="market-card-desc">联想小新Pro13，i5处理器，8G内存</p>
-                        <div class="market-card-meta">
-                            <span class="price">¥2800</span>
-                            <span class="location"><i class="bi bi-geo-alt"></i> 上海</span>
-                        </div>
-                        <div class="market-card-footer">
-                            <span class="time">1天前</span>
-                            <button class="btn btn-outline-primary btn-sm">联系卖家</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 商品卡片3 -->
-                <div class="market-card">
-                    <div class="market-card-img">
-                        <img src="https://via.placeholder.com/200" alt="商品图片">
-                    </div>
-                    <div class="market-card-content">
-                        <h3 class="market-card-title">考研数学复习资料</h3>
-                        <p class="market-card-desc">包含历年真题和解析，笔记详细</p>
-                        <div class="market-card-meta">
-                            <span class="price">¥50</span>
-                            <span class="location"><i class="bi bi-geo-alt"></i> 广州</span>
-                        </div>
-                        <div class="market-card-footer">
-                            <span class="time">3天前</span>
-                            <button class="btn btn-outline-primary btn-sm">联系卖家</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 商品卡片4 -->
-                <div class="market-card">
-                    <div class="market-card-img">
-                        <img src="https://via.placeholder.com/200" alt="商品图片">
-                    </div>
-                    <div class="market-card-content">
-                        <h3 class="market-card-title">二手平板电脑</h3>
-                        <p class="market-card-desc">iPad Air 3，64G，带原装笔</p>
-                        <div class="market-card-meta">
-                            <span class="price">¥2200</span>
-                            <span class="location"><i class="bi bi-geo-alt"></i> 深圳</span>
-                        </div>
-                        <div class="market-card-footer">
-                            <span class="time">5天前</span>
-                            <button class="btn btn-outline-primary btn-sm">联系卖家</button>
-                        </div>
-                    </div>
-                </div>
+                <!-- 商品卡片将通过JavaScript动态加载 -->
             </div>
         </div>
     </div>

@@ -1,24 +1,30 @@
 import { userAPI, contentAPI } from './api.js';
 
-// 页面加载完成后执行
-document.addEventListener('DOMContentLoaded', async () => {
+// 初始化全局帖子列表
+async function initMockPosts() {
     try {
-        // 更新用户状态
-        await updateUserStatus();
-        
-        // 添加导航切换事件
-        addNavEvents();
-        
-        // 加载收藏内容
-        await loadFavorites('all');
-        
-        // 添加清空收藏事件
-        addClearFavoritesEvent();
+        // 使用API获取所有帖子
+        const data = await contentAPI.getPosts();
+        window.mockPosts = data.posts;
     } catch (error) {
-        console.error('加载数据失败:', error);
-        alert('加载数据失败，请刷新页面重试');
+        console.error('加载帖子数据失败:', error);
+        window.mockPosts = [];
     }
-});
+}
+
+// 初始化市场数据
+async function initMarketItems() {
+    if (!window.marketItems || window.marketItems.length === 0) {
+        try {
+            // 使用API获取所有商品
+            const data = await contentAPI.getMarketItems();
+            window.marketItems = data.items || [];
+        } catch (error) {
+            console.error('加载市场商品数据失败:', error);
+            window.marketItems = [];
+        }
+    }
+}
 
 // 更新用户状态
 async function updateUserStatus() {
@@ -42,8 +48,8 @@ async function updateUserStatus() {
                             <a href="profile.html" class="dropdown-item">
                                 <i class="bi bi-person"></i> 个人中心
                             </a>
-                            <a href="favorites.html" class="dropdown-item">
-                                <i class="bi bi-heart"></i> 我的收藏
+                            <a href="favorites.html" class="dropdown-item active">
+                                <i class="bi bi-bookmark"></i> 我的收藏
                             </a>
                             <a href="history.html" class="dropdown-item">
                                 <i class="bi bi-clock-history"></i> 历史观看
@@ -72,199 +78,387 @@ async function updateUserStatus() {
                     }
                 });
             }
+            
+            return response;
         } else {
+            userSection.innerHTML = `
+                <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
+                <a href="register.html" class="btn btn-primary">注册</a>
+            `;
+            
+            // 用户未登录时重定向到登录页面
+            alert('请先登录后再查看收藏');
             window.location.href = 'login.html';
+            return null;
         }
     } catch (error) {
         console.error('获取用户状态失败:', error);
-        window.location.href = 'login.html';
+        const userSection = document.getElementById('userSection');
+        if (userSection) {
+            userSection.innerHTML = `
+                <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
+                <a href="register.html" class="btn btn-primary">注册</a>
+            `;
+        }
+        return null;
     }
 }
 
-// 加载收藏内容
-async function loadFavorites(type) {
+// 获取分类名称和对应的图标
+function getCategoryInfo(category) {
+    const categoryMap = {
+        'study': { name: '学习交流', icon: 'bi-book' },
+        'tech': { name: '技术讨论', icon: 'bi-code-square' },
+        'experience': { name: '经验分享', icon: 'bi-share' },
+        'help': { name: '问题求助', icon: 'bi-question-circle' },
+        'resource': { name: '资源分享', icon: 'bi-link' }
+    };
+    return categoryMap[category] || { name: category, icon: 'bi-tag' };
+}
+
+// 获取市场分类信息
+function getMarketCategoryInfo(category) {
+    const categoryMap = {
+        'textbook': { name: '教材教辅', icon: 'bi-book' },
+        'electronics': { name: '电子产品', icon: 'bi-laptop' },
+        'study': { name: '学习用品', icon: 'bi-pencil' },
+        'life': { name: '生活用品', icon: 'bi-house' },
+        'others': { name: '其他', icon: 'bi-tag' }
+    };
+    return categoryMap[category] || { name: '其他', icon: 'bi-tag' };
+}
+
+// 加载用户收藏内容
+async function loadFavoriteContent(type = 'all') {
     try {
         const favoritesContainer = document.getElementById('favoritesContainer');
-        if (!favoritesContainer) {
+        const noFavorites = document.getElementById('noFavorites');
+        const marketNotImplemented = document.getElementById('marketNotImplemented');
+        
+        if (!favoritesContainer || !noFavorites || !marketNotImplemented) {
             console.error('未找到收藏容器元素');
             return;
         }
         
-        // 显示加载状态
-        favoritesContainer.innerHTML = `
-            <div class="loading">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">加载中...</span>
-                </div>
-            </div>
-        `;
+        // 初始化隐藏提示
+        noFavorites.style.display = 'none';
+        marketNotImplemented.style.display = 'none';
+        favoritesContainer.innerHTML = '';
         
-        // 这里应该调用后端API获取收藏内容
-        // 目前使用模拟数据
-        const mockFavorites = {
-            all: [
-                {
-                    type: 'course',
-                    id: 1,
-                    title: 'Python基础教程',
-                    description: '从零开始学习Python编程',
-                    image: '../images/course1.jpg',
-                    instructor: '张老师',
-                    rating: 4.8
-                },
-                {
-                    type: 'post',
-                    id: 2,
-                    title: '如何提高学习效率',
-                    description: '分享一些实用的学习方法',
-                    author: '李同学',
-                    date: '2024-01-15',
-                    views: 1234
-                },
-                {
-                    type: 'market',
-                    id: 3,
-                    title: '二手教材',
-                    description: '数据结构与算法分析',
-                    price: 50,
-                    seller: '王同学',
-                    date: '2024-01-10'
-                }
-            ]
-        };
-        
-        const favorites = mockFavorites[type] || [];
-        
-        if (favorites.length === 0) {
-            favoritesContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="bi bi-heart"></i>
-                    <p>暂无收藏内容</p>
-                </div>
-            `;
+        // 获取当前登录用户信息
+        const userResponse = await userAPI.getStatus();
+        if (!userResponse || !userResponse.isLoggedIn) {
+            noFavorites.style.display = 'block';
             return;
         }
         
-        // 渲染收藏内容
-        favoritesContainer.innerHTML = favorites.map(item => {
-            switch (item.type) {
-                case 'course':
+        const userId = userResponse.userId || userResponse.username;
+        
+        // 获取特定用户的帖子收藏ID列表
+        const favoritedPostIds = JSON.parse(localStorage.getItem(`userFavorites_posts_${userId}`) || '[]');
+        
+        // 获取特定用户的市场收藏ID列表
+        const favoritedMarketIds = JSON.parse(localStorage.getItem(`userFavorites_market_${userId}`) || '[]');
+        
+        // 更新收藏计数
+        const postsCount = document.getElementById('postsCount');
+        const marketCount = document.getElementById('marketCount');
+        
+        if (postsCount) postsCount.textContent = favoritedPostIds.length;
+        if (marketCount) marketCount.textContent = favoritedMarketIds.length;
+        
+        // 检查是否有收藏内容
+        if (type === 'all' && favoritedPostIds.length === 0 && favoritedMarketIds.length === 0) {
+            noFavorites.style.display = 'block';
+            return;
+        } else if (type === 'posts' && favoritedPostIds.length === 0) {
+            noFavorites.style.display = 'block';
+            return;
+        } else if (type === 'market' && favoritedMarketIds.length === 0) {
+            noFavorites.style.display = 'block';
+            return;
+        }
+        
+        // 根据ID查找帖子详情
+        if (type === 'all' || type === 'posts') {
+            const favoritePosts = window.mockPosts.filter(post => 
+                favoritedPostIds.includes(post.id.toString())
+            );
+            
+            if (favoritePosts.length > 0) {
+                // 渲染收藏的帖子列表
+                favoritesContainer.innerHTML = favoritePosts.map(post => {
+                    const categoryInfo = getCategoryInfo(post.category);
+                    
                     return `
-                        <div class="favorite-item course-item">
-                            <div class="item-image">
-                                <img src="${item.image}" alt="${item.title}">
-                            </div>
-                            <div class="item-content">
-                                <h3 class="item-title">${item.title}</h3>
-                                <p class="item-description">${item.description}</p>
-                                <div class="item-meta">
-                                    <span class="instructor">
-                                        <i class="bi bi-person"></i> ${item.instructor}
-                                    </span>
-                                    <span class="rating">
-                                        <i class="bi bi-star-fill"></i> ${item.rating}
-                                    </span>
+                        <div class="post-card" data-id="${post.id}" data-type="post">
+                            <button type="button" class="remove-favorite" data-id="${post.id}" data-type="post">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                            <div class="post-header">
+                                <div class="post-author">
+                                    <div class="avatar">
+                                        <i class="bi bi-person-circle"></i>
+                                    </div>
+                                    <div class="author-info">
+                                        <span class="author-name">${post.author}</span>
+                                        <span class="post-time">${post.date}</span>
+                                    </div>
                                 </div>
+                                <div class="post-category">
+                                    <i class="bi ${categoryInfo.icon}"></i>
+                                    ${categoryInfo.name}
+                                </div>
+                            </div>
+                            <div class="post-content">
+                                <h3 class="post-title">${post.title}</h3>
+                                <p class="post-excerpt">${post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content}</p>
+                                <div class="post-tags">
+                                    ${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                </div>
+                            </div>
+                            <div class="post-footer">
+                                <div class="post-stats">
+                                    <span><i class="bi bi-eye"></i> ${post.views}</span>
+                                    <span><i class="bi bi-chat"></i> ${post.comments ? post.comments.length : 0}</span>
+                                    <span><i class="bi bi-heart"></i> ${post.likes}</span>
+                                    <span><i class="bi bi-bookmark-fill"></i> ${post.favorites}</span>
+                                </div>
+                                <a href="post-detail.html?id=${post.id}" class="read-more">阅读全文 <i class="bi bi-arrow-right"></i></a>
                             </div>
                         </div>
                     `;
-                case 'post':
-                    return `
-                        <div class="favorite-item post-item">
-                            <div class="item-content">
-                                <h3 class="item-title">${item.title}</h3>
-                                <p class="item-description">${item.description}</p>
-                                <div class="item-meta">
-                                    <span class="author">
-                                        <i class="bi bi-person"></i> ${item.author}
-                                    </span>
-                                    <span class="date">
-                                        <i class="bi bi-calendar"></i> ${item.date}
-                                    </span>
-                                    <span class="views">
-                                        <i class="bi bi-eye"></i> ${item.views}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                case 'market':
-                    return `
-                        <div class="favorite-item market-item">
-                            <div class="item-content">
-                                <h3 class="item-title">${item.title}</h3>
-                                <p class="item-description">${item.description}</p>
-                                <div class="item-meta">
-                                    <span class="price">
-                                        <i class="bi bi-currency-yen"></i> ${item.price}
-                                    </span>
-                                    <span class="seller">
-                                        <i class="bi bi-person"></i> ${item.seller}
-                                    </span>
-                                    <span class="date">
-                                        <i class="bi bi-calendar"></i> ${item.date}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                default:
-                    return '';
+                }).join('');
+            } else if (type === 'posts') {
+                // 如果没有收藏的帖子则显示提示
+                noFavorites.style.display = 'block';
             }
-        }).join('');
+        }
+        
+        // 根据ID查找市场商品详情
+        if (type === 'all' || type === 'market') {
+            // 初始化市场数据
+            await initMarketItems();
+            
+            const favoriteMarketItems = window.marketItems.filter(item => 
+                favoritedMarketIds.includes(item.id.toString())
+            );
+            
+            if (favoriteMarketItems.length > 0) {
+                // 为市场商品创建HTML内容
+                const marketHTML = favoriteMarketItems.map(item => {
+                    const categoryInfo = getMarketCategoryInfo(item.category);
+                    
+                    return `
+                        <div class="market-card" data-id="${item.id}" data-type="market">
+                            <button type="button" class="remove-favorite" data-id="${item.id}" data-type="market">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                            <div class="market-card-img">
+                                <img src="${item.images[0]}" alt="${item.title}">
+                                <div class="market-card-category">
+                                    <i class="bi ${categoryInfo.icon}"></i> ${categoryInfo.name}
+                                </div>
+                            </div>
+                            <div class="market-card-content">
+                                <h3 class="market-card-title">${item.title}</h3>
+                                <p class="market-card-desc">${item.description}</p>
+                                <div class="market-card-meta">
+                                    <span class="price">¥${item.price}</span>
+                                    <span class="condition">${item.condition}</span>
+                                    <span class="location"><i class="bi bi-geo-alt"></i> ${item.location}</span>
+                                </div>
+                                <div class="market-card-footer">
+                                    <span class="time">${item.date}</span>
+                                    <div class="market-card-stats">
+                                        <span><i class="bi bi-eye"></i> ${item.views}</span>
+                                        <span><i class="bi bi-bookmark"></i> ${item.favorites}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // 将市场商品添加到容器
+                if (type === 'all') {
+                    favoritesContainer.innerHTML += marketHTML;
+                } else {
+                    favoritesContainer.innerHTML = marketHTML;
+                }
+            } else if (type === 'market') {
+                // 如果没有收藏的市场商品则显示提示
+                noFavorites.style.display = 'block';
+            }
+        }
+        
+        // 添加移除收藏的事件
+        addRemoveFavoriteEvents();
         
     } catch (error) {
         console.error('加载收藏内容失败:', error);
-        favoritesContainer.innerHTML = `
-            <div class="error-state">
-                <i class="bi bi-exclamation-circle"></i>
-                <p>加载失败，请重试</p>
-            </div>
-        `;
+        throw error;
     }
 }
 
-// 添加导航切换事件
-function addNavEvents() {
-    const navItems = document.querySelectorAll('.nav-item');
+// 添加移除收藏的事件处理
+function addRemoveFavoriteEvents() {
+    const removeButtons = document.querySelectorAll('.remove-favorite');
     
-    navItems.forEach(item => {
-        item.addEventListener('click', async (e) => {
-            e.preventDefault();
+    removeButtons.forEach(button => {
+        button.addEventListener('click', async (event) => {
+            // 阻止事件冒泡，避免触发卡片点击
+            event.stopPropagation();
             
-            // 移除所有活动状态
-            navItems.forEach(nav => nav.classList.remove('active'));
+            const itemId = button.dataset.id;
+            const itemType = button.dataset.type;
+            const itemCard = button.closest(`.${itemType}-card, .post-card`);
             
-            // 添加当前活动状态
-            item.classList.add('active');
-            
-            // 加载对应类型的收藏内容
-            const type = item.getAttribute('data-type');
-            await loadFavorites(type);
+            if (confirm('确定要取消收藏这项内容吗？')) {
+                try {
+                    // 获取当前登录用户信息
+                    const userResponse = await userAPI.getStatus();
+                    if (!userResponse || !userResponse.isLoggedIn) {
+                        alert('请先登录');
+                        return;
+                    }
+                    
+                    const userId = userResponse.userId || userResponse.username;
+                    
+                    if (itemType === 'post') {
+                        // 从本地存储中移除帖子收藏
+                        const favoritedPosts = JSON.parse(localStorage.getItem(`userFavorites_posts_${userId}`) || '[]');
+                        const index = favoritedPosts.indexOf(itemId);
+                        
+                        if (index > -1) {
+                            favoritedPosts.splice(index, 1);
+                            localStorage.setItem(`userFavorites_posts_${userId}`, JSON.stringify(favoritedPosts));
+                            
+                            // 更新帖子数据中的收藏数
+                            const post = window.mockPosts.find(p => p.id.toString() === itemId);
+                            if (post && post.favorites > 0) {
+                                post.favorites--;
+                                await contentAPI.updatePost(post.id, post);
+                            }
+                            
+                            // 更新收藏计数
+                            const postsCount = document.getElementById('postsCount');
+                            if (postsCount) postsCount.textContent = favoritedPosts.length;
+                        }
+                    } else if (itemType === 'market') {
+                        // 从本地存储中移除市场商品收藏
+                        const favoritedItems = JSON.parse(localStorage.getItem(`userFavorites_market_${userId}`) || '[]');
+                        const index = favoritedItems.indexOf(itemId);
+                        
+                        if (index > -1) {
+                            favoritedItems.splice(index, 1);
+                            localStorage.setItem(`userFavorites_market_${userId}`, JSON.stringify(favoritedItems));
+                            
+                            // 更新商品数据中的收藏数
+                            const item = window.marketItems.find(i => i.id.toString() === itemId);
+                            if (item && item.favorites > 0) {
+                                item.favorites--;
+                                await contentAPI.updateMarketItem(item.id, item);
+                            }
+                            
+                            // 更新收藏计数
+                            const marketCount = document.getElementById('marketCount');
+                            if (marketCount) marketCount.textContent = favoritedItems.length;
+                        }
+                    }
+                    
+                    // 移除卡片元素
+                    if (itemCard) {
+                        itemCard.classList.add('fade-out');
+                        setTimeout(() => {
+                            itemCard.remove();
+                            
+                            // 检查是否还有收藏的内容
+                            const favoritesContainer = document.getElementById('favoritesContainer');
+                            const currentType = document.querySelector('.category-item.active').dataset.type;
+                            
+                            if (favoritesContainer && favoritesContainer.children.length === 0) {
+                                // 如果当前类别没有内容了，显示提示
+                                const noFavorites = document.getElementById('noFavorites');
+                                if (noFavorites) {
+                                    noFavorites.style.display = 'block';
+                                }
+                            }
+                        }, 300);
+                    }
+                } catch (error) {
+                    console.error('取消收藏失败:', error);
+                    alert('取消收藏失败，请重试');
+                }
+            }
+        });
+    });
+    
+    // 使整个卡片可点击
+    const postCards = document.querySelectorAll('.post-card');
+    postCards.forEach(card => {
+        card.addEventListener('click', (event) => {
+            // 如果点击的是移除按钮或阅读全文链接，不进行跳转
+            if (!event.target.closest('.remove-favorite') && !event.target.closest('.read-more')) {
+                const postId = card.dataset.id;
+                window.location.href = `post-detail.html?id=${postId}`;
+            }
+        });
+    });
+    
+    // 为市场商品卡片添加点击事件
+    const marketCards = document.querySelectorAll('.market-card');
+    marketCards.forEach(card => {
+        card.addEventListener('click', (event) => {
+            // 如果点击的是移除按钮，不进行跳转
+            if (!event.target.closest('.remove-favorite')) {
+                const itemId = card.dataset.id;
+                window.location.href = `market-detail.html?id=${itemId}`;
+            }
         });
     });
 }
 
-// 添加清空收藏事件
-function addClearFavoritesEvent() {
-    const clearBtn = document.getElementById('clearFavoritesBtn');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', async () => {
-            if (!confirm('确定要清空所有收藏吗？此操作不可恢复。')) {
-                return;
-            }
+// 添加分类导航事件
+function addCategoryEvents() {
+    const categoryItems = document.querySelectorAll('.category-item');
+    
+    categoryItems.forEach(item => {
+        item.addEventListener('click', async (e) => {
+            e.preventDefault();
             
-            try {
-                // 这里应该调用后端API清空收藏
-                console.log('清空收藏');
-                alert('清空成功！');
-                
-                // 重新加载收藏内容
-                await loadFavorites('all');
-            } catch (error) {
-                console.error('清空收藏失败:', error);
-                alert('清空失败，请重试');
-            }
+            // 移除所有active类
+            categoryItems.forEach(i => i.classList.remove('active'));
+            
+            // 添加active类到当前点击项
+            item.classList.add('active');
+            
+            // 根据分类加载内容
+            const type = item.dataset.type;
+            await loadFavoriteContent(type);
         });
+    });
+}
+
+// 页面加载完成后执行
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // 更新用户状态
+        const userResponse = await updateUserStatus();
+        
+        // 如果用户已登录则继续加载
+        if (userResponse && userResponse.isLoggedIn) {
+            // 初始化帖子数据
+            await initMockPosts();
+            
+            // 添加分类导航事件
+            addCategoryEvents();
+            
+            // 加载收藏内容（默认全部）
+            await loadFavoriteContent('all');
+        }
+    } catch (error) {
+        console.error('加载数据失败:', error);
+        alert('加载数据失败，请刷新页面重试');
     }
-} 
+});

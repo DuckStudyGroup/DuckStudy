@@ -178,6 +178,12 @@
     color: #6c757d;
     margin-bottom: 1rem;
     line-height: 1.6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    max-height: 3.2em; /* 2行的高度 = line-height * 2 */
 }
 
 .post-tags {

@@ -1,0 +1,79 @@
+{
+    "items": [
+        {
+            "id": 1001,
+            "title": "Python编程入门教材",
+            "price": 35,
+            "description": "九成新，无笔记，适合初学者",
+            "category": "textbook",
+            "location": "北京",
+            "seller": "王五",
+            "contact": "微信: wangwu123",
+            "date": "2024/04/15",
+            "images": ["../images/market/example.jpg"],
+            "condition": "9成新",
+            "views": 45,
+            "favorites": 8
+        },
+        {
+            "id": 1002,
+            "title": "二手笔记本电脑",
+            "price": 2800,
+            "description": "联想小新Pro13，i5处理器，8G内存, 512G SSD。购买两年，性能良好，有轻微磨损。",
+            "category": "electronics",
+            "location": "上海",
+            "seller": "李四",
+            "contact": "QQ: 123456789",
+            "date": "2024/04/10",
+            "images": ["../images/market/example.jpg"],
+            "condition": "8成新",
+            "views": 87,
+            "favorites": 15
+        },
+        {
+            "id": 1003,
+            "title": "考研数学复习资料",
+            "price": 50,
+            "description": "包含历年真题和解析，笔记详细，适合考研学生使用",
+            "category": "textbook",
+            "location": "广州",
+            "seller": "张三",
+            "contact": "电话: 13812345678",
+            "date": "2024/04/05",
+            "images": ["../images/market/example.jpg"],
+            "condition": "全新",
+            "views": 64,
+            "favorites": 12
+        },
+        {
+            "id": 1004,
+            "title": "二手平板电脑",
+            "price": 2200,
+            "description": "iPad Air 3，64G，带原装笔，购买一年，无划痕",
+            "category": "electronics",
+            "location": "深圳",
+            "seller": "赵六",
+            "contact": "微信: zhaoliu666",
+            "date": "2024/04/02",
+            "images": ["../images/market/example.jpg"],
+            "condition": "9成新",
+            "views": 93,
+            "favorites": 18
+        },
+        {
+            "id": 1005,
+            "title": "自行车",
+            "price": 350,
+            "description": "捷安特自行车，使用一年，车况良好，适合校园通勤",
+            "category": "others",
+            "location": "成都",
+            "seller": "测试1",
+            "contact": "电话: 13987654321",
+            "date": "2024/04/01",
+            "images": ["../images/market/example.jpg"],
+            "condition": "7成新",
+            "views": 42,
+            "favorites": 5
+        }
+    ]
+} 
