@@ -37,13 +37,13 @@ async function updateUserStatus() {
                         <i class="bi bi-person-circle"></i>
                     </div>
                     <div class="dropdown-menu">
-                        <a href="/pages/profile.html" class="dropdown-item">
+                        <a href="pages/profile.html" class="dropdown-item">
                             <i class="bi bi-person"></i> 个人中心
                         </a>
-                        <a href="/pages/favorites.html" class="dropdown-item">
+                        <a href="pages/favorites.html" class="dropdown-item">
                             <i class="bi bi-heart"></i> 我的收藏
                         </a>
-                        <a href="/pages/history.html" class="dropdown-item">
+                        <a href="pages/history.html" class="dropdown-item">
                             <i class="bi bi-clock-history"></i> 历史观看
                         </a>
                         <div class="dropdown-divider"></div>
@@ -87,8 +87,8 @@ async function updateUserStatus() {
         }
     } else {
         userSection.innerHTML = `
-            <a href="/pages/login.html" class="btn btn-outline-primary me-2">登录</a>
-            <a href="/pages/register.html" class="btn btn-primary">注册</a>
+            <a href="pages/login.html" class="btn btn-outline-primary me-2">登录</a>
+            <a href="pages/register.html" class="btn btn-primary">注册</a>
         `;
     }
 }
@@ -129,16 +129,19 @@ async function loadReviews() {
 async function loadMarketItems() {
     try {
         const marketGrid = document.getElementById('marketGrid');
-        const items = await contentAPI.getMarketItems();
+        const response = await contentAPI.getMarketItems();
         
-        if (!items || items.length === 0) {
+        // 确保response.items存在且是数组
+        const items = response && response.items && Array.isArray(response.items) ? response.items : [];
+        
+        if (items.length === 0) {
             marketGrid.innerHTML = '<div class="text-center">暂无商品</div>';
             return;
         }
         
         marketGrid.innerHTML = items.map(item => `
-            <div class="market-card">
-                <img src="${item.image}" alt="${item.title}">
+            <div class="market-card" data-id="${item.id}">
+                <img src="${item.images && item.images[0] ? item.images[0] : '../images/default-product.jpg'}" alt="${item.title}">
                 <div class="market-info">
                     <h3>${item.title}</h3>
                     <div class="price">¥${item.price}</div>
@@ -146,6 +149,15 @@ async function loadMarketItems() {
                 </div>
             </div>
         `).join('');
+        
+        // 添加点击事件，跳转到商品详情页
+        const marketCards = document.querySelectorAll('.market-card');
+        marketCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const itemId = card.dataset.id;
+                window.location.href = `pages/market-detail.html?id=${itemId}`;
+            });
+        });
     } catch (error) {
         console.error('加载二手市场商品失败:', error);
         throw error;
@@ -163,19 +175,53 @@ async function loadHotPosts() {
             return;
         }
         
-        postsList.innerHTML = posts.map(post => `
-            <div class="post-item">
-                <h3>${post.title}</h3>
-                <div class="post-meta">
-                    <span>作者：${post.author}</span>
-                    <span>浏览：${post.views}</span>
-                    <span>${post.date}</span>
-                </div>
-            </div>
-        `).join('');
+        // 获取所有分类信息，用于展示帖子分类
+        const getCategoryInfo = (category) => {
+            const categoryMap = {
+                'study': { name: '学习交流', icon: 'bi-book' },
+                'tech': { name: '技术讨论', icon: 'bi-code-square' },
+                'experience': { name: '经验分享', icon: 'bi-share' },
+                'help': { name: '问题求助', icon: 'bi-question-circle' },
+                'resource': { name: '资源分享', icon: 'bi-link' }
+            };
+            return categoryMap[category] || { name: category, icon: 'bi-tag' };
+        };
+        
+        postsList.innerHTML = posts.map(post => {
+            const categoryInfo = getCategoryInfo(post.category);
+            
+            // 格式化帖子内容预览（最多显示50个字符）
+            const contentPreview = post.content.length > 50 
+                ? post.content.substring(0, 50) + '...' 
+                : post.content;
+                
+            return `
+                <a href="pages/post-detail.html?id=${post.id}" class="post-item">
+                    <div class="post-item-content">
+                        <h3 class="post-title">${post.title}</h3>
+                        <p class="post-preview">${contentPreview}</p>
+                        <div class="post-meta">
+                            <div class="post-category">
+                                <i class="bi ${categoryInfo.icon}"></i>
+                                <span>${categoryInfo.name}</span>
+                            </div>
+                            <div class="post-stats">
+                                <span><i class="bi bi-person"></i> ${post.author}</span>
+                                <span><i class="bi bi-eye"></i> ${post.views}</span>
+                                <span><i class="bi bi-hand-thumbs-up"></i> ${post.likes}</span>
+                                <span><i class="bi bi-calendar"></i> ${post.date}</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            `;
+        }).join('');
     } catch (error) {
         console.error('加载热门帖子失败:', error);
-        throw error;
+        const postsList = document.getElementById('postsList');
+        if (postsList) {
+            postsList.innerHTML = '<div class="text-center text-danger">加载热门帖子失败</div>';
+        }
     }
 }
 

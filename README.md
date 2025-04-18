@@ -8,11 +8,15 @@ DuckStudy 是一个综合学习平台，提供学习导航、论坛交流、二�
 - 用户论坛
 - 二手交易市场
 - GitHub 热门项目展示
+  - 实时获取 GitHub Trending 页面数据
+  - 支持多种时间范围筛选（今日、本周、本月、今年、全部时间）
+  - 展示实时 Star 增长数据
 
 ## 技术栈
 - 前端：HTML/CSS/VanillaJS
 - 后端：Python/Flask
 - 数据库：JSON 文件存储
+- 数据获取：BeautifulSoup4 网页解析
 
 ## 快速开始
 
@@ -33,7 +37,7 @@ cd DuckStudy
 pip install -r backend/requirements.txt
 ```
 
-3. 配置 GitHub Token
+3. 配置 GitHub Token（可选）
 ```bash
 # 1. 访问 GitHub 设置页面
 # 打开 https://github.com/settings/tokens
@@ -55,6 +59,8 @@ touch backend/.env
 
 # 编辑 .env 文件，添加 Token
 echo "GITHUB_TOKEN=your_token_here" > backend/.env
+
+# 注意：即使没有配置 Token，系统也可以通过网页爬取的方式获取 GitHub 趋势数据
 ```
 
 4. 启动服务
@@ -77,10 +83,22 @@ DuckStudy/
 ├── backend/           # 后端代码
 │   ├── app.py         # Flask 应用
 │   ├── services/      # 服务模块
+│   │   └── github_service.py  # GitHub数据服务
 │   ├── utils/         # 工具模块
+│   │   └── cache.py   # 缓存工具
+│   ├── requirements.txt # 依赖列表
 │   └── .env           # 环境变量
 └── README.md          # 项目文档
 ```
+
+## 功能详情
+
+### GitHub趋势项目
+- 数据来源：直接爬取 GitHub Trending 页面
+- 支持按时间范围筛选：今日、本周、本月、今年、全部时间
+- 显示项目详情：包括语言、Star数、Fork数、今日新增Star数
+- 缓存机制：减少重复请求，提高加载速度
+- 降级处理：在爬取失败时，会尝试使用GitHub API，若仍失败则使用模拟数据
 
 ## API 文档
 详见 [API文档.md](API文档.md)
@@ -99,11 +117,14 @@ DuckStudy/
    - 开发环境使用 `.env` 文件
    - 生产环境使用系统环境变量
 
-
 3. 数据存储
    - 用户数据：`frontend/data/users.json`
    - 帖子数据：`frontend/data/posts.json`
    - 评论数据：`frontend/data/comments.json`
+
+4. 网页爬取
+   - 系统会缓存爬取的数据以减少请求频率
+   - 请尊重 GitHub 的使用条款，不要过于频繁地发送请求
 
 ## 贡献指南
 1. Fork 项目
@@ -113,4 +134,4 @@ DuckStudy/
 5. 创建 Pull Request
 
 ## 许可证
-MIT License 
+MIT License

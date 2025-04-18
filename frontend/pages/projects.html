@@ -64,6 +64,20 @@
                                     </div>
                                 </div>
 
+                                <!-- 添加时间范围筛选 -->
+                                <div class="filter-section mb-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">时间范围:</div>
+                                        <div class="btn-group" role="group" aria-label="时间范围筛选">
+                                            <button type="button" class="btn btn-outline-primary active" data-time-range="all">全部时间</button>
+                                            <button type="button" class="btn btn-outline-primary" data-time-range="yearly">今年</button>
+                                            <button type="button" class="btn btn-outline-primary" data-time-range="monthly">本月</button>
+                                            <button type="button" class="btn btn-outline-primary" data-time-range="weekly">本周</button>
+                                            <button type="button" class="btn btn-outline-primary" data-time-range="daily">今日</button>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- 项目列表 -->
                                 <div class="projects-grid" id="projectsGrid">
                                     <!-- 项目将通过JavaScript动态加载 -->

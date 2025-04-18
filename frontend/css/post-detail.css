@@ -6,6 +6,7 @@
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    white-space: pre-line;
 }
 
 .post-header {
@@ -49,9 +50,10 @@
     margin-bottom: 1rem;
 }
 
+/* 帖子操作样式 */
 .post-actions {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
     margin-top: 2rem;
     padding-top: 1rem;
     border-top: 1px solid #eee;
@@ -67,21 +69,40 @@
     color: #666;
     cursor: pointer;
     transition: all 0.3s ease;
+    border-radius: 4px;
 }
 
 .post-actions button:hover {
-    color: #0d6efd;
+    background-color: #f8f9fa;
 }
 
-.post-actions button.liked {
+.post-actions .like-btn:hover {
     color: #dc3545;
 }
 
-.post-actions button.liked i {
-    animation: like-animation 0.3s ease;
+.post-actions .like-btn.liked {
+    color: #dc3545;
 }
 
-@keyframes like-animation {
+.post-actions .favorite-btn:hover {
+    color: #0d6efd;
+}
+
+.post-actions .favorite-btn.favorited {
+    color: #0d6efd;
+}
+
+.post-actions button i {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.post-actions .like-btn.liked i,
+.post-actions .favorite-btn.favorited i {
+    animation: action-animation 0.3s ease;
+}
+
+@keyframes action-animation {
     0% { transform: scale(1); }
     50% { transform: scale(1.2); }
     100% { transform: scale(1); }

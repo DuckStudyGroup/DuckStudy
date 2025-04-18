@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布二手商品 - DuckStudy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/market-publish.css">
+</head>
+<body>
+  <header>
+    <nav id="main-nav"></nav>
+  </header>
+
+  <main>
+    <div class="publish-container">
+      <div class="page-header">
+        <h1>发布二手商品</h1>
+        <p>填写商品信息，让其他同学看到你的闲置物品</p>
+      </div>
+
+      <form id="publishForm" class="publish-form">
+        <!-- 基本信息 -->
+        <div class="form-section">
+          <h2>基本信息</h2>
+          
+          <div class="form-group">
+            <label for="title" class="form-label">商品标题</label>
+            <input type="text" class="form-control" id="title" name="title" placeholder="简短描述你的商品（最多50字）" maxlength="50" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="category" class="form-label">商品分类</label>
+            <select class="form-select" id="category" name="category" required>
+              <option value="" selected disabled>请选择分类</option>
+              <option value="books">教材书籍</option>
+              <option value="electronics">电子产品</option>
+              <option value="daily">日常用品</option>
+              <option value="clothing">服装鞋帽</option>
+              <option value="sports">运动器材</option>
+              <option value="others">其他物品</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="price" class="form-label">价格（元）</label>
+            <input type="number" class="form-control" id="price" name="price" min="0" step="0.01" placeholder="输入商品价格" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="condition" class="form-label">商品状态</label>
+            <select class="form-select" id="condition" name="condition" required>
+              <option value="" selected disabled>请选择商品状态</option>
+              <option value="new">全新</option>
+              <option value="like_new">几乎全新</option>
+              <option value="good">使用良好</option>
+              <option value="acceptable">可接受</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 图片上传 -->
+        <div class="form-section">
+          <h2>商品图片</h2>
+          <p>上传清晰的商品照片，最多5张</p>
+          
+          <div class="image-upload-area">
+            <div class="image-upload-wrapper">
+              <input type="file" id="imageInput" accept="image/*" multiple class="image-input">
+              <div class="upload-placeholder">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>点击或拖放图片上传</p>
+                <span>支持JPG、PNG格式，单张不超过5MB</span>
+              </div>
+            </div>
+            
+            <div class="image-preview-container">
+              <!-- 图片预览将在这里显示 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 详细描述 -->
+        <div class="form-section">
+          <h2>详细描述</h2>
+          
+          <div class="form-group">
+            <label for="description" class="form-label">商品描述</label>
+            <textarea class="form-control" id="description" name="description" rows="5" placeholder="详细描述商品的品牌、型号、购买时间、使用感受等信息" required></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="location" class="form-label">交易地点</label>
+            <input type="text" class="form-control" id="location" name="location" placeholder="如：校内某处、某宿舍楼等" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="contact" class="form-label">联系方式</label>
+            <input type="text" class="form-control" id="contact" name="contact" placeholder="如：微信号、QQ号或手机号" required>
+          </div>
+        </div>
+
+        <!-- 按钮区域 -->
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline-secondary" onclick="window.history.back()">取消</button>
+          <button type="button" id="previewBtn" class="btn btn-primary">预览</button>
+          <button type="submit" id="submitBtn" class="btn btn-success">发布商品</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- 预览模态框 -->
+  <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="previewModalLabel">商品预览</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="preview-container">
+            <div class="preview-images" id="previewImages">
+              <!-- 图片预览 -->
+            </div>
+            
+            <div class="preview-details">
+              <h3 id="previewTitle"></h3>
+              
+              <div class="preview-price">¥<span id="previewPrice"></span></div>
+              
+              <div class="preview-info">
+                <div class="info-item">
+                  <span class="info-label">分类:</span>
+                  <span class="info-value" id="previewCategory"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">状态:</span>
+                  <span class="info-value" id="previewCondition"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">交易地点:</span>
+                  <span class="info-value" id="previewLocation"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">联系方式:</span>
+                  <span class="info-value" id="previewContact"></span>
+                </div>
+              </div>
+              
+              <div class="preview-description-section">
+                <h4>商品描述</h4>
+                <div class="preview-description" id="previewDescription"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">返回编辑</button>
+          <button type="button" id="confirmPublishBtn" class="btn btn-success">确认发布</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <p class="text-center">© 2024 DuckStudy 学习平台</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/market-publish.js"></script>
+</body>
+</html> 

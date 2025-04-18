@@ -232,7 +232,8 @@ export const contentAPI = {
     // 获取二手市场商品
     getMarketItems: async () => {
         try {
-            const response = await fetch(`${BASE_URL}/api/market`);
+            // 在开发阶段，直接从本地JSON文件加载数据
+            const response = await fetch('../data/market.json');
             if (!response.ok) {
                 throw new Error('获取二手市场商品失败');
             }
@@ -243,17 +244,114 @@ export const contentAPI = {
         }
     },
 
+    // 获取单个市场物品详情
+    getMarketItem: async (itemId) => {
+        try {
+            // 获取所有市场物品
+            const response = await contentAPI.getMarketItems();
+            if (response && response.items && response.items.length > 0) {
+                // 查找特定ID的物品
+                const item = response.items.find(item => item.id === parseInt(itemId));
+                if (item) {
+                    return { success: true, item };
+                }
+                return { success: false, message: '物品不存在' };
+            }
+            return { success: false, message: '获取物品失败' };
+        } catch (error) {
+            console.error('获取市场物品详情失败:', error);
+            return { success: false, message: error.message };
+        }
+    },
+
+    // 创建新的市场物品
+    createMarketItem: async (itemData) => {
+        try {
+            // 在开发阶段，仅返回模拟成功响应
+            // 实际场景中应该调用后端API保存数据
+            return {
+                success: true,
+                message: '物品创建成功',
+                item: {
+                    id: Date.now(),  // 使用时间戳作为临时ID
+                    ...itemData,
+                    views: 0,
+                    favorites: 0,
+                    date: new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '/'),
+                }
+            };
+        } catch (error) {
+            console.error('创建市场物品失败:', error);
+            return { success: false, message: error.message };
+        }
+    },
+
+    // 更新市场物品
+    updateMarketItem: async (itemId, itemData) => {
+        try {
+            // 在开发阶段，仅返回模拟成功响应
+            // 实际场景中应该调用后端API更新数据
+            return {
+                success: true,
+                message: '物品更新成功'
+            };
+        } catch (error) {
+            console.error('更新市场物品失败:', error);
+            return { success: false, message: error.message };
+        }
+    },
+
+    // 获取热门市场物品
+    getHotMarketItems: async () => {
+        try {
+            // 获取所有市场物品
+            const response = await contentAPI.getMarketItems();
+            
+            if (response && response.items && response.items.length > 0) {
+                // 按浏览量和收藏数排序
+                const items = response.items.sort((a, b) => {
+                    // 计算热度分数：浏览量 + 收藏数 * 2
+                    const scoreA = a.views + (a.favorites * 2);
+                    const scoreB = b.views + (b.favorites * 2);
+                    return scoreB - scoreA;
+                });
+                
+                // 返回前3个热门物品
+                return items.slice(0, 3);
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('获取热门市场物品失败:', error);
+            return [];
+        }
+    },
+
     // 获取热门帖子
     getHotPosts: async () => {
         try {
-            const response = await fetch(`${BASE_URL}/api/posts/hot`);
-            if (!response.ok) {
-                throw new Error('获取热门帖子失败');
+            // 获取所有帖子
+            const response = await contentAPI.getPosts();
+            
+            if (response && response.posts && response.posts.length > 0) {
+                // 获取所有帖子并按照 views 和 likes 降序排序，提取最热门的帖子
+                const posts = response.posts.sort((a, b) => {
+                    // 计算热度分数：浏览量 + 点赞数 * 2（给点赞更高权重）
+                    const scoreA = a.views + (a.likes * 2);
+                    const scoreB = b.views + (b.likes * 2);
+                    return scoreB - scoreA;
+                });
+                
+                // 返回前3个热门帖子
+                return posts.slice(0, 3);
             }
-            return await response.json();
+            
+            return [];
         } catch (error) {
             console.error('获取热门帖子失败:', error);
-            throw error;
+            
+            // 出错时返回空数组
+            return [];
         }
     },
 

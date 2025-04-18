@@ -381,19 +381,30 @@ def update_post(post_id):
         updated_post = request.json
         data = read_posts()
         
+        # 记录更新的内容（调试用）
+        print(f"正在更新帖子ID: {post_id}")
+        print(f"更新内容: {updated_post}")
+        
+        found = False
         for i, post in enumerate(data['posts']):
             if post['id'] == post_id:
+                found = True
                 # 更新帖子数据
                 data['posts'][i] = updated_post
                 
                 # 保存数据
                 if save_posts(data):
+                    print(f"帖子更新成功: {updated_post}")
                     return jsonify({"success": True, "message": "帖子更新成功", "post": updated_post})
                 else:
+                    print("帖子保存失败")
                     return jsonify({"success": False, "message": "帖子保存失败"}), 500
         
-        return jsonify({"message": "帖子不存在"}), 404
+        if not found:
+            print(f"帖子不存在: {post_id}")
+            return jsonify({"message": "帖子不存在"}), 404
     except Exception as e:
+        print(f"更新帖子异常: {str(e)}")
         return jsonify({"success": False, "message": f"更新帖子失败: {str(e)}"}), 500
 
 # API路由：获取评论

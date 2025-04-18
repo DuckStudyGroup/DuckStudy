@@ -217,3 +217,37 @@
     border-radius: 50%;
     margin-right: 10px;
 }
+
+/* 项目卡片中的今日新增星标 */
+.project-today-stars {
+    color: #ff9800;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.project-today-stars i {
+    color: #ff9800;
+    margin-right: 2px;
+}
+
+/* 添加时间范围筛选样式 */
+.filter-section {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+}
+
+.filter-section .btn-group .btn {
+    border-radius: 4px;
+    margin-right: 5px;
+}
+
+.filter-section .btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+.filter-section .btn-group .btn.active {
+    background-color: #0d6efd;
+    color: white;
+}

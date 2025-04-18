@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/posts.css">
     <link rel="stylesheet" href="../css/favorites.css">
 </head>
 <body>
@@ -22,7 +23,7 @@
                         <a href="market.html" class="nav-link">市场</a>
                     </div>
                     <div class="search-box">
-                        <input type="text" placeholder="搜索...">
+                        <input type="text" placeholder="搜索帖子...">
                         <i class="bi bi-search"></i>
                     </div>
                     <div class="user-section">
@@ -34,57 +35,47 @@
             </div>
         </nav>
 
-        <!-- 主要内容区 -->
         <div class="main-content">
-            <div class="container">
-                <div class="row">
-                    <!-- 左侧导航 -->
-                    <div class="col-md-3">
-                        <div class="favorites-nav">
-                            <div class="nav-list">
-                                <a href="#" class="nav-item active" data-type="all">
-                                    <i class="bi bi-grid"></i> 全部收藏
-                                </a>
-                                <a href="#" class="nav-item" data-type="courses">
-                                    <i class="bi bi-book"></i> 课程收藏
-                                </a>
-                                <a href="#" class="nav-item" data-type="posts">
-                                    <i class="bi bi-file-text"></i> 帖子收藏
-                                </a>
-                                <a href="#" class="nav-item" data-type="market">
-                                    <i class="bi bi-shop"></i> 商品收藏
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 右侧内容 -->
-                    <div class="col-md-9">
-                        <div class="favorites-content">
-                            <div class="content-header">
-                                <h2>我的收藏</h2>
-                                <div class="favorites-stats">
-                                    <span>共 <span id="totalCount">0</span> 个收藏</span>
-                                    <button class="btn btn-outline-danger" id="clearAll">
-                                        <i class="bi bi-trash"></i> 清空收藏
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- 收藏列表 -->
-                            <div class="favorites-list" id="favoritesList">
-                                <!-- 收藏内容将通过JavaScript动态加载 -->
-                            </div>
-
-                            <!-- 空状态 -->
-                            <div class="empty-state" id="emptyState" style="display: none;">
-                                <i class="bi bi-heart"></i>
-                                <p>暂无收藏内容</p>
-                                <a href="../index.html" class="btn btn-primary">去首页逛逛</a>
-                            </div>
-                        </div>
-                    </div>
+            <!-- 页面标题 -->
+            <div class="page-header">
+                <h1><i class="bi bi-bookmark-heart"></i> 我的收藏</h1>
+                <p class="text-muted">这里列出了您收藏的内容</p>
+            </div>
+            
+            <!-- 收藏类型导航 -->
+            <div class="category-nav favorites-category-nav">
+                <div class="category-list">
+                    <a href="#" class="category-item active" data-type="all">
+                        <i class="bi bi-collection"></i> 全部收藏
+                    </a>
+                    <a href="#" class="category-item" data-type="posts">
+                        <i class="bi bi-file-text"></i> 帖子收藏
+                        <span class="category-count" id="postsCount">0</span>
+                    </a>
+                    <a href="#" class="category-item" data-type="market">
+                        <i class="bi bi-shop"></i> 二手市场
+                        <span class="category-count" id="marketCount">0</span>
+                    </a>
                 </div>
+            </div>
+
+            <!-- 收藏提示 -->
+            <div id="noFavorites" class="alert alert-info text-center" style="display: none;">
+                <i class="bi bi-info-circle"></i> 您还没有收藏任何内容，浏览站点并收藏感兴趣的内容吧！
+                <div class="mt-3">
+                    <a href="posts.html" class="btn btn-primary me-2">前往论坛</a>
+                    <a href="market.html" class="btn btn-outline-primary">前往二手市场</a>
+                </div>
+            </div>
+            
+            <!-- 二手市场未实现提示 -->
+            <div id="marketNotImplemented" class="alert alert-warning text-center" style="display: none;">
+                <i class="bi bi-exclamation-triangle"></i> 二手市场收藏功能正在开发中，敬请期待！
+            </div>
+
+            <!-- 收藏内容容器 -->
+            <div id="favoritesContainer" class="posts-container">
+                <!-- 收藏内容将通过JavaScript动态加载 -->
             </div>
         </div>
     </div>
@@ -93,4 +84,5 @@
     <script type="module" src="../js/api.js"></script>
     <script type="module" src="../js/favorites.js"></script>
 </body>
+</html> 
 </html> 

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布商品 - DuckStudy</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/market-publish.css">
+</head>
+<body>
+  <!-- 导航栏 -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+      <a class="navbar-brand" href="../index.html">DuckStudy</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="forum.html">论坛</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="market.html">二手市场</a>
+          </li>
+        </ul>
+        <form class="d-flex me-2">
+          <input class="form-control me-2" type="search" placeholder="搜索..." aria-label="Search">
+          <button class="btn btn-outline-primary" type="submit">搜索</button>
+        </form>
+        <div id="userSection">
+          <!-- 这里将由JavaScript动态更新用户登录状态 -->
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <main class="container mt-4">
+    <div class="publish-container">
+      <div class="page-header">
+        <h1>发布商品</h1>
+        <a href="market.html" class="back-btn">
+          <i class="bi bi-arrow-left"></i> 返回市场
+        </a>
+      </div>
+
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> 填写商品信息，发布您的闲置物品
+      </div>
+
+      <form id="publishForm" class="publish-form">
+        <div class="form-group">
+          <label for="title">商品标题 <span class="required">*</span></label>
+          <input type="text" id="title" name="title" class="form-control" required placeholder="请输入商品标题（20字以内）" maxlength="20">
+        </div>
+
+        <div class="form-group">
+          <label for="category">商品分类 <span class="required">*</span></label>
+          <select id="category" name="category" class="form-control" required>
+            <option value="" disabled selected>请选择商品分类</option>
+            <option value="textbook">教材教辅</option>
+            <option value="electronics">电子产品</option>
+            <option value="study">学习用品</option>
+            <option value="life">生活用品</option>
+            <option value="others">其他</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="price">价格 (元) <span class="required">*</span></label>
+          <input type="number" id="price" name="price" class="form-control" required placeholder="请输入商品价格" min="0" step="0.01">
+        </div>
+
+        <div class="form-group">
+          <label for="condition">成色 <span class="required">*</span></label>
+          <select id="condition" name="condition" class="form-control" required>
+            <option value="" disabled selected>请选择商品成色</option>
+            <option value="全新">全新</option>
+            <option value="九成新">九成新</option>
+            <option value="八成新">八成新</option>
+            <option value="七成新">七成新</option>
+            <option value="六成新及以下">六成新及以下</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="location">交易地点 <span class="required">*</span></label>
+          <input type="text" id="location" name="location" class="form-control" required placeholder="请输入交易地点，如：北区宿舍、图书馆门口">
+        </div>
+
+        <div class="form-group">
+          <label for="contact">联系方式 <span class="required">*</span></label>
+          <input type="text" id="contact" name="contact" class="form-control" required placeholder="请输入联系方式，如：微信号、QQ或手机号">
+        </div>
+
+        <div class="form-group">
+          <label for="description">商品描述 <span class="required">*</span></label>
+          <textarea id="description" name="description" class="form-control" rows="5" required placeholder="请详细描述商品情况，如：购买时间、使用情况、出售原因等"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="imageInput">商品图片 <span class="required">*</span></label>
+          <div class="image-upload-container">
+            <div class="image-upload-wrapper">
+              <input type="file" id="imageInput" name="imageInput" class="image-input" accept="image/*" multiple>
+              <div class="upload-placeholder">
+                <i class="bi bi-cloud-arrow-up"></i>
+                <p>点击或拖拽上传图片</p>
+                <span class="small">支持jpg、png格式，最多3张</span>
+              </div>
+            </div>
+            <div id="imagePreviewContainer" class="image-preview-container"></div>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button type="button" id="previewBtn" class="btn btn-outline-primary">预览</button>
+          <button type="submit" id="submitBtn" class="btn btn-primary">发布商品</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 预览模态框 -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">商品预览</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="previewBody">
+            <!-- 预览内容将通过JavaScript动态生成 -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            <button type="button" class="btn btn-primary" id="confirmPublishBtn">确认发布</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="../js/api.js"></script>
+  <script type="module" src="../js/market-publish.js"></script>
+</body>
+</html> 

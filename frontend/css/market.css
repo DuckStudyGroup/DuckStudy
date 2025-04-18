@@ -1,78 +1,106 @@
-/* 分类导航样式 */
+/* 主容器 */
+.main-content {
+    padding: 20px;
+    position: relative;
+}
+
+/* 类别导航 */
 .category-nav {
-    background: #fff;
-    padding: 15px 0;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
 }
 
 .category-list {
     display: flex;
-    gap: 20px;
-    padding: 0 20px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 15px;
+    gap: 15px;
+    min-width: max-content;
 }
 
 .category-item {
-    padding: 8px 16px;
+    padding: 8px 15px;
     border-radius: 20px;
-    color: #666;
+    color: #555;
     text-decoration: none;
+    transition: all 0.3s;
     white-space: nowrap;
-    transition: all 0.3s ease;
 }
 
 .category-item:hover {
-    color: #0d6efd;
-    background: #f8f9fa;
+    background-color: #f1f8ff;
+    color: #007bff;
 }
 
 .category-item.active {
+    background-color: #007bff;
     color: #fff;
-    background: #0d6efd;
+    font-weight: 500;
 }
 
-/* 商品列表样式 */
+/* 搜索结果计数 */
+.search-result-count {
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* 商品网格 */
 .market-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
-    padding: 20px;
 }
 
-/* 商品卡片样式 */
+/* 商品卡片 */
 .market-card {
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
+    background-color: #fff;
+    border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
 }
 
 .market-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .market-card-img {
-    position: relative;
-    padding-top: 75%; /* 4:3 比例 */
+    height: 200px;
     overflow: hidden;
+    position: relative;
 }
 
 .market-card-img img {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s;
 }
 
 .market-card:hover .market-card-img img {
     transform: scale(1.05);
+}
+
+.market-card-category {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #0366d6;
+    border-radius: 16px;
+    padding: 5px 12px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.market-card-category i {
+    margin-right: 5px;
 }
 
 .market-card-content {
@@ -80,17 +108,27 @@
 }
 
 .market-card-title {
-    margin: 0 0 8px 0;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
+    margin-bottom: 8px;
     color: #333;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .market-card-desc {
-    margin: 0 0 12px 0;
-    font-size: 14px;
     color: #666;
-    line-height: 1.4;
+    font-size: 14px;
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 40px;
 }
 
 .market-card-meta {
@@ -101,50 +139,103 @@
 }
 
 .price {
-    color: #dc3545;
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
+    color: #e53935;
+}
+
+.condition {
+    background-color: #f1f1f1;
+    color: #666;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
 }
 
 .location {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
     color: #666;
-    font-size: 14px;
 }
 
 .location i {
     margin-right: 4px;
+    font-size: 12px;
 }
 
 .market-card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
 }
 
 .time {
-    color: #999;
-    font-size: 12px;
+    font-size: 13px;
+    color: #888;
+}
+
+.market-card-stats {
+    display: flex;
+    gap: 10px;
+}
+
+.market-card-stats span {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #888;
+}
+
+.market-card-stats i {
+    margin-right: 4px;
+}
+
+/* 没有结果 */
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+/* 发布商品按钮 */
+.create-item-btn {
+    position: fixed;
+    right: 25px;
+    bottom: 25px;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    z-index: 100;
+}
+
+.create-item-btn:hover {
+    background-color: #0069d9;
+    transform: scale(1.05);
 }
 
 /* 响应式调整 */
 @media (max-width: 768px) {
     .market-grid {
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        gap: 15px;
-        padding: 15px;
-    }
-
-    .category-list {
-        padding: 0 15px;
-    }
-
-    .category-item {
-        padding: 6px 12px;
-        font-size: 14px;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
     .market-grid {
         grid-template-columns: 1fr;
     }
