@@ -1,0 +1,597 @@
+/* 课程展示页面样式 */
+.main-content {
+    padding: 30px 0;
+    background-color: #f8f9fa;
+}
+
+/* 页面标题 */
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2.2rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.page-header p {
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+/* 搜索框样式 */
+.search-section {
+    margin-bottom: 2rem;
+}
+
+.search-container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.search-container input {
+    flex: 1;
+    border: none;
+    padding: 15px 20px;
+    font-size: 1rem;
+    outline: none;
+}
+
+.search-container button {
+    background: #0d6efd;
+    color: white;
+    border: none;
+    padding: 0 25px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-container button:hover {
+    background: #0b5ed7;
+}
+
+/* 首页搜索框 */
+.home-search-box {
+    max-width: 600px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.home-search-box input {
+    flex: 1;
+    border: none;
+    padding: 12px 15px;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.home-search-box button {
+    background: #0d6efd;
+    color: white;
+    border: none;
+    width: 50px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.home-search-box button:hover {
+    background: #0b5ed7;
+}
+
+.section-subtitle {
+    font-size: 1.2rem;
+    color: #333;
+    margin: 0 0 1rem 1rem;
+    font-weight: 600;
+}
+
+/* 筛选条件样式 */
+.filter-section {
+    margin-bottom: 2rem;
+}
+
+.filter-container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+}
+
+.filter-group label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.3rem;
+}
+
+.filter-group select {
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 0.9rem;
+}
+
+.filter-group button {
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #0d6efd;
+    margin-top: 1.25rem;
+}
+
+.filter-group button:hover {
+    background-color: #f1f8ff;
+    border-color: #0d6efd;
+}
+
+/* 课程列表样式 */
+.courses-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.course-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.course-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.course-card-content {
+    padding: 1.5rem;
+}
+
+.course-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.course-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 0.5rem 0;
+}
+
+.course-teacher {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.course-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stars {
+    color: #ffc107;
+}
+
+.rating-score {
+    font-weight: 600;
+    color: #333;
+}
+
+.course-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.meta-item i {
+    font-size: 0.8rem;
+}
+
+/* 课程卡片网格（首页使用） */
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 0 1rem;
+}
+
+.home-course-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.home-course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.home-course-card-content {
+    padding: 1.5rem;
+}
+
+.home-course-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.home-course-teacher {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.home-course-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* 课程详情页样式 */
+.back-link {
+    margin-bottom: 1.5rem;
+}
+
+.back-link a {
+    color: #0d6efd;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.3s;
+}
+
+.back-link a:hover {
+    color: #0a58ca;
+    text-decoration: underline;
+}
+
+.course-detail-container {
+    max-width: 800px;
+    margin: 0 auto 2rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+}
+
+.course-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.course-title-section {
+    flex: 1;
+}
+
+.course-title-section h1 {
+    font-size: 1.75rem;
+    color: #333;
+    margin: 0 0 0.5rem 0;
+}
+
+.course-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.course-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.course-info-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.course-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.info-item {
+    margin-bottom: 0.5rem;
+}
+
+.info-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.3rem;
+}
+
+.info-value {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.course-description {
+    margin-bottom: 1.5rem;
+}
+
+.course-description h3 {
+    font-size: 1.25rem;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.course-description p {
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+/* 课程评价部分样式 */
+.course-reviews-section {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+}
+
+.reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.reviews-header h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin: 0;
+}
+
+.reviews-stats {
+    display: flex;
+    margin-bottom: 2rem;
+    gap: 2rem;
+}
+
+.overall-rating {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-right: 2rem;
+    border-right: 1px solid #dee2e6;
+}
+
+.big-score {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #333;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.big-stars {
+    color: #ffc107;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.rating-bars {
+    flex: 1;
+}
+
+.rating-bar-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.rating-label {
+    width: 40px;
+    text-align: right;
+    margin-right: 1rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.rating-bar {
+    flex: 1;
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-right: 1rem;
+}
+
+.rating-fill {
+    height: 100%;
+    background-color: #ffc107;
+}
+
+.rating-percent {
+    width: 40px;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.reviews-list {
+    margin-top: 2rem;
+}
+
+.review-item {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.review-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.reviewer {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.reviewer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: #6c757d;
+    font-size: 1.25rem;
+}
+
+.reviewer-info {
+    flex: 1;
+}
+
+.reviewer-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.review-date {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.review-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.review-content {
+    color: #333;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.review-actions {
+    display: flex;
+    gap: 1rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.review-action {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.review-action:hover {
+    color: #0d6efd;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .course-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .course-actions {
+        width: 100%;
+    }
+    
+    .course-actions button {
+        flex: 1;
+    }
+    
+    .course-info-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .reviews-stats {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .overall-rating {
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+        padding-right: 0;
+        padding-bottom: 1.5rem;
+    }
+    
+    .search-container,
+    .filter-container {
+        flex-direction: column;
+    }
+    
+    .search-container button {
+        width: 100%;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .course-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .courses-grid {
+        grid-template-columns: 1fr;
+    }
+} 
