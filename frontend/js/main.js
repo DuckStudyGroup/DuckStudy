@@ -8,11 +8,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // 然后加载其他内容
         await Promise.all([
-            loadReviews(),
+            loadHotCourses(),
             loadMarketItems(),
             loadHotPosts(),
             loadRecentViews()
         ]);
+
+        // 添加首页搜索按钮事件
+        addHomeSearchEvent();
     } catch (error) {
         console.error('加载数据失败:', error);
         alert('加载数据失败，请刷新页面重试');
@@ -93,10 +96,17 @@ async function updateUserStatus() {
     }
 }
 
-// 加载课程评价
+// 加载课程评价 - 已不再使用，由loadHotCourses替代
+// 保留此函数是为了避免修改太多代码，但不再调用它
 async function loadReviews() {
     try {
+        // 检查reviewsGrid是否存在
         const reviewsGrid = document.getElementById('reviewsGrid');
+        if (!reviewsGrid) {
+            console.log('reviewsGrid元素不存在，跳过加载评价');
+            return;
+        }
+        
         const reviews = await contentAPI.getReviews();
         
         if (!reviews || reviews.length === 0) {
@@ -121,7 +131,8 @@ async function loadReviews() {
         `).join('');
     } catch (error) {
         console.error('加载课程评价失败:', error);
-        throw error;
+        // 不抛出错误，防止中断其他功能
+        console.log('跳过加载评价，继续执行其他功能');
     }
 }
 
@@ -247,4 +258,137 @@ async function loadRecentViews() {
         console.error('加载最近观看失败:', error);
         throw error;
     }
+}
+
+// 添加首页课程搜索事件
+function addHomeSearchEvent() {
+    const searchBtn = document.getElementById('homeSearchBtn');
+    const searchInput = document.getElementById('homeCourseSearch');
+    
+    if (searchBtn && searchInput) {
+        searchBtn.addEventListener('click', () => {
+            const query = searchInput.value.trim();
+            if (query) {
+                window.location.href = `pages/courses.html?search=${encodeURIComponent(query)}`;
+            }
+        });
+        
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = searchInput.value.trim();
+                if (query) {
+                    window.location.href = `pages/courses.html?search=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+    }
+}
+
+// 加载热门课程
+async function loadHotCourses() {
+    try {
+        const coursesGrid = document.getElementById('coursesGrid');
+        if (!coursesGrid) return;
+        
+        // 模拟课程数据
+        const mockCourses = [
+            {
+                id: 1,
+                title: '高等数学(上)',
+                teacher: '张明教授',
+                rating: 4.8,
+                department: '数学学院',
+                category: '必修',
+                campus: '中心校区'
+            },
+            {
+                id: 2,
+                title: '数据结构与算法',
+                teacher: '李华教授',
+                rating: 4.9,
+                department: '计算机学院',
+                category: '必修',
+                campus: '东校区'
+            },
+            {
+                id: 3,
+                title: '大学英语(三)',
+                teacher: '王丽副教授',
+                rating: 4.5,
+                department: '外国语学院',
+                category: '必修',
+                campus: '南校区'
+            },
+            {
+                id: 4,
+                title: '人工智能导论',
+                teacher: '刘强教授',
+                rating: 4.7,
+                department: '计算机学院',
+                category: '选修',
+                campus: '中心校区'
+            }
+        ];
+        
+        // 渲染课程卡片
+        coursesGrid.innerHTML = mockCourses.map(course => {
+            // 生成星级评分HTML
+            const ratingStars = generateStars(course.rating);
+            
+            return `
+            <div class="home-course-card" data-id="${course.id}">
+                <div class="home-course-card-content">
+                    <h3 class="home-course-title">${course.title}</h3>
+                    <div class="home-course-teacher">${course.teacher}</div>
+                    <div class="home-course-rating">
+                        <div class="stars">${ratingStars}</div>
+                        <span class="rating-score">${course.rating}</span>
+                    </div>
+                    <div class="course-meta">
+                        <span class="meta-item"><i class="bi bi-building"></i> ${course.department}</span>
+                        <span class="meta-item"><i class="bi bi-geo-alt"></i> ${course.campus}</span>
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join('');
+        
+        // 添加点击事件
+        const courseCards = document.querySelectorAll('.home-course-card');
+        courseCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const courseId = card.dataset.id;
+                window.location.href = `pages/course-detail.html?id=${courseId}`;
+            });
+        });
+    } catch (error) {
+        console.error('加载热门课程失败:', error);
+        throw error;
+    }
+}
+
+// 生成星级评分HTML
+function generateStars(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    
+    let starsHtml = '';
+    
+    // 添加满星
+    for (let i = 0; i < fullStars; i++) {
+        starsHtml += '<i class="bi bi-star-fill"></i>';
+    }
+    
+    // 添加半星（如果有）
+    if (hasHalfStar) {
+        starsHtml += '<i class="bi bi-star-half"></i>';
+    }
+    
+    // 添加空星
+    for (let i = 0; i < emptyStars; i++) {
+        starsHtml += '<i class="bi bi-star"></i>';
+    }
+    
+    return starsHtml;
 } 
