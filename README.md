@@ -1,11 +1,21 @@
 # DuckStudy - 综合学习平台
 
 ## 项目简介
-DuckStudy 是一个综合学习平台，提供学习导航、论坛交流、二手交易和热门 GitHub 项目展示等功能。
+DuckStudy 是一个综合学习平台，提供学习导航、论坛交流、二手交易和热门 GitHub 项目展示等功能。平台采用现代化的设计，提供流畅的用户体验。
 
 ## 功能特点
 - 多站点导航（学习网站、工具网站）
 - 用户论坛
+  - 支持富文本编辑
+  - 图片上传（最多3张封面图）
+  - 评论和回复功能
+  - 点赞和收藏功能
+- 课程评价系统
+  - 星级评分（1-5星）
+  - 评价标签（内容充实、讲解清晰、作业适量等）
+  - 匿名评价选项
+  - 评价统计和可视化
+  - 评价点赞和回复功能
 - 二手交易市场
 - GitHub 热门项目展示
   - 实时获取 GitHub Trending 页面数据
@@ -13,10 +23,18 @@ DuckStudy 是一个综合学习平台，提供学习导航、论坛交流、二�
   - 展示实时 Star 增长数据
 
 ## 技术栈
-- 前端：HTML/CSS/VanillaJS
-- 后端：Python/Flask
-- 数据库：JSON 文件存储
-- 数据获取：BeautifulSoup4 网页解析
+- 前端：
+  - HTML5/CSS3
+  - Vanilla JavaScript (ES6+)
+  - Bootstrap 5
+  - Quill 富文本编辑器
+- 后端：
+  - Python 3.8+
+  - Flask
+  - BeautifulSoup4
+- 数据存储：
+  - JSON 文件存储
+  - 图片文件存储
 
 ## 快速开始
 
@@ -37,30 +55,13 @@ cd DuckStudy
 pip install -r backend/requirements.txt
 ```
 
-3. 配置 GitHub Token（可选）
+3. 配置环境变量
 ```bash
-# 1. 访问 GitHub 设置页面
-# 打开 https://github.com/settings/tokens
-
-# 2. 生成新的 Token
-# - 点击 "Generate new token"
-# - 选择 "Generate new token (classic)"
-# - 设置 Token 描述（如：DuckStudy API）
-# - 选择权限：
-#   - repo (全部)
-#   - read:user
-#   - user:email
-# - 点击 "Generate token"
-# - 复制生成的 Token
-
-# 3. 配置 Token
 # 在项目根目录创建 .env 文件
 touch backend/.env
 
-# 编辑 .env 文件，添加 Token
+# 编辑 .env 文件，添加必要的配置
 echo "GITHUB_TOKEN=your_token_here" > backend/.env
-
-# 注意：即使没有配置 Token，系统也可以通过网页爬取的方式获取 GitHub 趋势数据
 ```
 
 4. 启动服务
@@ -78,27 +79,67 @@ DuckStudy/
 ├── frontend/           # 前端代码
 │   ├── css/           # 样式文件
 │   ├── js/            # JavaScript 文件
-│   ├── pages/         # HTML 页面
-│   └── data/          # 数据文件
+│   ├── pages/         # 主要页面
+│   ├── html/          # 其他页面（登录、注册等）
+│   ├── images/        # 图片资源
+│   │   ├── posts/     # 帖子图片
+│   │   └── courses/   # 课程图片
+│   ├── data/          # 数据文件（JSON）
+│   ├── lib/           # 第三方库
+│   └── index.html     # 网站首页
 ├── backend/           # 后端代码
-│   ├── app.py         # Flask 应用
+│   ├── app.py         # Flask 应用主文件
+│   ├── routes/        # 路由模块
 │   ├── services/      # 服务模块
-│   │   └── github_service.py  # GitHub数据服务
 │   ├── utils/         # 工具模块
-│   │   └── cache.py   # 缓存工具
-│   ├── requirements.txt # 依赖列表
-│   └── .env           # 环境变量
+│   ├── config/        # 配置文件
+│   ├── requirements.txt # Python 依赖
+│   ├── .env           # 环境变量
+│   └── __init__.py    # 包初始化文件
 └── README.md          # 项目文档
 ```
 
 ## 功能详情
+
+### 论坛功能
+- 帖子发布
+  - 支持富文本编辑
+  - 最多上传3张封面图片
+  - 支持标签分类
+- 帖子展示
+  - 响应式布局
+  - 图片轮播展示
+  - 点赞和收藏功能
+- 评论系统
+  - 支持多级评论
+  - 评论图片上传
+  - 评论点赞功能
+
+### 课程评价系统
+- 评价功能
+  - 星级评分（1-5星）
+  - 评价内容（最少10个字符）
+  - 评价标签选择
+  - 匿名评价选项
+- 评价展示
+  - 总体评分统计
+  - 各星级占比可视化
+  - 评价列表展示
+  - 评价时间排序
+- 评价互动
+  - 评价点赞功能
+  - 评价回复功能
+  - 评价举报功能
+- 数据存储
+  - 本地存储评价数据
+  - 支持离线查看
+  - 数据持久化
 
 ### GitHub趋势项目
 - 数据来源：直接爬取 GitHub Trending 页面
 - 支持按时间范围筛选：今日、本周、本月、今年、全部时间
 - 显示项目详情：包括语言、Star数、Fork数、今日新增Star数
 - 缓存机制：减少重复请求，提高加载速度
-- 降级处理：在爬取失败时，会尝试使用GitHub API，若仍失败则使用模拟数据
 
 ## API 文档
 详见 [API文档.md](API文档.md)
@@ -107,24 +148,22 @@ DuckStudy/
 详见 [前端开发规范.md](前端开发规范.md)
 
 ## 注意事项
-1. GitHub Token 安全
-   - 不要将 Token 提交到代码仓库
-   - 定期更新 Token
-   - 使用最小必要权限
-   - 如果 Token 泄露，立即在 GitHub 设置中撤销
+1. 图片上传
+   - 支持格式：JPG、PNG、GIF、WEBP
+   - 单张图片大小限制：2MB
+   - 帖子封面图最多3张
+   - 评论图片最多1张
 
-2. 环境变量
-   - 开发环境使用 `.env` 文件
-   - 生产环境使用系统环境变量
-
-3. 数据存储
+2. 数据存储
    - 用户数据：`frontend/data/users.json`
    - 帖子数据：`frontend/data/posts.json`
    - 评论数据：`frontend/data/comments.json`
+   - 图片存储：`frontend/images/posts/`
 
-4. 网页爬取
-   - 系统会缓存爬取的数据以减少请求频率
-   - 请尊重 GitHub 的使用条款，不要过于频繁地发送请求
+3. 安全考虑
+   - 图片上传前进行格式和大小验证
+   - 用户输入进行 XSS 防护
+   - 敏感操作需要登录验证
 
 ## 贡献指南
 1. Fork 项目
