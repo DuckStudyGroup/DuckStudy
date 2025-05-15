@@ -33,7 +33,7 @@ async function initProfilePage() {
         console.error('初始化用户资料页面失败:', error);
         alert('加载用户资料失败，请重试');
     }
-}
+
 
 // 更新用户状态
 async function updateUserStatus(userData) {
@@ -309,3 +309,4 @@ function addTabSwitchEvents() {
 document.addEventListener('DOMContentLoaded', () => {
     initProfilePage();
 }); 
+
