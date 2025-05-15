@@ -5,7 +5,7 @@ const BASE_URL = window.location.hostname === 'localhost' || window.location.hos
     : 'http://localhost:5000';
 
 // 用户相关API
-export const userAPI = {
+const userAPI = {
     // 获取用户状态
     getStatus: async () => {
         try {
@@ -96,7 +96,7 @@ export const userAPI = {
 };
 
 // 内容相关API
-export const contentAPI = {
+const contentAPI = {
     // 获取所有帖子
     getPosts: async () => {
         try {
@@ -148,20 +148,47 @@ export const contentAPI = {
     // 更新帖子
     updatePost: async (postId, postData) => {
         try {
+            // 添加调试日志
+            console.log('准备更新帖子:', postId, '数据:', postData);
+            
+            // 确保兼容性：如果后端API不支持coverImages字段，可以创建不包含该字段的数据副本
+            const safePostData = {...postData};
+            if (safePostData.coverImages && Array.isArray(safePostData.coverImages) && safePostData.coverImages.length === 0) {
+                // 如果coverImages为空数组，将其设置为null或完全删除该字段
+                delete safePostData.coverImages;
+            }
+            
             const response = await fetch(`${BASE_URL}/api/posts/${postId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(postData)
+                body: JSON.stringify(safePostData)
             });
+            
+            // 添加更详细的错误处理
             if (!response.ok) {
-                throw new Error('更新帖子失败');
+                // 尝试获取详细的错误信息
+                let errorMessage = '更新帖子失败';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorMessage;
+                } catch (jsonError) {
+                    // 如果无法解析JSON，使用HTTP状态文本
+                    errorMessage = `更新帖子失败: ${response.status} ${response.statusText}`;
+                }
+                throw new Error(errorMessage);
             }
+            
             return await response.json();
         } catch (error) {
             console.error('更新帖子失败:', error);
-            throw error;
+            // 为防止意外错误导致整个应用崩溃，返回错误对象而不是抛出异常
+            return { 
+                success: false, 
+                error: true,
+                message: error.message || '更新帖子时发生未知错误'
+            };
         }
     },
 
@@ -381,5 +408,79 @@ export const contentAPI = {
             console.error('获取热门项目失败:', error);
             throw error;
         }
+    },
+
+    // 更新评论
+    updateComment: async (postId, commentId, commentData) => {
+        try {
+            // 验证输入
+            if (!postId || !commentId || !commentData) {
+                throw new Error('缺少必要参数');
+            }
+            
+            // 获取当前评论数据
+            const comments = await contentAPI.getComments(postId);
+            
+            if (!comments || !Array.isArray(comments)) {
+                throw new Error('无法获取评论数据');
+            }
+            
+            // 查找并更新评论
+            const commentIndex = comments.findIndex(comment => comment.id.toString() === commentId.toString());
+            
+            if (commentIndex === -1) {
+                throw new Error('未找到评论');
+            }
+            
+            // 更新评论
+            comments[commentIndex] = {
+                ...comments[commentIndex],
+                ...commentData
+            };
+            
+            // 保存评论数据
+            localStorage.setItem(`comments_${postId}`, JSON.stringify(comments));
+            
+            return {
+                success: true,
+                message: '评论更新成功'
+            };
+        } catch (error) {
+            console.error('更新评论失败:', error);
+            return {
+                success: false,
+                message: error.message || '更新评论失败'
+            };
+        }
     }
-}; 
+};
+
+// 图片上传接口
+const uploadAPI = {
+    // 上传图片（开发阶段模拟API）
+    uploadImage: async function(imageData) {
+        try {
+            // 模拟网络延迟
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            // 这里应该是发送到服务器的代码
+            // 由于目前没有后端，我们直接返回一个成功响应
+            
+            // 随机ID，实际项目中应由后端生成
+            const imageId = 'img_' + Date.now();
+            
+            return {
+                success: true,
+                imageId: imageId,
+                imageUrl: imageData, // 这里直接返回DataURL，实际项目中会是服务器存储路径
+                message: "图片上传成功"
+            };
+        } catch (error) {
+            console.error('上传图片失败:', error);
+            throw error;
+        }
+    }
+};
+
+// 导出API对象
+export { userAPI, contentAPI, uploadAPI }; 

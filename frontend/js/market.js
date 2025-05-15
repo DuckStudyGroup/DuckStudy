@@ -127,7 +127,7 @@ function getCategoryInfo(category) {
 
 // 加载商品列表
 async function loadMarketItems(category = '', searchTerm = '') {
-    const marketGrid = document.querySelector('.market-grid');
+    const marketGrid = document.querySelector('#itemsContainer');
     const resultCount = document.getElementById('resultCount');
     
     if (!marketGrid) {
@@ -262,18 +262,12 @@ function addSearchEvents() {
 
 // 添加发布商品按钮
 function addCreateItemBtn() {
-    // 查找main-content元素
-    const mainContent = document.querySelector('.main-content');
-    if (!mainContent) return;
-    
-    // 创建发布按钮元素
-    const createBtn = document.createElement('button');
-    createBtn.className = 'create-item-btn';
-    createBtn.id = 'createItemBtn';
-    createBtn.innerHTML = '<i class="bi bi-plus-lg"></i>';
-    
-    // 添加到页面
-    mainContent.appendChild(createBtn);
+    // 获取已有的发布按钮
+    const createBtn = document.getElementById('publishBtn');
+    if (!createBtn) {
+        console.error('未找到发布按钮');
+        return;
+    }
     
     // 添加点击事件
     createBtn.addEventListener('click', async () => {

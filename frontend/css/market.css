@@ -41,10 +41,20 @@
 }
 
 /* 搜索结果计数 */
-.search-result-count {
+.result-count {
     margin-bottom: 15px;
     font-size: 14px;
     color: #666;
+    background-color: #f8f9fa;
+    padding: 8px 15px;
+    border-radius: 5px;
+}
+
+/* 商品列表容器 */
+.items-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
 }
 
 /* 商品网格 */
@@ -204,7 +214,7 @@
 }
 
 /* 发布商品按钮 */
-.create-item-btn {
+.publish-btn {
     position: fixed;
     right: 25px;
     bottom: 25px;
@@ -223,7 +233,7 @@
     z-index: 100;
 }
 
-.create-item-btn:hover {
+.publish-btn:hover {
     background-color: #0069d9;
     transform: scale(1.05);
 }

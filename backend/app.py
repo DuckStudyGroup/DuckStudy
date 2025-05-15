@@ -7,6 +7,7 @@ import hashlib  # 用于密码加密
 from services.github_service import github_service
 from dotenv import load_dotenv
 import requests
+from werkzeug.utils import secure_filename
 
 # 加载环境变量
 load_dotenv()
@@ -42,6 +43,13 @@ POSTS_FILE = os.path.join(BASE_DIR, 'frontend', 'data', 'posts.json')
 COMMENTS_FILE = os.path.join(BASE_DIR, 'frontend', 'data', 'comments.json')
 USERS_FILE = os.path.join(BASE_DIR, 'frontend', 'data', 'users.json')
 
+# 配置上传文件夹
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'frontend', 'images', 'posts')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# 确保上传目录存在
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 # 确保数据文件存在
 def ensure_file_exists(file_path, default_data=None):
     """确保文件存在，如果不存在则创建"""
@@ -73,9 +81,31 @@ def read_posts():
 def save_posts(data):
     """保存帖子数据"""
     try:
-        with open(POSTS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-        return True
+        # 尝试先序列化测试，确保数据可以转为JSON
+        json_string = json.dumps(data, ensure_ascii=False, indent=4)
+        
+        # 先写入到临时文件，成功后再替换
+        temp_file = f"{POSTS_FILE}.temp"
+        with open(temp_file, 'w', encoding='utf-8') as f:
+            f.write(json_string)
+        
+        # 临时文件写入成功后，替换原文件
+        import os
+        if os.path.exists(temp_file):
+            # 在Windows上，可能需要先删除原文件
+            if os.path.exists(POSTS_FILE) and os.name == 'nt':
+                try:
+                    os.remove(POSTS_FILE)
+                except Exception as e:
+                    print(f"删除原文件失败: {str(e)}")
+                    return False
+            
+            # 重命名临时文件
+            os.rename(temp_file, POSTS_FILE)
+            return True
+        else:
+            print("临时文件写入失败")
+            return False
     except Exception as e:
         print(f"保存帖子数据失败: {str(e)}")
         return False
@@ -385,17 +415,47 @@ def update_post(post_id):
         print(f"正在更新帖子ID: {post_id}")
         print(f"更新内容: {updated_post}")
         
+        # 安全检查：确保更新数据中不包含可能导致JSON序列化错误的内容
+        if 'coverImages' in updated_post and updated_post['coverImages'] is not None:
+            if not isinstance(updated_post['coverImages'], list):
+                # 如果coverImages不是列表，删除它
+                del updated_post['coverImages']
+                print("警告: coverImages字段不是列表，已删除")
+            else:
+                # 过滤掉不合法的URLs
+                valid_images = []
+                for url in updated_post['coverImages']:
+                    if isinstance(url, str) and len(url) < 10000 and not any(c in url for c in ['\\', '<', '>']):
+                        valid_images.append(url)
+                    else:
+                        print(f"警告: 过滤掉无效的URL: {url[:50]}...")
+                
+                if valid_images:
+                    updated_post['coverImages'] = valid_images
+                else:
+                    del updated_post['coverImages']
+                    print("警告: 所有coverImages都无效，已删除该字段")
+        
         found = False
         for i, post in enumerate(data['posts']):
             if post['id'] == post_id:
                 found = True
-                # 更新帖子数据
-                data['posts'][i] = updated_post
+                
+                # 局部更新帖子数据，而不是完全替换
+                for key, value in updated_post.items():
+                    data['posts'][i][key] = value
+                
+                # 保存前进行JSON序列化测试
+                try:
+                    json.dumps(data, ensure_ascii=False)
+                except Exception as json_error:
+                    print(f"警告: JSON序列化失败: {str(json_error)}")
+                    return jsonify({"success": False, "message": f"更新帖子失败: 数据格式错误 - {str(json_error)}"}), 400
                 
                 # 保存数据
                 if save_posts(data):
                     print(f"帖子更新成功: {updated_post}")
-                    return jsonify({"success": True, "message": "帖子更新成功", "post": updated_post})
+                    return jsonify({"success": True, "message": "帖子更新成功", "post": data['posts'][i]})
                 else:
                     print("帖子保存失败")
                     return jsonify({"success": False, "message": "帖子保存失败"}), 500
@@ -633,10 +693,35 @@ def generate_mock_common_projects(tech, project_type):
     
     return filtered_projects
 
+# API路由：上传图片
+@app.route('/api/upload-image', methods=['POST'])
+def upload_image():
+    if 'image' not in request.files:
+        return jsonify({'error': '没有文件'}), 400
+        
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'error': '没有选择文件'}), 400
+        
+    # 获取文件名
+    filename = request.form.get('filename', secure_filename(file.filename))
+    
+    # 保存文件
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(file_path)
+    
+    # 返回可访问的URL（使用相对路径）
+    return jsonify({
+        'imageUrl': f"/images/posts/{filename}"
+    })
+
 # 添加静态文件路由（放在最后作为catch-all路由）
 @app.route('/<path:path>')
 def serve_static(path):
     # 处理所有静态文件请求
+    if path.startswith('images/'):
+        # 对于图片请求，从frontend目录提供
+        return send_from_directory(os.path.join(BASE_DIR, 'frontend'), path)
     return send_from_directory(os.path.join(BASE_DIR, 'frontend'), path)
 
 if __name__ == '__main__':

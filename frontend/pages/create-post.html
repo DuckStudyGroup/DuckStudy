@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>发布帖子 - DuckStudy</title>
+    <title>发表帖子 - DuckStudy</title>
     <link rel="icon" type="image/x-icon" href="../images/duckstudy.ico">
-    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/css/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/quill/css/quill.snow.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/create-post.css">
 </head>
@@ -15,11 +16,18 @@
         <!-- 顶部导航栏 -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container">
-                <a class="navbar-brand" href="../index.html">DuckStudy</a>
+                <div class="d-flex align-items-center">
+                    <a href="posts.html" class="btn btn-outline-secondary me-3">
+                        <i class="bi bi-arrow-left"></i> 返回
+                    </a>
+                    <a class="navbar-brand" href="../index.html">DuckStudy</a>
+                </div>
                 <div class="d-flex align-items-center">
                     <div class="nav-links">
                         <a href="posts.html" class="nav-link active">论坛</a>
                         <a href="market.html" class="nav-link">市场</a>
+                        <a href="courses.html" class="nav-link">课程</a>
+                        <a href="projects.html" class="nav-link">热门项目</a>
                     </div>
                     <div class="search-box">
                         <input type="text" placeholder="搜索帖子...">
@@ -35,41 +43,73 @@
         </nav>
 
         <div class="main-content">
-            <div class="create-post-container">
-                <h2>发布新帖子</h2>
-                <form id="createPostForm">
-                    <div class="mb-3">
-                        <label for="title" class="form-label">标题</label>
-                        <input type="text" class="form-control" id="title" required>
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h1 class="card-title">发表新帖</h1>
                     </div>
-                    <div class="mb-3">
-                        <label for="category" class="form-label">分类</label>
-                        <select class="form-select" id="category" required>
-                            <option value="study">学习交流</option>
-                            <option value="tech">技术讨论</option>
-                            <option value="experience">经验分享</option>
-                            <option value="help">问题求助</option>
-                            <option value="resource">资源分享</option>
-                        </select>
+                    <div class="card-body">
+                        <form id="createPostForm">
+                            <div class="form-group mb-3">
+                                <label for="title" class="form-label">标题</label>
+                                <input type="text" class="form-control" id="title" placeholder="请输入帖子标题" maxlength="100" required>
+                                <div class="form-text">标题长度不超过100个字符</div>
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="category" class="form-label">分类</label>
+                                <select class="form-select" id="category" required>
+                                    <option value="" selected disabled>请选择分类</option>
+                                    <option value="study">学习交流</option>
+                                    <option value="tech">技术讨论</option>
+                                    <option value="experience">经验分享</option>
+                                    <option value="help">问题求助</option>
+                                    <option value="resource">二手闲置</option>
+                                </select>
+                            </div>
+                            
+                            <!-- 封面图片上传区域 -->
+                            <div class="form-group mb-3">
+                                <label class="form-label">封面图片 <span class="text-muted">(可选，最多3张)</span></label>
+                                <div class="cover-images-container mb-2">
+                                    <div id="coverImagesPreview" class="d-flex gap-2 mb-2 flex-wrap"></div>
+                                    <div class="cover-upload-area">
+                                        <input type="file" id="coverImageUpload" class="d-none" accept="image/*" multiple>
+                                        <button type="button" id="addCoverImageBtn" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('coverImageUpload').click()">
+                                            <i class="bi bi-plus-lg"></i> 添加图片
+                                        </button>
+                                        <small class="text-muted ms-2">支持JPG、PNG格式，单张图片不超过2MB，建议尺寸 1200×675</small>
+                                    </div>
+                                    <input type="hidden" id="coverImages" name="coverImages" value="">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="editor-container" class="form-label">内容</label>
+                                <div id="editor-container" style="height: 300px;"></div>
+                                <div class="editor-counter mt-2 text-muted">已输入 <span id="charCount">0</span> 字符 (最多5000字符)</div>
+                                <input type="hidden" id="content" name="content">
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="tags" class="form-label">标签</label>
+                                <input type="text" class="form-control" id="tags" placeholder="输入标签，用逗号分隔">
+                                <div class="form-text">最多添加5个标签，每个标签不超过10个字符</div>
+                            </div>
+                            
+                            <div class="form-group text-end">
+                                <a href="posts.html" class="btn btn-outline-secondary me-2">取消</a>
+                                <button type="submit" class="btn btn-primary">发布帖子</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="tags" class="form-label">标签（用逗号分隔）</label>
-                        <input type="text" class="form-control" id="tags" placeholder="例如：Python,编程,学习">
-                    </div>
-                    <div class="mb-3">
-                        <label for="content" class="form-label">内容</label>
-                        <textarea class="form-control" id="content" rows="10" required></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
-                        <button type="submit" class="btn btn-primary" id="submitBtn">发布</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script src="../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../lib/quill/js/quill.min.js"></script>
     <script type="module" src="../js/api.js"></script>
     <script type="module" src="../js/create-post.js"></script>
 </body>

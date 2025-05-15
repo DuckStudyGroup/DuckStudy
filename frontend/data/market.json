@@ -10,7 +10,7 @@
             "seller": "王五",
             "contact": "微信: wangwu123",
             "date": "2024/04/15",
-            "images": ["../images/market/example.jpg"],
+            "images": ["../images/market/pybook.jpeg"],
             "condition": "9成新",
             "views": 45,
             "favorites": 8
@@ -25,7 +25,7 @@
             "seller": "李四",
             "contact": "QQ: 123456789",
             "date": "2024/04/10",
-            "images": ["../images/market/example.jpg"],
+            "images": ["../images/market/bike1.jpeg"],
             "condition": "8成新",
             "views": 87,
             "favorites": 15
@@ -40,7 +40,7 @@
             "seller": "张三",
             "contact": "电话: 13812345678",
             "date": "2024/04/05",
-            "images": ["../images/market/example.jpg"],
+            "images": ["../images/market/math.jpeg"],
             "condition": "全新",
             "views": 64,
             "favorites": 12
@@ -55,7 +55,7 @@
             "seller": "赵六",
             "contact": "微信: zhaoliu666",
             "date": "2024/04/02",
-            "images": ["../images/market/example.jpg"],
+            "images": ["../images/market/laptop.jpeg"],
             "condition": "9成新",
             "views": 93,
             "favorites": 18
@@ -70,7 +70,7 @@
             "seller": "测试1",
             "contact": "电话: 13987654321",
             "date": "2024/04/01",
-            "images": ["../images/market/example.jpg"],
+            "images": ["../images/market/bike1.jpeg"],
             "condition": "7成新",
             "views": 42,
             "favorites": 5

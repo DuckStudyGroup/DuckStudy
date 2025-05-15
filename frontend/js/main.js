@@ -9,9 +9,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 然后加载其他内容
         await Promise.all([
             loadHotCourses(),
-            loadMarketItems(),
             loadHotPosts(),
-            loadRecentViews()
+            loadHotProjects()
         ]);
 
         // 添加首页搜索按钮事件
@@ -136,45 +135,6 @@ async function loadReviews() {
     }
 }
 
-// 加载二手市场商品
-async function loadMarketItems() {
-    try {
-        const marketGrid = document.getElementById('marketGrid');
-        const response = await contentAPI.getMarketItems();
-        
-        // 确保response.items存在且是数组
-        const items = response && response.items && Array.isArray(response.items) ? response.items : [];
-        
-        if (items.length === 0) {
-            marketGrid.innerHTML = '<div class="text-center">暂无商品</div>';
-            return;
-        }
-        
-        marketGrid.innerHTML = items.map(item => `
-            <div class="market-card" data-id="${item.id}">
-                <img src="${item.images && item.images[0] ? item.images[0] : '../images/default-product.jpg'}" alt="${item.title}">
-                <div class="market-info">
-                    <h3>${item.title}</h3>
-                    <div class="price">¥${item.price}</div>
-                    <div class="description">${item.description}</div>
-                </div>
-            </div>
-        `).join('');
-        
-        // 添加点击事件，跳转到商品详情页
-        const marketCards = document.querySelectorAll('.market-card');
-        marketCards.forEach(card => {
-            card.addEventListener('click', () => {
-                const itemId = card.dataset.id;
-                window.location.href = `pages/market-detail.html?id=${itemId}`;
-            });
-        });
-    } catch (error) {
-        console.error('加载二手市场商品失败:', error);
-        throw error;
-    }
-}
-
 // 加载热门帖子
 async function loadHotPosts() {
     try {
@@ -201,13 +161,32 @@ async function loadHotPosts() {
         postsList.innerHTML = posts.map(post => {
             const categoryInfo = getCategoryInfo(post.category);
             
+            // 处理富文本内容
+            const plainContent = stripHtmlTags(post.content);
+            
             // 格式化帖子内容预览（最多显示50个字符）
-            const contentPreview = post.content.length > 50 
-                ? post.content.substring(0, 50) + '...' 
-                : post.content;
+            const contentPreview = plainContent.length > 50 
+                ? plainContent.substring(0, 50) + '...' 
+                : plainContent;
                 
+            // 处理封面图片
+            let coverImageHTML = '';
+            if (post.coverImages && Array.isArray(post.coverImages) && post.coverImages.length > 0) {
+                // 使用第一张有效的图片作为封面
+                const validImages = post.coverImages.filter(url => 
+                    typeof url === 'string' && url.trim() !== '' && 
+                    !url.includes('</') && !url.includes('<p') && 
+                    !url.includes('<div') && !url.includes('%0A')
+                );
+                
+                if (validImages.length > 0) {
+                    coverImageHTML = `<div class="hot-post-cover"><img src="${validImages[0]}" alt="封面图片"></div>`;
+                }
+            }
+            
             return `
                 <a href="pages/post-detail.html?id=${post.id}" class="post-item">
+                    ${coverImageHTML}
                     <div class="post-item-content">
                         <h3 class="post-title">${post.title}</h3>
                         <p class="post-preview">${contentPreview}</p>
@@ -236,28 +215,21 @@ async function loadHotPosts() {
     }
 }
 
-// 加载最近观看
-async function loadRecentViews() {
-    try {
-        const viewsGrid = document.getElementById('viewsGrid');
-        const views = await contentAPI.getRecentViews();
-        
-        if (!views || views.length === 0) {
-            viewsGrid.innerHTML = '<div class="text-center">暂无最近观看记录</div>';
-            return;
-        }
-        
-        viewsGrid.innerHTML = views.map(view => `
-            <div class="view-card">
-                <img src="${view.image}" alt="${view.title}">
-                <h3>${view.title}</h3>
-                <div class="view-date">${view.date}</div>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('加载最近观看失败:', error);
-        throw error;
-    }
+// 加载热门项目
+async function loadHotProjects() {
+    // Implementation needed
+}
+
+// 处理富文本内容为纯文本
+function stripHtmlTags(html) {
+    if (!html) return '';
+    
+    // 创建临时元素
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // 获取纯文本内容
+    return tempDiv.textContent || tempDiv.innerText || '';
 }
 
 // 添加首页课程搜索事件
