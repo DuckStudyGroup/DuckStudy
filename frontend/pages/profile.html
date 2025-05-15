@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +10,6 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/profile.css">
 </head>
-
 <body>
     <div class="container-fluid main-container">
         <!-- 顶部导航栏 -->
@@ -45,8 +43,6 @@
                         <div class="profile-nav">
                             <div class="profile-header">
                                 <div class="profile-avatar">
-                                    <!-- 显示用户头像 -->
-                                    <img id="profileAvatar" src="#" alt="用户头像" style="display: none;">
                                     <i class="bi bi-person-circle"></i>
                                 </div>
                                 <div class="profile-info">
@@ -93,12 +89,6 @@
                                     <div class="form-group">
                                         <label>邮箱</label>
                                         <input type="email" class="form-control" id="email">
-                                    </div>
-                                    <!-- 头像上传区域 -->
-                                    <div class="form-group">
-                                        <label>头像</label>
-                                        <input type="file" class="form-control" id="avatarInput" accept="image/*">
-                                        <img id="avatarPreview" src="#" alt="头像预览" style="display: none; max-width: 200px; margin-top: 10px;">
                                     </div>
                                     <button type="submit" class="btn btn-primary">保存修改</button>
                                 </form>
@@ -159,26 +149,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="../js/api.js"></script>
     <script type="module" src="../js/profile.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const avatarInput = document.getElementById('avatarInput');
-            const avatarPreview = document.getElementById('avatarPreview');
-
-            avatarInput.addEventListener('change', function () {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        avatarPreview.src = e.target.result;
-                        avatarPreview.style.display = 'block';
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    avatarPreview.style.display = 'none';
-                }
-            });
-        });
-    </script>
 </body>
-
 </html>
+
