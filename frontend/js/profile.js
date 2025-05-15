@@ -16,42 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('加载数据失败，请刷新页面重试');
     }
 });
-// 上传头像
-async function uploadAvatar() {
-    const avatarInput = document.getElementById('avatarInput');
-    const file = avatarInput.files[0];
-    if (!file) {
-        alert('请选择要上传的头像');
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('avatar', file);
-
-    try {
-        // 调用后端API上传头像
-        const response = await fetch('/api/user/uploadAvatar', {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-        if (result.success) {
-            alert('头像上传成功');
-            // 更新头像显示
-            const profileAvatar = document.getElementById('profileAvatar');
-            profileAvatar.src = result.avatarUrl;
-            profileAvatar.style.display = 'block';
-        } else {
-            alert('头像上传失败: ' + result.message);
-        }
-    } catch (error) {
-        console.error('头像上传失败:', error);
-        alert('头像上传失败，请稍后重试');
-    }
-}
-
-// 更新用户状态
+//更新用户状态
 async function updateUserStatus() {
     try {
         const response = await userAPI.getStatus();
