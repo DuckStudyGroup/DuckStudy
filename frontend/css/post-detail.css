@@ -1,12 +1,203 @@
 /* 帖子内容区域样式 */
 .post-content {
-    max-width: 800px;
+    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: 2rem;
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     white-space: pre-line;
+    text-align: left;
+}
+
+/* 封面图片轮播样式 */
+.post-cover-images {
+    margin: 1rem auto 2rem;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    background-color: #f8f9fa;
+    width: 600px; /* 固定容器宽度 */
+    height: 338px; /* 固定容器高度 */
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+/* 轮播容器设置 */
+.post-cover-images .carousel,
+.post-cover-images .carousel-inner {
+    width: 100%;
+    height: 100%;
+}
+
+/* 轮播项设置 */
+.post-cover-images .carousel-item {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    display: none; /* 默认隐藏所有轮播项 */
+}
+
+/* 显示激活的轮播项 */
+.post-cover-images .carousel-item.active {
+    display: block; /* 激活项显示 */
+}
+
+/* 图片设置 - 关键样式 */
+.post-cover-images .carousel-item img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-height: 338px;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* 悬停效果 */
+.post-cover-images .carousel-item:hover img {
+    filter: brightness(1.05);
+}
+
+.post-cover-images .carousel-control-prev,
+.post-cover-images .carousel-control-next {
+    width: 10%;
+    opacity: 0; /* 默认透明 */
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 0 8px 8px 0;
+    transition: opacity 0.3s ease;
+}
+
+.post-cover-images .carousel-control-prev {
+    border-radius: 8px 0 0 8px;
+}
+
+.post-cover-images:hover .carousel-control-prev,
+.post-cover-images:hover .carousel-control-next {
+    opacity: 0.7; /* 鼠标悬浮时显示 */
+}
+
+.post-cover-images .carousel-control-prev:hover,
+.post-cover-images .carousel-control-next:hover {
+    opacity: 0.9;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* 在小屏幕设备上调整高度，保持比例 */
+@media (max-width: 992px) {
+    .post-cover-images {
+        width: 700px; /* 在中等屏幕上稍微缩小 */
+        height: 525px; /* 保持4:3比例 */
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .post-cover-images {
+        width: 600px; /* 在小屏幕上继续缩小 */
+        height: 450px; /* 保持4:3比例 */
+    }
+}
+
+@media (max-width: 640px) {
+    .post-cover-images {
+        width: 480px; /* 在更小的屏幕上继续缩小 */
+        height: 360px; /* 保持4:3比例 */
+    }
+}
+
+@media (max-width: 500px) {
+    .post-cover-images {
+        width: 400px; /* 在移动设备上最小尺寸 */
+        height: 300px; /* 保持4:3比例 */
+    }
+}
+
+/* 富文本内容样式 */
+.rich-text-content {
+    white-space: normal;
+    line-height: 1.6;
+    text-align: left;
+}
+
+.rich-text-content p {
+    margin-bottom: 1rem;
+    text-align: left;
+}
+
+.rich-text-content h1, 
+.rich-text-content h2, 
+.rich-text-content h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    text-align: left;
+}
+
+.rich-text-content h1 {
+    font-size: 1.8rem;
+}
+
+.rich-text-content h2 {
+    font-size: 1.5rem;
+}
+
+.rich-text-content h3 {
+    font-size: 1.2rem;
+}
+
+.rich-text-content ul, 
+.rich-text-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.rich-text-content li {
+    margin-bottom: 0.5rem;
+}
+
+.rich-text-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 1rem 0;
+}
+
+.rich-text-content a {
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+.rich-text-content a:hover {
+    text-decoration: underline;
+}
+
+.rich-text-content blockquote {
+    border-left: 4px solid #ddd;
+    padding-left: 1rem;
+    color: #666;
+    font-style: italic;
+    margin: 1rem 0;
+}
+
+.rich-text-content pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-family: monospace;
+}
+
+.rich-text-content code {
+    background-color: #f8f9fa;
+    padding: 0.2rem 0.4rem;
+    border-radius: 2px;
+    font-family: monospace;
 }
 
 .post-header {
@@ -110,7 +301,8 @@
 
 /* 评论区域样式 */
 .comments-section {
-    max-width: 800px;
+    max-width: 1200px;
+    width: 100%;
     margin: 2rem auto;
     padding: 2rem;
     background: #fff;
@@ -173,6 +365,22 @@
     height: 32px;
     border-radius: 50%;
     object-fit: cover;
+}
+
+.comment-author a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.comment-author .author-name {
+    font-weight: 500;
+    margin-left: 5px;
+    color: #0d6efd;
+}
+
+.comment-author .author-name:hover {
+    text-decoration: underline;
+    color: #0a58ca;
 }
 
 .comment-time {
@@ -302,6 +510,22 @@
     object-fit: cover;
 }
 
+.reply-author a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.reply-author .author-name {
+    font-weight: 500;
+    margin-left: 5px;
+    color: #0d6efd;
+}
+
+.reply-author .author-name:hover {
+    text-decoration: underline;
+    color: #0a58ca;
+}
+
 .reply-time {
     color: #666;
     font-size: 0.875rem;
@@ -334,4 +558,290 @@
     .reply-form {
         padding: 0.75rem;
     }
+}
+
+/* 自定义轮播控制样式 */
+.manual-carousel .carousel-item {
+    display: none;
+}
+
+.manual-carousel .carousel-item.active {
+    display: flex;
+}
+
+/* 调试样式 - 添加轮播索引标记 */
+.manual-carousel .carousel-item::after {
+    content: attr(data-bs-slide-index);
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* 轮播控制按钮在悬停时的样式调整 */
+.manual-carousel [data-custom-slide] {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10%;
+    opacity: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: none;
+    height: 100%;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+
+.manual-carousel [data-custom-slide="prev"] {
+    left: 0;
+    border-radius: 8px 0 0 8px;
+}
+
+.manual-carousel [data-custom-slide="next"] {
+    right: 0;
+    border-radius: 0 8px 8px 0;
+}
+
+.manual-carousel:hover [data-custom-slide] {
+    opacity: 0.7;
+}
+
+.manual-carousel [data-custom-slide]:hover {
+    opacity: 0.9;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* 轮播图指示器样式优化 */
+.post-cover-images .carousel-indicator {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 30px;
+    font-size: 14px;
+    z-index: 10;
+    opacity: 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* 避免指示器干扰鼠标点击 */
+    backdrop-filter: blur(2px); /* 添加毛玻璃效果 */
+}
+
+/* 添加相机图标 */
+.post-cover-images .carousel-indicator::before {
+    content: "";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-camera' viewBox='0 0 16 16'%3E%3Cpath d='M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z'/%3E%3Cpath d='M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+/* 当前页码样式 */
+.post-cover-images .carousel-indicator #current-slide {
+    color: #ffffff;
+    font-weight: bold;
+    margin: 0 2px;
+    min-width: 16px;
+    text-align: center;
+}
+
+/* 自定义分隔符 */
+.carousel-indicator span:first-of-type::after {
+    content: "/";
+    margin: 0 4px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: normal;
+}
+
+/* 总页数样式 */
+.post-cover-images .carousel-indicator #total-slides {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0 2px;
+}
+
+/* 悬停时显示指示器 */
+.post-cover-images:hover .carousel-indicator {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 让轮播图在页面中水平居中 */
+.card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 让其他内容保持左对齐 */
+.card-body > *:not(.post-cover-images) {
+    align-self: stretch;
+}
+
+/* 调整图片垂直居中方式 - 删除此块 */
+.post-cover-images .carousel-item img,
+.post-cover-images img.d-block,
+.post-cover-images img.w-100,
+.post-cover-images img.d-block.w-100 {
+    /* 设置图片显示方式 */
+    max-height: 100% !important; /* 最大高度 */
+    height: auto !important; /* 高度自适应，保持比例 */
+    max-width: 100% !important; /* 最大宽度 */
+    width: auto !important; /* 宽度自适应 */
+    
+    /* 确保不被扭曲或裁剪 */
+    object-fit: contain !important;
+    
+    /* 移除可能影响显示的其他属性 */
+    display: block !important;
+    margin: 0 auto !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+/* 覆盖Bootstrap默认样式 */
+.post-cover-images .carousel-item img.d-block,
+.post-cover-images .carousel-item img.w-100,
+.post-cover-images .carousel-item img.d-block.w-100 {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-height: 338px !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+    display: block !important;
+}
+
+/* 评论工具栏样式 */
+.comment-tools {
+    display: flex;
+    flex-direction: column;
+    margin: 10px 0;
+}
+
+.image-upload {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.image-upload button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    font-size: 14px;
+    color: #555;
+    border: 1px solid #ddd;
+    transition: all 0.2s ease;
+}
+
+.image-upload button:hover {
+    background-color: #f0f0f0;
+    color: #0d6efd;
+}
+
+.image-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.image-preview .preview-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.image-preview .preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+
+.image-preview .preview-item:hover img {
+    transform: scale(1.05);
+}
+
+.image-preview .remove-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 22px;
+    height: 22px;
+    background-color: rgba(0,0,0,0.5);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.image-preview .remove-image:hover {
+    background-color: rgba(220,50,50,0.8);
+}
+
+/* 评论中的图片样式 - 增加尺寸限制 */
+.comment-content img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 6px;
+    margin: 10px 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 修改为更严格的尺寸限制 */
+.comment-content img {
+    max-width: 300px;
+    max-height: 200px;
+    border-radius: 6px;
+    margin: 10px 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: block;
+}
+
+/* 回复表单图片上传样式 */
+.reply-form .reply-tools {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.reply-form .image-upload {
+    margin-bottom: 0;
+}
+
+.reply-form .image-preview {
+    margin-top: 8px;
+}
+
+.reply-form .image-preview .preview-item {
+    width: 80px;
+    height: 80px;
 } 

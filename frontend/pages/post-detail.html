@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>帖子详情 - DuckStudy</title>
     <link rel="icon" type="image/x-icon" href="../images/duckstudy.ico">
-    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/css/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/post-detail.css">
 </head>
@@ -15,11 +15,18 @@
         <!-- 顶部导航栏 -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container">
-                <a class="navbar-brand" href="../index.html">DuckStudy</a>
+                <div class="d-flex align-items-center">
+                    <a href="posts.html" class="btn btn-outline-secondary me-3">
+                        <i class="bi bi-arrow-left"></i> 返回
+                    </a>
+                    <a class="navbar-brand" href="../index.html">DuckStudy</a>
+                </div>
                 <div class="d-flex align-items-center">
                     <div class="nav-links">
                         <a href="posts.html" class="nav-link active">论坛</a>
                         <a href="market.html" class="nav-link">市场</a>
+                        <a href="courses.html" class="nav-link">课程</a>
+                        <a href="projects.html" class="nav-link">热门项目</a>
                     </div>
                     <div class="search-box">
                         <input type="text" placeholder="搜索帖子...">
@@ -49,6 +56,15 @@
                 </div>
                 <div class="comment-input">
                     <textarea placeholder="写下你的评论..."></textarea>
+                    <div class="comment-tools">
+                        <div class="image-upload">
+                            <input type="file" id="commentImageUpload" accept="image/*" style="display: none;">
+                            <button class="btn btn-light btn-sm" id="uploadCommentImage">
+                                <i class="bi bi-image"></i> 添加图片
+                            </button>
+                        </div>
+                        <div id="commentImagePreview" class="image-preview"></div>
+                    </div>
                     <button class="btn btn-primary" id="submitComment">发表评论</button>
                 </div>
                 <div id="commentsList">
@@ -58,7 +74,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script src="../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="../js/api.js"></script>
     <script type="module" src="../js/post-detail.js"></script>
 </body>

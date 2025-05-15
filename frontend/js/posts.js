@@ -236,6 +236,18 @@ function addCreatePostEvent() {
     }
 }
 
+// 处理富文本内容为纯文本
+function stripHtmlTags(html) {
+    if (!html) return '';
+    
+    // 创建临时元素
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // 获取纯文本内容
+    return tempDiv.textContent || tempDiv.innerText || '';
+}
+
 // 加载帖子列表
 async function loadPosts(category = '', searchTerm = '') {
     try {
@@ -253,7 +265,7 @@ async function loadPosts(category = '', searchTerm = '') {
         if (searchTerm) {
             posts = posts.filter(post => 
                 post.title.toLowerCase().includes(searchTerm) || 
-                post.content.toLowerCase().includes(searchTerm) ||
+                stripHtmlTags(post.content).toLowerCase().includes(searchTerm) ||
                 post.tags.some(tag => tag.toLowerCase().includes(searchTerm))
             );
         }
@@ -278,13 +290,42 @@ async function loadPosts(category = '', searchTerm = '') {
             // 获取当前帖子的评论数量
             const commentCount = commentsData[post.id] ? commentsData[post.id].length : 0;
             
+            // 处理封面图片
+            let coverImageHTML = '';
+            if (post.coverImages && Array.isArray(post.coverImages) && post.coverImages.length > 0) {
+                // 过滤并限制最多3张有效图片
+                const validImages = post.coverImages
+                    .filter(url => 
+                        typeof url === 'string' && url.trim() !== '' && 
+                        !url.includes('</') && !url.includes('<p') && 
+                        !url.includes('<div') && !url.includes('%0A')
+                    )
+                    .slice(0, 3); // 限制最多3张图片
+                
+                if (validImages.length > 0) {
+                    coverImageHTML = `
+                        <div class="post-cover-images">
+                            ${validImages.map(image => `
+                                <div class="post-cover-image">
+                                    <img src="${image}" alt="封面图片">
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            }
+
+            // 处理帖子内容摘要
+            const plainContent = stripHtmlTags(post.content);
+            const excerpt = plainContent.length > 150 ? plainContent.substring(0, 150) + '...' : plainContent;
+            
             return `
-                <div class="post-card">
+                <div class="post-card" data-post-id="${post.id}" style="cursor: pointer;">
                     <div class="post-header">
                         <div class="post-author">
-                            <div class="avatar">
+                            <a href="profile.html?username=${encodeURIComponent(post.author)}" class="avatar" onclick="event.stopPropagation();">
                                 <i class="bi bi-person-circle"></i>
-                            </div>
+                            </a>
                             <div class="author-info">
                                 <span class="author-name">${post.author}</span>
                                 <span class="post-time">${post.date}</span>
@@ -295,9 +336,10 @@ async function loadPosts(category = '', searchTerm = '') {
                             ${categoryInfo.name}
                         </div>
                     </div>
+                    ${coverImageHTML}
                     <div class="post-content">
                         <h3 class="post-title">${post.title}</h3>
-                        <p class="post-excerpt">${post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content}</p>
+                        <p class="post-excerpt">${excerpt}</p>
                         <div class="post-tags">
                             ${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                         </div>
@@ -308,11 +350,20 @@ async function loadPosts(category = '', searchTerm = '') {
                             <span><i class="bi bi-chat"></i> ${commentCount}</span>
                             <span><i class="bi bi-hand-thumbs-up"></i> ${post.likes}</span>
                         </div>
-                        <a href="post-detail.html?id=${post.id}" class="read-more">阅读全文 <i class="bi bi-arrow-right"></i></a>
+                        <span class="read-more">阅读全文 <i class="bi bi-arrow-right"></i></span>
                     </div>
                 </div>
             `;
         }).join('');
+
+        // 添加帖子卡片点击事件
+        const postCards = document.querySelectorAll('.post-card');
+        postCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const postId = card.dataset.postId;
+                window.location.href = `post-detail.html?id=${postId}`;
+            });
+        });
     } catch (error) {
         console.error('加载帖子失败:', error);
         throw error;

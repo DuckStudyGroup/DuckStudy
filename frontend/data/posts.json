@@ -7,14 +7,14 @@
             "date": "2024/04/10",
             "favorites": 73,
             "id": 1744789431836,
-            "likes": 156,
+            "likes": 157,
             "tags": [
                 "计算机科学",
                 "学习路线",
                 "编程"
             ],
             "title": "计算机专业学习路线分享",
-            "views": 332
+            "views": 358
         },
         {
             "author": "李四",
@@ -30,7 +30,7 @@
                 "数据分析"
             ],
             "title": "Python爬虫实战经验分享",
-            "views": 246
+            "views": 249
         },
         {
             "author": "张三",
@@ -46,7 +46,7 @@
                 "考试技巧"
             ],
             "title": "大学生如何高效复习期末考试",
-            "views": 416
+            "views": 420
         },
         {
             "author": "admin",
@@ -110,20 +110,25 @@
                 "Web技术"
             ],
             "title": "Web前端学习路线图2024版",
-            "views": 359
+            "views": 360
         },
         {
-            "id": 1745200382791,
-            "title": "测试贴子2",
+            "id": 1747314615289,
+            "title": "卖闲置",
             "author": "测试1",
-            "date": "2025/04/21",
-            "views": 0,
-            "likes": 0,
-            "category": "study",
+            "category": "resource",
+            "content": "<p>卖闲置物品</p><p>电脑 1000r</p><p>自行车 200r</p>",
+            "date": "2025/05/15 21:10",
             "tags": [
-                "Python，编程，学习"
+                "恋爱交友"
             ],
-            "content": "1111"
+            "views": 18,
+            "likes": 1,
+            "favorites": 0,
+            "coverImages": [
+                "/images/posts/post_1747314595098_o9ffqy.jpeg",
+                "/images/posts/post_1747314598814_hxfft0.jpeg"
+            ]
         }
     ]
 }
