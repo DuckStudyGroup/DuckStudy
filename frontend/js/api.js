@@ -1,8 +1,8 @@
 // API基础URL
-// 请根据实际情况选择正确的URL
-const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+// 开发环境使用本地服务器，生产环境使用当前域名
+export const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? `http://${window.location.hostname}:5000` 
-    : 'http://localhost:5000';
+    : window.location.origin; // 使用当前网站的完整URL（包含协议、域名和端口）
 
 // 用户相关API
 const userAPI = {

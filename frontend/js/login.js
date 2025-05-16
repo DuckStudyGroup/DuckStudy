@@ -1,3 +1,5 @@
+import { BASE_URL } from './api.js';
+
 // 登录功能
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
@@ -25,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>登录中...';
                 
                 // 发送登录请求
-                const response = await fetch('http://localhost:5000/api/user/login', {
+                const response = await fetch(`${BASE_URL}/api/user/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
