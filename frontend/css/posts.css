@@ -1,17 +1,19 @@
 /* 分类导航样式 */
 .category-nav {
-    background-color: #f8f9fa;
-    padding: 1rem 0;
-    margin-bottom: 1.5rem;
+    background: #fff;
+    padding: 1rem;
+    margin-bottom: 1rem;
     border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .category-list {
     display: flex;
+    gap: 1rem;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0 1rem;
 }
 
 .category-item {
@@ -378,4 +380,26 @@
 
 .post-card:hover .post-cover-image img {
     transform: scale(1.05);
+}
+
+.sort-options {
+    min-width: 150px;
+}
+
+.sort-options .form-select {
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sort-options .form-select:hover {
+    border-color: #0d6efd;
+}
+
+.sort-options .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13,110,253,.25);
 } 

@@ -57,6 +57,15 @@
             "avatar": "https://placehold.jp/40x40.png",
             "role": "user",
             "registerDate": "2025-04-16"
+        },
+        {
+            "id": 8,
+            "username": "测试3",
+            "password": "1",
+            "email": "123456788@qq.com",
+            "avatar": "https://placehold.jp/40x40.png",
+            "role": "user",
+            "registerDate": "2025-05-16"
         }
     ]
 }

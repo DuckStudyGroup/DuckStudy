@@ -1,4 +1,4 @@
-import { userAPI, contentAPI } from './api.js';
+import { userAPI, contentAPI, uploadAPI } from './api.js';
 
 // 处理帖子对象，确保其可以安全发送到后端
 function sanitizePostObject(post) {
@@ -621,6 +621,21 @@ async function loadComments() {
             const likedClass = isLiked ? 'liked' : '';
             const likeIcon = isLiked ? 'bi-hand-thumbs-up-fill' : 'bi-hand-thumbs-up';
             
+            // 处理评论图片
+            let imagesHTML = '';
+            if (comment.images && comment.images.length > 0) {
+                imagesHTML = `
+                    <div class="comment-images">
+                        ${comment.images.map(image => {
+                            // 支持两种图片格式：字符串和对象格式
+                            const imageUrl = typeof image === 'string' ? image : (image.url || '');
+                            if (!imageUrl) return '';
+                            return `<div class="comment-image"><img src="${imageUrl}" alt="评论图片"></div>`;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            
             // 生成回复HTML
             let repliesHTML = '';
             if (comment.replies && comment.replies.length > 0) {
@@ -660,6 +675,7 @@ async function loadComments() {
                         <span class="comment-time">${comment.date}</span>
                     </div>
                     <div class="comment-content">${comment.content}</div>
+                    ${imagesHTML}
                     <div class="comment-actions">
                         <button type="button" class="reply-btn" data-comment-id="${comment.id}">
                             <i class="bi bi-reply"></i> 回复
@@ -902,6 +918,122 @@ function addCommentActions() {
     });
 }
 
+// 初始化评论图片上传功能
+function initCommentImageUpload() {
+    const uploadButton = document.getElementById('uploadCommentImage');
+    const fileInput = document.getElementById('commentImageUpload');
+    const imagePreview = document.getElementById('commentImagePreview');
+    
+    if (!uploadButton || !fileInput || !imagePreview) {
+        console.warn('未找到评论图片上传元素');
+        return;
+    }
+    
+    // 点击"添加图片"按钮时触发文件选择
+    uploadButton.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // 选择文件后处理图片预览
+    fileInput.addEventListener('change', async () => {
+        const files = fileInput.files;
+        if (!files || files.length === 0) return;
+        
+        const file = files[0];
+        
+        // 验证文件类型
+        if (!file.type.startsWith('image/')) {
+            alert('请选择图片文件');
+            return;
+        }
+        
+        // 检查文件大小（限制为2MB）
+        const maxSize = 2 * 1024 * 1024; // 2MB
+        if (file.size > maxSize) {
+            alert('图片大小不能超过2MB');
+            fileInput.value = ''; // 清空文件输入
+            return;
+        }
+        
+        try {
+            // 生成文件名
+            const timestamp = Date.now();
+            const randomStr = Math.random().toString(36).substring(2, 8);
+            const extension = file.name.split('.').pop();
+            const filename = `comment_${timestamp}_${randomStr}.${extension}`;
+            
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('filename', filename);
+            
+            // 显示上传中提示
+            const uploadingTip = document.createElement('div');
+            uploadingTip.className = 'uploading-tip';
+            uploadingTip.innerHTML = '<i class="bi bi-arrow-repeat"></i> 图片上传中...';
+            imagePreview.innerHTML = '';
+            imagePreview.appendChild(uploadingTip);
+            
+            try {
+                // 使用 uploadAPI 上传图片
+                const result = await uploadAPI.uploadCommentImage(formData);
+                
+                // 移除上传中提示
+                imagePreview.innerHTML = '';
+                
+                if (result.success) {
+                    console.log('图片上传成功:', result);
+                    
+                    // 创建预览元素
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'preview-item';
+                    previewItem.innerHTML = `
+                        <img src="${result.imageUrl}" alt="图片预览">
+                        <div class="remove-image">×</div>
+                        <input type="hidden" name="image-id" value="${result.imageId}">
+                    `;
+                    
+                    // 添加移除图片事件
+                    const removeButton = previewItem.querySelector('.remove-image');
+                    removeButton.addEventListener('click', () => {
+                        previewItem.remove();
+                        fileInput.value = ''; // 清空文件输入
+                    });
+                    
+                    // 添加新预览
+                    imagePreview.appendChild(previewItem);
+                } else {
+                    throw new Error(result.message || '图片上传失败');
+                }
+            } catch (error) {
+                console.error('图片上传失败:', error);
+                alert('图片上传失败: ' + error.message);
+                fileInput.value = ''; // 清空文件输入
+                imagePreview.innerHTML = '';
+            }
+        } catch (error) {
+            console.error('图片上传失败:', error);
+            alert('图片上传失败: ' + error.message);
+            fileInput.value = ''; // 清空文件输入
+            imagePreview.innerHTML = '';
+        }
+    });
+    
+    // 处理图片移除事件（使用事件委托）
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-image') || 
+            e.target.closest('.remove-image')) {
+            const previewItem = e.target.closest('.preview-item');
+            if (previewItem) {
+                previewItem.remove();
+                if (fileInput) {
+                    fileInput.value = ''; // 清空文件输入
+                }
+            }
+        }
+    });
+}
+
 // 替换评论提交事件函数
 function addCommentSubmitEvent() {
     const submitBtn = document.getElementById('submitComment');
@@ -912,6 +1044,7 @@ function addCommentSubmitEvent() {
         const content = textarea.value.trim();
         const imagePreview = document.getElementById('commentImagePreview');
         const imageElement = imagePreview ? imagePreview.querySelector('img') : null;
+        const imageIdElement = imagePreview ? imagePreview.querySelector('input[name="image-id"]') : null;
         
         // 检查是否有内容或图片
         if (!content && !imageElement) {
@@ -934,12 +1067,22 @@ function addCommentSubmitEvent() {
                 return;
             }
 
-            // 准备评论内容，如果有图片则添加到内容中
+            // 准备评论内容
             let finalContent = content;
+            let images = [];
+            
+            // 如果有图片，获取图片URL
             if (imageElement) {
-                const imageDataUrl = imageElement.src;
-                // 在文本内容后添加图片HTML
-                finalContent += `<div class="comment-image"><img src="${imageDataUrl}" alt="评论图片"></div>`;
+                const imageUrl = imageElement.src;
+                const imageId = imageIdElement ? imageIdElement.value : '';
+                images.push({
+                    id: imageId,
+                    url: imageUrl
+                });
+                
+                // 不再需要添加默认文本
+                // 如果内容为空，就使用空字符串
+                finalContent = content || '';
             }
 
             // 创建新评论对象
@@ -956,7 +1099,8 @@ function addCommentSubmitEvent() {
                 }),
                 likes: 0,
                 likedBy: [],
-                replies: [] // 添加replies数组，用于存储回复
+                replies: [], // 添加replies数组，用于存储回复
+                images: images // 添加图片数组
             };
 
             // 保存评论数据
@@ -1012,84 +1156,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('加载数据失败:', error);
         alert('加载数据失败，请刷新页面重试');
     }
-});
-
-// 初始化评论图片上传功能
-function initCommentImageUpload() {
-    const uploadButton = document.getElementById('uploadCommentImage');
-    const fileInput = document.getElementById('commentImageUpload');
-    const imagePreview = document.getElementById('commentImagePreview');
-    
-    if (!uploadButton || !fileInput || !imagePreview) {
-        console.warn('未找到评论图片上传元素');
-        return;
-    }
-    
-    // 点击"添加图片"按钮时触发文件选择
-    uploadButton.addEventListener('click', () => {
-        fileInput.click();
-    });
-    
-    // 选择文件后处理图片预览
-    fileInput.addEventListener('change', () => {
-        const files = fileInput.files;
-        if (!files || files.length === 0) return;
-        
-        const file = files[0];
-        
-        // 验证文件类型
-        if (!file.type.startsWith('image/')) {
-            alert('请选择图片文件');
-            return;
-        }
-        
-        // 检查文件大小（限制为2MB）
-        const maxSize = 2 * 1024 * 1024; // 2MB
-        if (file.size > maxSize) {
-            alert('图片大小不能超过2MB');
-            fileInput.value = ''; // 清空文件输入
-            return;
-        }
-        
-        // 读取文件并生成预览
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            // 创建预览元素
-            const previewItem = document.createElement('div');
-            previewItem.className = 'preview-item';
-            previewItem.innerHTML = `
-                <img src="${e.target.result}" alt="图片预览">
-                <div class="remove-image">×</div>
-            `;
-            
-            // 添加移除图片事件
-            const removeButton = previewItem.querySelector('.remove-image');
-            removeButton.addEventListener('click', () => {
-                previewItem.remove();
-                fileInput.value = ''; // 清空文件输入
-            });
-            
-            // 清除之前的预览 (主评论每次只允许一张图片)
-            imagePreview.innerHTML = '';
-            
-            // 添加新预览
-            imagePreview.appendChild(previewItem);
-        };
-        
-        reader.readAsDataURL(file);
-    });
-    
-    // 处理图片移除事件（使用事件委托）
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-image') || 
-            e.target.closest('.remove-image')) {
-            const previewItem = e.target.closest('.preview-item');
-            if (previewItem) {
-                previewItem.remove();
-                if (fileInput) {
-                    fileInput.value = ''; // 清空文件输入
-                }
-            }
-        }
-    });
-} 
+}); 

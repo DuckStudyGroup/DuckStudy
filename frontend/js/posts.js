@@ -126,7 +126,8 @@ async function updateUserStatus() {
 function getCategoryInfo(category) {
     const categoryMap = {
         'study': { name: '学习交流', icon: 'bi-book' },
-        'tech': { name: '技术讨论', icon: 'bi-code-square' },
+        'life': { name: '校园生活', icon: 'bi-emoji-smile' },
+        'love': { name: '恋爱交友', icon: 'bi-heart' },
         'experience': { name: '经验分享', icon: 'bi-share' },
         'help': { name: '问题求助', icon: 'bi-question-circle' },
         'resource': { name: '资源分享', icon: 'bi-link' }
@@ -162,6 +163,16 @@ function addCategoryEvents() {
             const activeCategory = document.querySelector('.category-item.active').dataset.category || '';
             loadPosts(activeCategory, searchTerm);
         }, 300));
+    }
+
+    // 添加排序事件
+    const sortSelect = document.getElementById('sortSelect');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            const activeCategory = document.querySelector('.category-item.active').dataset.category || '';
+            const searchTerm = document.querySelector('.search-box input').value.trim().toLowerCase();
+            loadPosts(activeCategory, searchTerm);
+        });
     }
 }
 
@@ -269,6 +280,27 @@ async function loadPosts(category = '', searchTerm = '') {
                 post.tags.some(tag => tag.toLowerCase().includes(searchTerm))
             );
         }
+
+        // 获取排序方式
+        const sortSelect = document.getElementById('sortSelect');
+        const sortValue = sortSelect ? sortSelect.value : 'time-desc';
+
+        // 根据排序方式对帖子进行排序
+        posts.sort((a, b) => {
+            switch (sortValue) {
+                case 'time-desc':
+                    return new Date(b.date) - new Date(a.date);
+                case 'hot-desc':
+                    // 热度计算：浏览量 + 点赞数*2 + 收藏数*3
+                    const hotA = a.views + (a.likes * 2) + (a.favorites * 3);
+                    const hotB = b.views + (b.likes * 2) + (b.favorites * 3);
+                    return hotB - hotA;
+                case 'likes-desc':
+                    return b.likes - a.likes;
+                default:
+                    return new Date(b.date) - new Date(a.date);
+            }
+        });
         
         // 显示筛选结果数量
         const resultCount = document.getElementById('resultCount');

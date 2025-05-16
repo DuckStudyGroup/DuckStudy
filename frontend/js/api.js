@@ -361,16 +361,22 @@ const contentAPI = {
             const response = await contentAPI.getPosts();
             
             if (response && response.posts && response.posts.length > 0) {
-                // 获取所有帖子并按照 views 和 likes 降序排序，提取最热门的帖子
+                // 获取所有帖子并按热度排序
+                // 热度计算公式: 浏览量 + 点赞数*2 + 收藏数*3 + 评论数*1.5
                 const posts = response.posts.sort((a, b) => {
-                    // 计算热度分数：浏览量 + 点赞数 * 2（给点赞更高权重）
-                    const scoreA = a.views + (a.likes * 2);
-                    const scoreB = b.views + (b.likes * 2);
+                    // 获取评论数量（如果有的话）
+                    const commentsA = a.comments ? a.comments.length : 0;
+                    const commentsB = b.comments ? b.comments.length : 0;
+                    
+                    // 计算热度分数
+                    const scoreA = a.views + (a.likes * 2) + ((a.favorites || 0) * 3) + (commentsA * 1.5);
+                    const scoreB = b.views + (b.likes * 2) + ((b.favorites || 0) * 3) + (commentsB * 1.5);
+                    
                     return scoreB - scoreA;
                 });
                 
-                // 返回前3个热门帖子
-                return posts.slice(0, 3);
+                // 返回前5个热门帖子
+                return posts.slice(0, 5);
             }
             
             return [];
@@ -463,21 +469,56 @@ const uploadAPI = {
             // 模拟网络延迟
             await new Promise(resolve => setTimeout(resolve, 800));
             
-            // 这里应该是发送到服务器的代码
-            // 由于目前没有后端，我们直接返回一个成功响应
+            // 解析FormData
+            const formData = imageData;
+            const file = formData.get('image');
+            const filename = formData.get('filename');
+            const directory = formData.get('directory') || 'posts'; // 默认存储在posts目录
             
-            // 随机ID，实际项目中应由后端生成
-            const imageId = 'img_' + Date.now();
+            // 生成图片URL
+            const imageUrl = `/images/${directory}/${filename}`;
             
             return {
                 success: true,
-                imageId: imageId,
-                imageUrl: imageData, // 这里直接返回DataURL，实际项目中会是服务器存储路径
+                imageId: filename,
+                imageUrl: imageUrl,
                 message: "图片上传成功"
             };
         } catch (error) {
             console.error('上传图片失败:', error);
             throw error;
+        }
+    },
+
+    // 上传评论图片
+    uploadCommentImage: async (formData) => {
+        try {
+            // 添加目录参数
+            formData.append('directory', 'comments');
+            
+            const response = await fetch(`${BASE_URL}/api/upload-image`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.message || '上传失败');
+            }
+            
+            return {
+                success: true,
+                imageId: data.imageId || data.filename || Date.now().toString(),
+                imageUrl: data.imageUrl,
+                message: data.message || '图片上传成功'
+            };
+        } catch (error) {
+            console.error('评论图片上传失败:', error);
+            return {
+                success: false,
+                message: error.message || '上传失败'
+            };
         }
     }
 };
