@@ -1,3 +1,5 @@
+import { BASE_URL } from './api.js';
+
 // 注册功能
 document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('registerForm');
@@ -44,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>注册中...';
                 
                 // 发送注册请求
-                const response = await fetch('http://localhost:5000/api/user/register', {
+                const response = await fetch(`${BASE_URL}/api/user/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
