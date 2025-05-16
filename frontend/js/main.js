@@ -150,10 +150,11 @@ async function loadHotPosts() {
         const getCategoryInfo = (category) => {
             const categoryMap = {
                 'study': { name: '学习交流', icon: 'bi-book' },
-                'tech': { name: '技术讨论', icon: 'bi-code-square' },
+                'life': { name: '校园生活', icon: 'bi-emoji-smile' },
+                'love': { name: '恋爱交友', icon: 'bi-heart' },
                 'experience': { name: '经验分享', icon: 'bi-share' },
                 'help': { name: '问题求助', icon: 'bi-question-circle' },
-                'resource': { name: '资源分享', icon: 'bi-link' }
+                'resource': { name: '二手闲置', icon: 'bi-link' }
             };
             return categoryMap[category] || { name: category, icon: 'bi-tag' };
         };
@@ -168,38 +169,39 @@ async function loadHotPosts() {
             const contentPreview = plainContent.length > 50 
                 ? plainContent.substring(0, 50) + '...' 
                 : plainContent;
-                
-            // 处理封面图片
-            let coverImageHTML = '';
-            if (post.coverImages && Array.isArray(post.coverImages) && post.coverImages.length > 0) {
-                // 使用第一张有效的图片作为封面
-                const validImages = post.coverImages.filter(url => 
-                    typeof url === 'string' && url.trim() !== '' && 
-                    !url.includes('</') && !url.includes('<p') && 
-                    !url.includes('<div') && !url.includes('%0A')
-                );
-                
-                if (validImages.length > 0) {
-                    coverImageHTML = `<div class="hot-post-cover"><img src="${validImages[0]}" alt="封面图片"></div>`;
-                }
-            }
+            
+            // 计算帖子热度
+            const hotScore = post.views + (post.likes * 2) + ((post.favorites || 0) * 3);
+            // 创建热度标签
+            const hotBadge = hotScore > 500 
+                ? '<span class="hot-badge very-hot">HOT</span>' 
+                : (hotScore > 300 
+                    ? '<span class="hot-badge hot">热门</span>' 
+                    : (hotScore > 150 
+                        ? '<span class="hot-badge warm">推荐</span>' 
+                        : ''));
             
             return `
                 <a href="pages/post-detail.html?id=${post.id}" class="post-item">
-                    ${coverImageHTML}
                     <div class="post-item-content">
-                        <h3 class="post-title">${post.title}</h3>
-                        <p class="post-preview">${contentPreview}</p>
-                        <div class="post-meta">
+                        <div class="post-header">
+                            <h3 class="post-title">${post.title} ${hotBadge}</h3>
                             <div class="post-category">
                                 <i class="bi ${categoryInfo.icon}"></i>
                                 <span>${categoryInfo.name}</span>
                             </div>
+                        </div>
+                        <p class="post-preview">${contentPreview}</p>
+                        <div class="post-meta">
+                            <div class="post-author">
+                                <i class="bi bi-person"></i>
+                                <span>${post.author}</span>
+                            </div>
                             <div class="post-stats">
-                                <span><i class="bi bi-person"></i> ${post.author}</span>
-                                <span><i class="bi bi-eye"></i> ${post.views}</span>
-                                <span><i class="bi bi-hand-thumbs-up"></i> ${post.likes}</span>
-                                <span><i class="bi bi-calendar"></i> ${post.date}</span>
+                                <span title="浏览量"><i class="bi bi-eye"></i> ${post.views}</span>
+                                <span title="点赞数"><i class="bi bi-hand-thumbs-up"></i> ${post.likes}</span>
+                                <span title="收藏数"><i class="bi bi-bookmark"></i> ${post.favorites || 0}</span>
+                                <span title="发布日期"><i class="bi bi-calendar"></i> ${post.date}</span>
                             </div>
                         </div>
                     </div>

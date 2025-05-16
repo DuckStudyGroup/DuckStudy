@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // 3秒后跳转到登录页面
                     setTimeout(() => {
-                        window.location.href = '/pages/login.html';
+                        window.location.href = 'login.html';
                     }, 3000);
                 } else {
                     // 显示错误信息

@@ -744,4 +744,141 @@
         flex-wrap: wrap;
         gap: 0.5rem;
     }
+}
+
+/* 热门帖子模块样式优化 */
+.hot-posts {
+    margin-bottom: 2rem;
+}
+
+.posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.post-item {
+    display: flex;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+}
+
+.post-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.post-item-content {
+    width: 100%;
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.post-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.post-preview {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0.5rem 0;
+    line-height: 1.5;
+}
+
+.post-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: #777;
+}
+
+.post-author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.post-category {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #f0f5ff;
+    color: #4263eb;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.post-stats {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.post-stats span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* 热度标签样式 */
+.hot-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.35rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+}
+
+.hot-badge.very-hot {
+    background-color: #ff4d4f;
+    color: white;
+}
+
+.hot-badge.hot {
+    background-color: #ff7a45;
+    color: white;
+}
+
+.hot-badge.warm {
+    background-color: #ffc53d;
+    color: #5c3c00;
+}
+
+@media (max-width: 768px) {
+    .post-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .post-category {
+        margin-top: 0.5rem;
+    }
+    
+    .post-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .post-stats {
+        flex-wrap: wrap;
+    }
 } 

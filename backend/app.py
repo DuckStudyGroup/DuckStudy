@@ -696,24 +696,52 @@ def generate_mock_common_projects(tech, project_type):
 # API路由：上传图片
 @app.route('/api/upload-image', methods=['POST'])
 def upload_image():
-    if 'image' not in request.files:
-        return jsonify({'error': '没有文件'}), 400
+    try:
+        if 'image' not in request.files:
+            return jsonify({
+                'success': False,
+                'message': '没有选择文件'
+            }), 400
+            
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'message': '没有选择文件'
+            }), 400
+            
+        # 获取目录参数，默认为posts
+        directory = request.form.get('directory', 'posts')
         
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({'error': '没有选择文件'}), 400
+        # 构建完整的上传目录
+        upload_directory = os.path.join(BASE_DIR, 'frontend', 'images', directory)
         
-    # 获取文件名
-    filename = request.form.get('filename', secure_filename(file.filename))
-    
-    # 保存文件
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(file_path)
-    
-    # 返回可访问的URL（使用相对路径）
-    return jsonify({
-        'imageUrl': f"/images/posts/{filename}"
-    })
+        # 确保目录存在
+        os.makedirs(upload_directory, exist_ok=True)
+        
+        # 获取文件名
+        filename = request.form.get('filename', secure_filename(file.filename))
+        
+        # 防止文件名冲突
+        unique_filename = f"{int(time.time())}_{filename}"
+        
+        # 保存文件
+        file_path = os.path.join(upload_directory, unique_filename)
+        file.save(file_path)
+        
+        # 返回可访问的URL（使用相对路径）
+        return jsonify({
+            'success': True,
+            'imageId': unique_filename.split('.')[0],
+            'imageUrl': f"/images/{directory}/{unique_filename}",
+            'message': '图片上传成功'
+        })
+    except Exception as e:
+        print(f"上传图片失败: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'上传失败: {str(e)}'
+        }), 500
 
 # 添加静态文件路由（放在最后作为catch-all路由）
 @app.route('/<path:path>')

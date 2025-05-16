@@ -7,12 +7,12 @@ from werkzeug.utils import secure_filename
 upload_bp = Blueprint('upload', __name__, url_prefix='/api/upload')
 
 # 配置上传路径
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads')
+BASE_UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # 2MB
 
 # 确保上传目录存在
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(BASE_UPLOAD_FOLDER, exist_ok=True)
 
 # 检查文件扩展名是否允许
 def allowed_file(filename):
@@ -52,17 +52,24 @@ def upload_image():
                 'message': f'不支持的文件类型，仅支持 {", ".join(ALLOWED_EXTENSIONS)}'
             }), 400
             
+        # 获取存储目录
+        directory = request.form.get('directory', 'posts')
+        upload_folder = os.path.join(BASE_UPLOAD_FOLDER, directory)
+        
+        # 确保目录存在
+        os.makedirs(upload_folder, exist_ok=True)
+            
         # 生成安全的文件名
         filename = secure_filename(file.filename)
         # 添加UUID前缀，避免文件名冲突
         unique_filename = f"{uuid.uuid4().hex}_{filename}"
         
         # 保存文件
-        file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+        file_path = os.path.join(upload_folder, unique_filename)
         file.save(file_path)
         
         # 生成可访问的URL
-        image_url = f"/static/uploads/{unique_filename}"
+        image_url = f"/static/uploads/{directory}/{unique_filename}"
         
         # 返回成功响应
         return jsonify({
