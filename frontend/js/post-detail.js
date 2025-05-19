@@ -77,11 +77,21 @@ async function savePostsToJson() {
     }
 }
 
+// 当前排序状态
+let currentSortOrder = 'desc';
+
 // 加载评论数据
 async function loadCommentsData(postId) {
     try {
-        // 使用API获取评论
-        return await contentAPI.getComments(postId);
+        // 使用API获取评论，添加排序参数
+        const response = await fetch(`/api/comments/${postId}?sort=${currentSortOrder}`);
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || '加载评论失败');
+        }
+        
+        return data.comments;
     } catch (error) {
         console.error('加载评论数据失败:', error);
         return [];
@@ -572,7 +582,39 @@ function addPostFavoriteEvent() {
     });
 }
 
-// 修改loadComments函数
+// 更新排序按钮状态
+function updateSortButton() {
+    const sortBtn = document.getElementById('sortCommentsBtn');
+    if (sortBtn) {
+        const icon = sortBtn.querySelector('i');
+        if (currentSortOrder === 'desc') {
+            sortBtn.innerHTML = '<i class="bi bi-sort-down"></i> 最新在前';
+            icon.classList.remove('bi-sort-up');
+            icon.classList.add('bi-sort-down');
+        } else {
+            sortBtn.innerHTML = '<i class="bi bi-sort-up"></i> 最早在前';
+            icon.classList.remove('bi-sort-down');
+            icon.classList.add('bi-sort-up');
+        }
+    }
+}
+
+// 添加排序按钮事件监听
+function addSortButtonEvent() {
+    const sortBtn = document.getElementById('sortCommentsBtn');
+    if (sortBtn) {
+        sortBtn.addEventListener('click', async () => {
+            // 切换排序状态
+            currentSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
+            // 更新按钮状态
+            updateSortButton();
+            // 重新加载评论
+            await loadComments();
+        });
+    }
+}
+
+// 修改 loadComments 函数
 async function loadComments() {
     try {
         const commentsList = document.getElementById('commentsList');
@@ -591,10 +633,10 @@ async function loadComments() {
             return;
         }
         
-        // 加载评论数据
+        // 加载评论数据（使用当前排序状态）
         const comments = await loadCommentsData(postId);
         
-        // 更新评论计数显示
+        // 更新评论计数显示（只计算主评论数量）
         commentCount.textContent = `${comments.length} 条评论`;
         
         // 同时更新帖子详情中的评论计数
@@ -616,6 +658,7 @@ async function loadComments() {
             likedComments = JSON.parse(localStorage.getItem(`userLiked_comments_${userId}`) || '[]');
         }
         
+        // 渲染评论列表，包括回复
         commentsList.innerHTML = comments.map(comment => {
             const isLiked = likedComments.includes(comment.id.toString());
             const likedClass = isLiked ? 'liked' : '';
@@ -627,7 +670,6 @@ async function loadComments() {
                 imagesHTML = `
                     <div class="comment-images">
                         ${comment.images.map(image => {
-                            // 支持两种图片格式：字符串和对象格式
                             const imageUrl = typeof image === 'string' ? image : (image.url || '');
                             if (!imageUrl) return '';
                             return `<div class="comment-image"><img src="${imageUrl}" alt="评论图片"></div>`;
@@ -636,12 +678,13 @@ async function loadComments() {
                 `;
             }
             
-            // 生成回复HTML
+            // 生成回复HTML，确保回复数组存在
             let repliesHTML = '';
-            if (comment.replies && comment.replies.length > 0) {
+            const replies = comment.replies || [];
+            if (replies.length > 0) {
                 repliesHTML = `
                     <div class="replies">
-                        ${comment.replies.map(reply => `
+                        ${replies.map(reply => `
                             <div class="reply-item">
                                 <div class="reply-header">
                                     <div class="reply-author">
@@ -682,7 +725,7 @@ async function loadComments() {
                         </button>
                         <button type="button" class="like-btn ${likedClass}" data-comment-id="${comment.id}">
                             <i class="bi ${likeIcon}"></i>
-                            <span class="like-count">${comment.likes}</span>
+                            <span class="like-count">${comment.likes || 0}</span>
                         </button>
                     </div>
                     <div class="reply-form" style="display: none;">
@@ -1149,6 +1192,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // 添加评论提交事件
         addCommentSubmitEvent();
+
+        // 添加排序按钮事件
+        addSortButtonEvent();
 
         // 初始化评论图片上传功能
         initCommentImageUpload();

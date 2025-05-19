@@ -424,33 +424,20 @@ const contentAPI = {
                 throw new Error('缺少必要参数');
             }
             
-            // 获取当前评论数据
-            const comments = await contentAPI.getComments(postId);
+            const response = await fetch(`${BASE_URL}/api/comments/${postId}/${commentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(commentData)
+            });
             
-            if (!comments || !Array.isArray(comments)) {
-                throw new Error('无法获取评论数据');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '更新评论失败');
             }
             
-            // 查找并更新评论
-            const commentIndex = comments.findIndex(comment => comment.id.toString() === commentId.toString());
-            
-            if (commentIndex === -1) {
-                throw new Error('未找到评论');
-            }
-            
-            // 更新评论
-            comments[commentIndex] = {
-                ...comments[commentIndex],
-                ...commentData
-            };
-            
-            // 保存评论数据
-            localStorage.setItem(`comments_${postId}`, JSON.stringify(comments));
-            
-            return {
-                success: true,
-                message: '评论更新成功'
-            };
+            return await response.json();
         } catch (error) {
             console.error('更新评论失败:', error);
             return {

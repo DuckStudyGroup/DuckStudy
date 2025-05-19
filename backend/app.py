@@ -470,9 +470,45 @@ def update_post(post_id):
 # API路由：获取评论
 @app.route('/api/comments/<post_id>', methods=['GET'])
 def get_comments(post_id):
-    """获取指定帖子的评论"""
-    data = read_comments()
-    return jsonify({"comments": data['comments'].get(post_id, [])})
+    """获取指定帖子的评论，支持按时间排序"""
+    try:
+        # 获取排序参数，默认为倒序（最新的在前）
+        sort_order = request.args.get('sort', 'desc')
+        
+        data = read_comments()
+        comments = data['comments'].get(post_id, [])
+        
+        # 确保评论有时间戳字段，同时保留回复数据
+        for comment in comments:
+            if 'timestamp' not in comment:
+                # 如果没有时间戳，使用id作为时间戳（因为id是基于时间戳生成的）
+                comment['timestamp'] = comment.get('id', 0)
+            # 确保回复数组存在
+            if 'replies' not in comment:
+                comment['replies'] = []
+            # 确保每个回复也有时间戳
+            for reply in comment['replies']:
+                if 'timestamp' not in reply:
+                    reply['timestamp'] = reply.get('id', 0)
+        
+        # 根据排序参数对评论进行排序（只排序主评论，不排序回复）
+        if sort_order.lower() == 'asc':
+            # 正序：最早的在前
+            comments.sort(key=lambda x: x.get('timestamp', 0))
+        else:
+            # 倒序：最新的在前
+            comments.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
+        
+        return jsonify({
+            "success": True,
+            "comments": comments,
+            "sort": sort_order
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"获取评论失败: {str(e)}"
+        }), 500
 
 # API路由：获取所有评论
 @app.route('/api/comments', methods=['GET'])
@@ -507,6 +543,52 @@ def add_comment(post_id):
             return jsonify({"success": False, "message": "评论保存失败"}), 500
     except Exception as e:
         return jsonify({"success": False, "message": f"添加评论失败: {str(e)}"}), 500
+
+# API路由：更新评论
+@app.route('/api/comments/<post_id>/<comment_id>', methods=['PUT'])
+def update_comment(post_id, comment_id):
+    """更新评论（包括添加回复）"""
+    try:
+        updated_comment = request.json
+        data = read_comments()
+        
+        # 确保帖子存在
+        if post_id not in data['comments']:
+            return jsonify({"success": False, "message": "帖子不存在"}), 404
+        
+        # 查找要更新的评论
+        comment_index = None
+        for i, comment in enumerate(data['comments'][post_id]):
+            if str(comment['id']) == str(comment_id):
+                comment_index = i
+                break
+        
+        if comment_index is None:
+            return jsonify({"success": False, "message": "评论不存在"}), 404
+        
+        # 确保回复数组存在
+        if 'replies' not in updated_comment:
+            updated_comment['replies'] = []
+        
+        # 确保每个回复都有时间戳
+        for reply in updated_comment['replies']:
+            if 'timestamp' not in reply:
+                reply['timestamp'] = reply.get('id', 0)
+        
+        # 更新评论
+        data['comments'][post_id][comment_index] = updated_comment
+        
+        # 保存数据
+        if save_comments(data):
+            return jsonify({
+                "success": True,
+                "message": "评论更新成功",
+                "comment": updated_comment
+            })
+        else:
+            return jsonify({"success": False, "message": "评论保存失败"}), 500
+    except Exception as e:
+        return jsonify({"success": False, "message": f"更新评论失败: {str(e)}"}), 500
 
 @app.route('/api/github/user/<username>/repos', methods=['GET'])
 def get_user_repos(username):
