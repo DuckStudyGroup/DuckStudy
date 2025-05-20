@@ -20,14 +20,20 @@
 }
 
 .profile-avatar {
+    text-align: center;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.profile-avatar img {
     width: 100px;
     height: 100px;
-    margin: 0 auto 1rem;
-    background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: block;
+    margin: 0 auto;
 }
 
 .profile-avatar i {
@@ -140,6 +146,66 @@
     border-color: var(--primary-color);
 }
 
+.avatar-upload {
+    margin: 15px auto;
+    text-align: center;
+    width: 100%;
+}
+
+.avatar-upload button {
+    background-color: rgba(0,123,255,0.8);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 15px;
+    font-size: 14px;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.avatar-upload button:hover {
+    background-color: rgba(0,123,255,1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.avatar-upload button i {
+    margin-right: 5px;
+}
+
+.profile-avatar .avatar-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.profile-avatar .avatar-icon i {
+    font-size: 60px;
+    color: #6c757d;
+}
+
+.avatar-container .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-container .avatar i {
+    font-size: 24px;
+    color: #6c757d;
+}
+
 /* 响应式调整 */
 @media (max-width: 768px) {
     .main-content {
@@ -165,5 +231,14 @@
     
     .content-section h2 {
         font-size: 1.25rem;
+    }
+    
+    .profile-avatar .avatar-icon {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .profile-avatar .avatar-icon i {
+        font-size: 50px;
     }
 } 

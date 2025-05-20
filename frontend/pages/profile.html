@@ -10,17 +10,87 @@
     <link rel="stylesheet" href="../lib/bootstrap-icons/css/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/profile.css">
+    <style>
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar-brand img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+        .navbar-brand span {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .user-profile .avatar-container {
+            width: 32px;
+            height: 32px;
+            margin-right: 8px;
+            position: relative;
+        }
+        .user-profile .avatar-container img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 10px 0;
+            z-index: 1000;
+            min-width: 200px;
+        }
+        .avatar-container:hover .dropdown-menu {
+            display: block;
+        }
+        .dropdown-item {
+            display: block;
+            padding: 8px 16px;
+            color: #333;
+            text-decoration: none;
+        }
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+        .dropdown-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 8px 0;
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid main-container">
         <!-- 顶部导航栏 -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container">
-                <a class="navbar-brand" href="../index.html">DuckStudy</a>
+                <a class="navbar-brand" href="../index.html">
+                    <img src="../images/duckstudy.png" alt="DuckStudy Logo">
+                    <span>DuckStudy</span>
+                </a>
                 <div class="d-flex align-items-center">
                     <div class="nav-links">
                         <a href="posts.html" class="nav-link">论坛</a>
+                        <a href="courses.html" class="nav-link">课程</a>
                         <a href="market.html" class="nav-link">市场</a>
+                        <a href="projects.html" class="nav-link">热门项目</a>
                     </div>
                     <div class="search-box">
                         <input type="text" placeholder="搜索...">
@@ -44,7 +114,13 @@
                         <div class="profile-nav">
                             <div class="profile-header">
                                 <div class="profile-avatar">
-                                    <i class="bi bi-person-circle"></i>
+                                    <img id="avatarImage" src="https://placehold.jp/100x100.png" alt="用户头像">
+                                </div>
+                                <div class="avatar-upload" id="avatarUploadSection" style="display: none;">
+                                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-sm btn-primary" id="uploadAvatarBtn">
+                                        <i class="bi bi-camera"></i> 更换头像
+                                    </button>
                                 </div>
                                 <div class="profile-info">
                                     <h3 id="profileUsername">加载中...</h3>
@@ -152,5 +228,6 @@
     <script type="module" src="../js/api.js"></script>
     <script type="module" src="../js/profile.js"></script>
 </body>
+</html>
 
 

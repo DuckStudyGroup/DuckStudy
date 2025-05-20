@@ -1,4 +1,5 @@
 import { userAPI, contentAPI } from './api.js';
+import { initNavbar } from './nav-utils.js';
 
 // 全局商品数据
 window.marketItems = [];
@@ -9,8 +10,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 初始化商品数据
         await initMarketItems();
         
-        // 更新用户状态
-        await updateUserStatus();
+        // 初始化导航栏
+        await initNavbar();
         
         // 加载商品列表
         await loadMarketItems();
@@ -38,78 +39,6 @@ async function initMarketItems() {
     } catch (error) {
         console.error('加载商品数据失败:', error);
         window.marketItems = [];
-    }
-}
-
-// 更新用户状态
-async function updateUserStatus() {
-    try {
-        console.log('开始获取用户状态...');
-        const response = await userAPI.getStatus();
-        console.log('获取用户状态成功:', response);
-        const userSection = document.getElementById('userSection');
-        
-        if (!userSection) {
-            console.error('未找到用户区域元素');
-            return;
-        }
-        
-        if (response.isLoggedIn) {
-            userSection.innerHTML = `
-                <div class="user-profile">
-                    <div class="avatar-container">
-                        <div class="avatar">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <div class="dropdown-menu">
-                            <a href="profile.html" class="dropdown-item">
-                                <i class="bi bi-person"></i> 个人中心
-                            </a>
-                            <a href="favorites.html" class="dropdown-item">
-                                <i class="bi bi-bookmark"></i> 我的收藏
-                            </a>
-                            <a href="history.html" class="dropdown-item">
-                                <i class="bi bi-clock-history"></i> 历史观看
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item" id="logoutBtn">
-                                <i class="bi bi-box-arrow-right"></i> 退出登录
-                            </a>
-                        </div>
-                    </div>
-                    <span class="username">${response.username}</span>
-                </div>
-            `;
-
-            // 添加退出登录事件监听
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    try {
-                        await userAPI.logout();
-                        window.location.reload();
-                    } catch (error) {
-                        console.error('退出登录失败:', error);
-                        alert('退出登录失败，请重试');
-                    }
-                });
-            }
-        } else {
-            userSection.innerHTML = `
-                <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="register.html" class="btn btn-primary">注册</a>
-            `;
-        }
-    } catch (error) {
-        console.error('获取用户状态失败:', error);
-        const userSection = document.getElementById('userSection');
-        if (userSection) {
-            userSection.innerHTML = `
-                <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="register.html" class="btn btn-primary">注册</a>
-            `;
-        }
     }
 }
 

@@ -1,4 +1,5 @@
 import { userAPI, contentAPI } from './api.js';
+import { initNavbar } from './nav-utils.js';
 
 // 全局变量
 let currentPage = 1;
@@ -10,7 +11,7 @@ let currentTimeRange = 'all'; // 当前选择的时间范围，默认为 'all'
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // 更新用户状态
-        await updateUserStatus();
+        initNavbar();
         
         // 添加视图切换事件
         addViewToggleEvents();
@@ -36,64 +37,64 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // 更新用户状态
-async function updateUserStatus() {
-    try {
-        const response = await fetch('/api/user/status');
-        const data = await response.json();
-        const userSection = document.getElementById('userSection');
-        
-        if (data.isLoggedIn) {
-            userSection.innerHTML = `
-                <div class="user-profile">
-                    <div class="avatar-container">
-                        <div class="avatar">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <div class="dropdown-menu">
-                            <a href="profile.html" class="dropdown-item">
-                                <i class="bi bi-person"></i> 个人中心
-                            </a>
-                            <a href="favorites.html" class="dropdown-item">
-                                <i class="bi bi-heart"></i> 我的收藏
-                            </a>
-                            <a href="history.html" class="dropdown-item">
-                                <i class="bi bi-clock-history"></i> 历史观看
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item" id="logoutBtn">
-                                <i class="bi bi-box-arrow-right"></i> 退出登录
-                            </a>
-                        </div>
-                    </div>
-                    <span class="username">${data.username}</span>
-                </div>
-            `;
-
-            // 添加退出登录事件监听
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    try {
-                        await fetch('/api/user/logout', { method: 'POST' });
-                        window.location.href = '../index.html';
-                    } catch (error) {
-                        console.error('退出登录失败:', error);
-                        alert('退出登录失败，请重试');
-                    }
-                });
-            }
-        } else {
-            userSection.innerHTML = `
-                <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="register.html" class="btn btn-primary">注册</a>
-            `;
-        }
-    } catch (error) {
-        console.error('获取用户状态失败:', error);
-        window.location.href = 'login.html';
-    }
-}
+// async function updateUserStatus() {
+//     try {
+//         const response = await fetch('/api/user/status');
+//         const data = await response.json();
+//         const userSection = document.getElementById('userSection');
+//         
+//         if (data.isLoggedIn) {
+//             userSection.innerHTML = `
+//                 <div class="user-profile">
+//                     <div class="avatar-container">
+//                         <div class="avatar">
+//                             <i class="bi bi-person-circle"></i>
+//                         </div>
+//                         <div class="dropdown-menu">
+//                             <a href="profile.html" class="dropdown-item">
+//                                 <i class="bi bi-person"></i> 个人中心
+//                             </a>
+//                             <a href="favorites.html" class="dropdown-item">
+//                                 <i class="bi bi-heart"></i> 我的收藏
+//                             </a>
+//                             <a href="history.html" class="dropdown-item">
+//                                 <i class="bi bi-clock-history"></i> 历史观看
+//                             </a>
+//                             <div class="dropdown-divider"></div>
+//                             <a href="#" class="dropdown-item" id="logoutBtn">
+//                                 <i class="bi bi-box-arrow-right"></i> 退出登录
+//                             </a>
+//                         </div>
+//                     </div>
+//                     <span class="username">${data.username}</span>
+//                 </div>
+//             `;
+// 
+//             // 添加退出登录事件监听
+//             const logoutBtn = document.getElementById('logoutBtn');
+//             if (logoutBtn) {
+//                 logoutBtn.addEventListener('click', async (e) => {
+//                     e.preventDefault();
+//                     try {
+//                         await fetch('/api/user/logout', { method: 'POST' });
+//                         window.location.href = '../index.html';
+//                     } catch (error) {
+//                         console.error('退出登录失败:', error);
+//                         alert('退出登录失败，请重试');
+//                     }
+//                 });
+//             }
+//         } else {
+//             userSection.innerHTML = `
+//                 <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
+//                 <a href="register.html" class="btn btn-primary">注册</a>
+//             `;
+//         }
+//     } catch (error) {
+//         console.error('获取用户状态失败:', error);
+//         window.location.href = 'login.html';
+//     }
+// }
 
 // 加载项目列表
 async function loadProjects() {
