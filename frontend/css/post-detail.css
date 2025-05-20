@@ -499,18 +499,41 @@
     background-color: #f8f9fa;
 }
 
-/* 回复列表样式 */
+/* 回复列表样式 - 增强嵌套效果 */
 .replies {
     margin-top: 1rem;
     padding-left: 2rem;
     border-left: 2px solid #eee;
+    border-radius: 0 0 0 8px;
+    position: relative;
+}
+
+.replies::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1rem;
+    height: 2px;
+    background-color: #eee;
 }
 
 .reply-item {
     padding: 1rem;
     background: #f8f9fa;
-    border-radius: 4px;
-    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    margin-bottom: 0.8rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    transition: box-shadow 0.3s ease;
+}
+
+.reply-item:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.reply-item:last-child {
+    margin-bottom: 0;
 }
 
 .reply-header {
@@ -523,14 +546,16 @@
 .reply-author {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.5rem;
 }
 
 .reply-author img {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     object-fit: cover;
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .reply-author a {
@@ -540,11 +565,41 @@
 
 .reply-author .author-name {
     font-weight: 500;
-    margin-left: 5px;
     color: #0d6efd;
 }
 
 .reply-author .author-name:hover {
+    text-decoration: underline;
+    color: #0a58ca;
+}
+
+/* 回复对象信息样式 */
+.reply-to-info {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-left: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.reply-to-info::before {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 5px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' class='bi bi-arrow-return-right' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.5 1.5A.5.5 0 0 0 1 2v4.8a2.5 2.5 0 0 0 2.5 2.5h9.793l-3.347 3.346a.5.5 0 0 0 .708.708l4.2-4.2a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 8.3H3.5A1.5 1.5 0 0 1 2 6.8V2a.5.5 0 0 0-.5-.5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+.reply-to-info a {
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+.reply-to-info a:hover {
     text-decoration: underline;
     color: #0a58ca;
 }
@@ -557,6 +612,65 @@
 .reply-content {
     color: #333;
     line-height: 1.6;
+    margin-bottom: 0.5rem;
+    word-break: break-word;
+}
+
+/* 嵌套回复表单样式 */
+.nested-reply-form {
+    margin-top: 0.8rem;
+    padding: 0.8rem;
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.nested-reply-form textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 0.625rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    resize: vertical;
+    font-size: 0.875rem;
+}
+
+.nested-reply-form textarea:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.nested-reply-form .reply-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.nested-reply-form button {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* 添加悬停效果 */
+.reply-item {
+    position: relative;
+}
+
+.reply-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -2rem;
+    width: 5px;
+    height: 100%;
+    background-color: transparent;
+    transition: background-color 0.3s ease;
+}
+
+.reply-item:hover::after {
+    background-color: rgba(13, 110, 253, 0.2);
 }
 
 /* 响应式调整 */
@@ -658,7 +772,7 @@
     align-items: center;
     justify-content: center;
     pointer-events: none; /* 避免指示器干扰鼠标点击 */
-    backdrop-filter: blur(2px); /* 添加毛玻璃效果 */
+    /*backdrop-filter: blur(2px);*/ /* 添加毛玻璃效果 */
 }
 
 /* 添加相机图标 */
@@ -883,4 +997,158 @@
 .reply-form .image-preview .preview-item {
     width: 80px;
     height: 80px;
+}
+
+/* 回复的操作按钮样式 */
+.reply-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.reply-actions .like-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border: none;
+    background: none;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.reply-actions .like-btn:hover {
+    color: #dc3545;
+}
+
+.reply-actions .like-btn.liked {
+    color: #dc3545;
+}
+
+.reply-actions .like-btn.liked i {
+    animation: like-animation 0.3s ease;
+}
+
+/* 回复按钮样式优化 */
+.comment-actions .reply-btn,
+.reply-actions .reply-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.85rem;
+    border: none;
+    background-color: #f0f2f5;
+    color: #5a6268;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 16px;
+    font-size: 0.9rem;
+}
+
+.comment-actions .reply-btn:hover,
+.reply-actions .reply-btn:hover {
+    background-color: #e2e6ea;
+    color: #0d6efd;
+}
+
+.comment-actions .reply-btn i,
+.reply-actions .reply-btn i {
+    font-size: 0.85rem;
+    transition: transform 0.2s ease;
+}
+
+.comment-actions .reply-btn:hover i,
+.reply-actions .reply-btn:hover i {
+    transform: translateX(-2px);
+}
+
+/* 回复表单提交按钮样式 */
+.reply-form .submit-reply,
+.nested-reply-form .submit-nested-reply {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+    transition: all 0.2s ease;
+}
+
+.reply-form .submit-reply:hover,
+.nested-reply-form .submit-nested-reply:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    transform: translateY(-1px);
+}
+
+.reply-form .cancel-reply,
+.nested-reply-form .cancel-nested-reply {
+    border: 1px solid #ced4da;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+
+.reply-form .cancel-reply:hover,
+.nested-reply-form .cancel-nested-reply:hover {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+/* 默认头像图标样式 */
+.avatar .bi-person-circle {
+    font-size: 24px; /* 减小图标尺寸 */
+    color: #6c757d;
+}
+
+/* 通用头像容器样式 */
+.author-avatar .avatar,
+.comment-avatar .avatar,
+.reply-avatar .avatar,
+.comment .comment-avatar a .avatar,
+.reply .reply-avatar a .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    text-decoration: none; /* 防止链接下划线 */
+}
+
+/* 通用头像图片样式 */
+.author-avatar .avatar-img,
+.comment-avatar .avatar-img,
+.reply-avatar .avatar-img,
+.comment .comment-avatar a .avatar-img,
+.reply .reply-avatar a .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%; /* 确保图片也是圆形 */
+}
+
+/* 评论区特殊样式 */
+.comment .comment-avatar,
+.reply .reply-avatar {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.comment .comment-avatar a,
+.reply .reply-avatar a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+}
+
+/* 确保评论和回复头像大小一致 */
+.comment .comment-avatar a .avatar,
+.reply .reply-avatar a .avatar {
+    width: 100%;
+    height: 100%;
 } 

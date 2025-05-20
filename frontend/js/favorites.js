@@ -1,4 +1,5 @@
 import { userAPI, contentAPI } from './api.js';
+import { initNavbar } from './nav-utils.js';
 
 // 初始化全局帖子列表
 async function initMockPosts() {
@@ -23,84 +24,6 @@ async function initMarketItems() {
             console.error('加载市场商品数据失败:', error);
             window.marketItems = [];
         }
-    }
-}
-
-// 更新用户状态
-async function updateUserStatus() {
-    try {
-        const response = await userAPI.getStatus();
-        const userSection = document.getElementById('userSection');
-        
-        if (!userSection) {
-            console.error('未找到用户区域元素');
-            return;
-        }
-        
-        if (response.isLoggedIn) {
-            userSection.innerHTML = `
-                <div class="user-profile">
-                    <div class="avatar-container">
-                        <div class="avatar">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <div class="dropdown-menu">
-                            <a href="profile.html" class="dropdown-item">
-                                <i class="bi bi-person"></i> 个人中心
-                            </a>
-                            <a href="favorites.html" class="dropdown-item active">
-                                <i class="bi bi-bookmark"></i> 我的收藏
-                            </a>
-                            <a href="history.html" class="dropdown-item">
-                                <i class="bi bi-clock-history"></i> 历史观看
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item" id="logoutBtn">
-                                <i class="bi bi-box-arrow-right"></i> 退出登录
-                            </a>
-                        </div>
-                    </div>
-                    <span class="username">${response.username}</span>
-                </div>
-            `;
-
-            // 添加退出登录事件监听
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    try {
-                        await userAPI.logout();
-                        window.location.href = '../index.html';
-                    } catch (error) {
-                        console.error('退出登录失败:', error);
-                        alert('退出登录失败，请重试');
-                    }
-                });
-            }
-            
-            return response;
-        } else {
-            userSection.innerHTML = `
-                <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="register.html" class="btn btn-primary">注册</a>
-            `;
-            
-            // 用户未登录时重定向到登录页面
-            alert('请先登录后再查看收藏');
-            window.location.href = 'login.html';
-            return null;
-        }
-    } catch (error) {
-        console.error('获取用户状态失败:', error);
-        const userSection = document.getElementById('userSection');
-        if (userSection) {
-            userSection.innerHTML = `
-                <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="register.html" class="btn btn-primary">注册</a>
-            `;
-        }
-        return null;
     }
 }
 
@@ -441,22 +364,34 @@ function addCategoryEvents() {
 }
 
 // 页面加载完成后执行
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async function() {
     try {
-        // 更新用户状态
-        const userResponse = await updateUserStatus();
+        // 初始化导航栏
+        await initNavbar();
         
-        // 如果用户已登录则继续加载
-        if (userResponse && userResponse.isLoggedIn) {
-            // 初始化帖子数据
-            await initMockPosts();
-            
-            // 添加分类导航事件
-            addCategoryEvents();
-            
-            // 加载收藏内容（默认全部）
-            await loadFavoriteContent('all');
+        // 初始化帖子数据
+        await initMockPosts();
+        
+        // 初始化市场数据
+        await initMarketItems();
+        
+        // 获取用户登录状态
+        const userStatus = await userAPI.getStatus();
+        if (!userStatus || !userStatus.isLoggedIn) {
+            // 用户未登录时重定向到登录页面
+            alert('请先登录后再查看收藏');
+            window.location.href = 'login.html';
+            return;
         }
+        
+        // 加载用户收藏内容
+        await loadFavoriteContent('all');
+        
+        // 添加分类切换事件
+        addCategoryEvents();
+        
+        // 添加移除收藏事件
+        addRemoveFavoriteEvents();
     } catch (error) {
         console.error('加载数据失败:', error);
         alert('加载数据失败，请刷新页面重试');

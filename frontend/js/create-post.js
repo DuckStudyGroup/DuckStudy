@@ -1,4 +1,5 @@
 import { userAPI, contentAPI } from './api.js';
+import { updateNavUserStatus } from './nav-utils.js';
 
 // 字符限制常量
 const MAX_TITLE_LENGTH = 100;
@@ -25,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // 更新用户状态
-        await updateUserStatus(response);
+        await updateNavUserStatus();
         
         // 初始化富文本编辑器
         initQuillEditor();
@@ -181,65 +182,6 @@ function imageHandler() {
             }
         }
     };
-}
-
-// 更新用户状态
-async function updateUserStatus(userData) {
-    try {
-    const userSection = document.getElementById('userSection');
-        
-        if (!userSection) {
-            console.error('未找到用户区域元素');
-            return;
-        }
-
-    if (userData.isLoggedIn) {
-        userSection.innerHTML = `
-                <div class="user-profile">
-                    <div class="avatar-container">
-                        <div class="avatar">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <div class="dropdown-menu">
-                            <a href="profile.html" class="dropdown-item">
-                                <i class="bi bi-person"></i> 个人中心
-                            </a>
-                            <a href="favorites.html" class="dropdown-item">
-                                <i class="bi bi-heart"></i> 我的收藏
-                            </a>
-                            <a href="history.html" class="dropdown-item">
-                                <i class="bi bi-clock-history"></i> 历史观看
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item" id="logoutBtn">
-                                <i class="bi bi-box-arrow-right"></i> 退出登录
-                            </a>
-                        </div>
-                    </div>
-                    <span class="username">${userData.username}</span>
-            </div>
-        `;
-
-            // 添加退出登录事件监听
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            try {
-                await userAPI.logout();
-                window.location.reload();
-            } catch (error) {
-                console.error('退出登录失败:', error);
-                alert('退出登录失败，请重试');
-            }
-        });
-            }
-    } else {
-            window.location.href = 'login.html';
-        }
-    } catch (error) {
-        console.error('更新用户状态失败:', error);
-    }
 }
 
 // 添加表单提交事件

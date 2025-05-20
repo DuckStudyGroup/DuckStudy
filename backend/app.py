@@ -8,6 +8,7 @@ from services.github_service import github_service
 from dotenv import load_dotenv
 import requests
 from werkzeug.utils import secure_filename
+from routes.user_routes import user_bp
 
 # 加载环境变量
 load_dotenv()
@@ -248,15 +249,21 @@ def get_user_status():
         data = read_users()
         user = next((u for u in data['users'] if u['username'] == username), None)
         if user:
+            # 确保头像路径正确
+            avatar = user.get('avatar', 'https://placehold.jp/100x100.png')
+            if not avatar.startswith(('http://', 'https://')):
+                avatar = avatar if avatar.startswith('/') else '/' + avatar
+                
             return jsonify({
                 'isLoggedIn': True,
                 'username': username,
-                'avatar': user.get('avatar', ''),
+                'avatar': avatar,
                 'role': user.get('role', 'user')
             })
     
     return jsonify({
-        'isLoggedIn': False
+        'isLoggedIn': False,
+        'avatar': 'https://placehold.jp/100x100.png'
     })
 
 @app.route('/api/user/login', methods=['POST'])
@@ -273,21 +280,20 @@ def login():
     users_data = read_users()
     user = next((u for u in users_data['users'] if u['username'] == username), None)
     
-    # 调试信息
-    print(f"尝试登录的用户: {username}")
-    print(f"用户数据: {user}")
-    print(f"输入的密码: {password}")
-    print(f"加密后的密码: {hash_password(password)}")
-    print(f"存储的密码: {user['password'] if user else 'None'}")
-    
     if user and user['password'] == password:  # 暂时不使用密码加密
         session['username'] = username
+        
+        # 确保头像路径正确
+        avatar = user.get('avatar', 'https://placehold.jp/100x100.png')
+        if not avatar.startswith(('http://', 'https://')):
+            avatar = avatar if avatar.startswith('/') else '/' + avatar
+            
         return jsonify({
             'success': True, 
             'message': '登录成功',
             'user': {
                 'username': user['username'],
-                'avatar': user.get('avatar', ''),
+                'avatar': avatar,
                 'role': user.get('role', 'user')
             }
         })
@@ -343,6 +349,95 @@ def logout():
     session.pop('username', None)
     return jsonify({'success': True, 'message': '退出成功'})
 
+@app.route('/api/user/update', methods=['POST'])
+def update_user():
+    """更新用户信息"""
+    try:
+        # 检查用户是否登录
+        username = session.get('username')
+        if not username:
+            return jsonify({'success': False, 'message': '请先登录'}), 401
+
+        # 获取更新数据
+        update_data = request.json
+        if not update_data:
+            return jsonify({'success': False, 'message': '没有提供更新数据'}), 400
+
+        # 读取用户数据
+        users_data = read_users()
+        
+        # 查找并更新用户
+        user_found = False
+        for user in users_data['users']:
+            if user['username'] == username:
+                # 只更新允许的字段
+                allowed_fields = ['email', 'avatar', 'nickname', 'bio']
+                for field in allowed_fields:
+                    if field in update_data:
+                        user[field] = update_data[field]
+                user_found = True
+                break
+
+        if not user_found:
+            return jsonify({'success': False, 'message': '用户不存在'}), 404
+
+        # 保存更新后的数据
+        if save_users(users_data):
+            return jsonify({
+                'success': True,
+                'message': '用户信息更新成功',
+                'user': {
+                    'username': username,
+                    'avatar': user.get('avatar', 'https://placehold.jp/100x100.png'),
+                    'email': user.get('email', ''),
+                    'nickname': user.get('nickname', username),
+                    'bio': user.get('bio', '')
+                }
+            })
+        else:
+            return jsonify({'success': False, 'message': '保存用户数据失败'}), 500
+
+    except Exception as e:
+        print(f"更新用户信息失败: {str(e)}")
+        return jsonify({'success': False, 'message': f'更新失败: {str(e)}'}), 500
+
+@app.route('/api/user/profile/<username>', methods=['GET'])
+def get_user_profile(username):
+    """获取用户资料"""
+    try:
+        # 读取用户数据
+        users_data = read_users()
+        user = next((u for u in users_data['users'] if u['username'] == username), None)
+
+        if not user:
+            return jsonify({'success': False, 'message': '用户不存在'}), 404
+
+        # 确保头像路径正确
+        avatar = user.get('avatar', 'https://placehold.jp/100x100.png')
+        if not avatar.startswith(('http://', 'https://')):
+            avatar = avatar if avatar.startswith('/') else '/' + avatar
+
+        # 获取注册日期字段（兼容不同的字段名）
+        register_date = user.get('registerDate', user.get('registrationDate', ''))
+
+        # 返回用户公开信息
+        return jsonify({
+            'success': True,
+            'user': {
+                'username': username,
+                'avatar': avatar,
+                'nickname': user.get('nickname', username),
+                'bio': user.get('bio', ''),
+                'email': user.get('email', ''),
+                'registerDate': register_date,
+                'role': user.get('role', 'user')
+            }
+        })
+
+    except Exception as e:
+        print(f"获取用户资料失败: {str(e)}")
+        return jsonify({'success': False, 'message': f'获取用户资料失败: {str(e)}'}), 500
+
 # 内容相关路由
 @app.route('/api/reviews', methods=['GET'])
 def get_reviews():
@@ -368,7 +463,23 @@ def get_hot_projects():
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
     """获取所有帖子"""
-    return jsonify(read_posts())
+    try:
+        data = read_posts()
+        users_data = read_users()
+        
+        # 添加作者头像信息到帖子
+        for post in data['posts']:
+            user = next((u for u in users_data['users'] if u['username'] == post['author']), None)
+            if user:
+                avatar = user.get('avatar', 'https://placehold.jp/100x100.png')
+                post['authorAvatar'] = avatar
+            else:
+                post['authorAvatar'] = 'https://placehold.jp/100x100.png'
+        
+        return jsonify(data)
+    except Exception as e:
+        print(f"获取帖子失败: {str(e)}")
+        return jsonify({"success": False, "message": f"获取帖子失败: {str(e)}"}), 500
 
 # API路由：创建新帖子
 @app.route('/api/posts', methods=['POST'])
@@ -381,6 +492,23 @@ def create_post():
         # 确保新帖子有ID
         if 'id' not in new_post:
             new_post['id'] = int(time.time() * 1000)  # 使用时间戳作为ID
+        
+        # 确保基本字段存在
+        if 'likes' not in new_post:
+            new_post['likes'] = 0
+        
+        if 'views' not in new_post:
+            new_post['views'] = 0
+            
+        if 'favorites' not in new_post:
+            new_post['favorites'] = 0
+            
+        # 确保点赞和收藏数组存在
+        if 'likedBy' not in new_post:
+            new_post['likedBy'] = []
+            
+        if 'favoritedBy' not in new_post:
+            new_post['favoritedBy'] = []
         
         # 添加新帖子
         data['posts'].append(new_post)
@@ -397,11 +525,26 @@ def create_post():
 @app.route('/api/posts/<int:post_id>', methods=['GET'])
 def get_post(post_id):
     """获取特定帖子"""
-    data = read_posts()
-    for post in data['posts']:
-        if post['id'] == post_id:
-            return jsonify(post)
-    return jsonify({"message": "帖子不存在"}), 404
+    try:
+        data = read_posts()
+        users_data = read_users()
+        
+        for post in data['posts']:
+            if post['id'] == post_id:
+                # 添加作者头像信息
+                user = next((u for u in users_data['users'] if u['username'] == post['author']), None)
+                if user:
+                    avatar = user.get('avatar', 'https://placehold.jp/100x100.png')
+                    post['authorAvatar'] = avatar
+                else:
+                    post['authorAvatar'] = 'https://placehold.jp/100x100.png'
+                
+                return jsonify(post)
+        
+        return jsonify({"success": False, "message": "帖子不存在"}), 404
+    except Exception as e:
+        print(f"获取帖子详情失败: {str(e)}")
+        return jsonify({"success": False, "message": f"获取帖子详情失败: {str(e)}"}), 500
 
 # API路由：更新帖子
 @app.route('/api/posts/<int:post_id>', methods=['PUT'])
@@ -435,6 +578,15 @@ def update_post(post_id):
                 else:
                     del updated_post['coverImages']
                     print("警告: 所有coverImages都无效，已删除该字段")
+        
+        # 处理点赞和收藏数组
+        if 'likedBy' in updated_post and not isinstance(updated_post['likedBy'], list):
+            updated_post['likedBy'] = []
+            print("警告: likedBy字段不是列表，已重置为空列表")
+            
+        if 'favoritedBy' in updated_post and not isinstance(updated_post['favoritedBy'], list):
+            updated_post['favoritedBy'] = []
+            print("警告: favoritedBy字段不是列表，已重置为空列表")
         
         found = False
         for i, post in enumerate(data['posts']):
@@ -476,6 +628,7 @@ def get_comments(post_id):
         sort_order = request.args.get('sort', 'desc')
         
         data = read_comments()
+        users_data = read_users()
         comments = data['comments'].get(post_id, [])
         
         # 确保评论有时间戳字段，同时保留回复数据
@@ -490,6 +643,23 @@ def get_comments(post_id):
             for reply in comment['replies']:
                 if 'timestamp' not in reply:
                     reply['timestamp'] = reply.get('id', 0)
+            
+            # 添加评论者头像
+            user = next((u for u in users_data['users'] if u['username'] == comment['author']), None)
+            if user:
+                avatar = user.get('avatar', 'https://placehold.jp/100x100.png')
+                comment['authorAvatar'] = avatar
+            else:
+                comment['authorAvatar'] = 'https://placehold.jp/100x100.png'
+            
+            # 添加回复者头像
+            for reply in comment['replies']:
+                reply_user = next((u for u in users_data['users'] if u['username'] == reply['author']), None)
+                if reply_user:
+                    reply_avatar = reply_user.get('avatar', 'https://placehold.jp/100x100.png')
+                    reply['authorAvatar'] = reply_avatar
+                else:
+                    reply['authorAvatar'] = 'https://placehold.jp/100x100.png'
         
         # 根据排序参数对评论进行排序（只排序主评论，不排序回复）
         if sort_order.lower() == 'asc':
@@ -517,33 +687,6 @@ def get_all_comments():
     data = read_comments()
     return jsonify({"comments": data['comments']})
 
-# API路由：添加评论
-@app.route('/api/comments/<post_id>', methods=['POST'])
-def add_comment(post_id):
-    """添加评论"""
-    try:
-        new_comment = request.json
-        data = read_comments()
-        
-        # 确保评论有ID
-        if 'id' not in new_comment:
-            new_comment['id'] = int(time.time() * 1000)  # 使用时间戳作为ID
-        
-        # 确保帖子的评论列表存在
-        if post_id not in data['comments']:
-            data['comments'][post_id] = []
-        
-        # 添加新评论
-        data['comments'][post_id].insert(0, new_comment)  # 添加到列表开头
-        
-        # 保存数据
-        if save_comments(data):
-            return jsonify({"success": True, "message": "评论添加成功", "comment": new_comment}), 201
-        else:
-            return jsonify({"success": False, "message": "评论保存失败"}), 500
-    except Exception as e:
-        return jsonify({"success": False, "message": f"添加评论失败: {str(e)}"}), 500
-
 # API路由：更新评论
 @app.route('/api/comments/<post_id>/<comment_id>', methods=['PUT'])
 def update_comment(post_id, comment_id):
@@ -566,14 +709,21 @@ def update_comment(post_id, comment_id):
         if comment_index is None:
             return jsonify({"success": False, "message": "评论不存在"}), 404
         
-        # 确保回复数组存在
+        # 确保基本结构完整
         if 'replies' not in updated_comment:
             updated_comment['replies'] = []
-        
-        # 确保每个回复都有时间戳
+            
+        if 'likedBy' not in updated_comment:
+            updated_comment['likedBy'] = []
+            
+        # 确保每个回复都有基本结构
         for reply in updated_comment['replies']:
             if 'timestamp' not in reply:
                 reply['timestamp'] = reply.get('id', 0)
+            if 'likedBy' not in reply:
+                reply['likedBy'] = []
+            if 'likes' not in reply:
+                reply['likes'] = 0
         
         # 更新评论
         data['comments'][post_id][comment_index] = updated_comment
@@ -589,6 +739,43 @@ def update_comment(post_id, comment_id):
             return jsonify({"success": False, "message": "评论保存失败"}), 500
     except Exception as e:
         return jsonify({"success": False, "message": f"更新评论失败: {str(e)}"}), 500
+
+# API路由：添加评论
+@app.route('/api/comments/<post_id>', methods=['POST'])
+def add_comment(post_id):
+    """添加评论"""
+    try:
+        new_comment = request.json
+        data = read_comments()
+        
+        # 确保评论有ID
+        if 'id' not in new_comment:
+            new_comment['id'] = int(time.time() * 1000)  # 使用时间戳作为ID
+        
+        # 确保评论有基本结构
+        if 'likes' not in new_comment:
+            new_comment['likes'] = 0
+            
+        if 'likedBy' not in new_comment:
+            new_comment['likedBy'] = []
+            
+        if 'replies' not in new_comment:
+            new_comment['replies'] = []
+        
+        # 确保帖子的评论列表存在
+        if post_id not in data['comments']:
+            data['comments'][post_id] = []
+        
+        # 添加新评论
+        data['comments'][post_id].insert(0, new_comment)  # 添加到列表开头
+        
+        # 保存数据
+        if save_comments(data):
+            return jsonify({"success": True, "message": "评论添加成功", "comment": new_comment}), 201
+        else:
+            return jsonify({"success": False, "message": "评论保存失败"}), 500
+    except Exception as e:
+        return jsonify({"success": False, "message": f"添加评论失败: {str(e)}"}), 500
 
 @app.route('/api/github/user/<username>/repos', methods=['GET'])
 def get_user_repos(username):
@@ -833,6 +1020,9 @@ def serve_static(path):
         # 对于图片请求，从frontend目录提供
         return send_from_directory(os.path.join(BASE_DIR, 'frontend'), path)
     return send_from_directory(os.path.join(BASE_DIR, 'frontend'), path)
+
+# 注册蓝图
+app.register_blueprint(user_bp)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000) 

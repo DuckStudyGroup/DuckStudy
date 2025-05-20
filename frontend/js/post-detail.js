@@ -1,4 +1,17 @@
 import { userAPI, contentAPI, uploadAPI } from './api.js';
+import { initNavbar, isDefaultAvatar, renderAvatar } from './nav-utils.js';
+
+// 处理头像URL
+function getAvatarUrl(avatarPath) {
+    if (!avatarPath) return 'https://placehold.jp/100x100.png';
+    
+    // 如果是BASE_URL变量未定义，则定义一个
+    const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? `http://${window.location.hostname}:5000` 
+    : window.location.origin;
+    
+    return avatarPath.startsWith('http') ? avatarPath : BASE_URL + avatarPath;
+}
 
 // 处理帖子对象，确保其可以安全发送到后端
 function sanitizePostObject(post) {
@@ -50,6 +63,15 @@ function sanitizePostObject(post) {
                 delete sanitizedPost.coverImages;
             }
         }
+    }
+    
+    // 确保点赞和收藏数组格式正确
+    if (sanitizedPost.likedBy && !Array.isArray(sanitizedPost.likedBy)) {
+        sanitizedPost.likedBy = [];
+    }
+    
+    if (sanitizedPost.favoritedBy && !Array.isArray(sanitizedPost.favoritedBy)) {
+        sanitizedPost.favoritedBy = [];
     }
     
     return sanitizedPost;
@@ -173,15 +195,19 @@ async function loadPostContent() {
         
         // 如果用户已登录，检查收藏和点赞状态
         if (userResponse && userResponse.isLoggedIn) {
-            const userId = userResponse.userId || userResponse.username;
+            const username = userResponse.username;
             
-            // 检查收藏状态
-            const favoritedPosts = JSON.parse(localStorage.getItem(`userFavorites_posts_${userId}`) || '[]');
-            isFavorited = favoritedPosts.includes(postId.toString());
+            // 检查点赞状态 - 使用likedBy数组
+            if (!post.likedBy) {
+                post.likedBy = [];
+            }
+            isLiked = post.likedBy.includes(username);
             
-            // 检查点赞状态
-            const likedPosts = JSON.parse(localStorage.getItem(`userLiked_posts_${userId}`) || '[]');
-            isLiked = likedPosts.includes(postId.toString());
+            // 检查收藏状态 - 使用favoritedBy数组
+            if (!post.favoritedBy) {
+                post.favoritedBy = [];
+            }
+            isFavorited = post.favoritedBy.includes(username);
         }
         
         const favoriteIconClass = isFavorited ? 'bi-bookmark-fill' : 'bi-bookmark';
@@ -206,7 +232,7 @@ async function loadPostContent() {
                                 <div class="carousel-inner">
                                     ${displayImages.map((image, index) => `
                                         <div class="carousel-item ${index === 0 ? 'active' : ''}" data-bs-slide-index="${index}">
-                                            <img src="${image}" class="d-block w-100" alt="封面图片 ${index + 1}">
+                                            <img src="${image.startsWith('http') ? image : (window.location.origin + image)}" class="d-block w-100" alt="封面图片 ${index + 1}">
                                         </div>
                                     `).join('')}
                                 </div>
@@ -238,30 +264,27 @@ async function loadPostContent() {
         postContent.innerHTML = `
             <div class="card">
                 <div class="card-body">
-                    <h1 class="card-title">${post.title}</h1>
-                    <div class="post-meta text-muted mb-3">
-                        <span>作者：<a href="profile.html?username=${encodeURIComponent(post.author)}" class="author-link">${post.author}</a></span>
-                        <span class="mx-2">|</span>
-                        <span>日期：${post.date}</span>
-                        <span class="mx-2">|</span>
-                        <span>分类：${post.category}</span>
+                    <div class="post-header">
+                        <div class="author-info">
+                            <a href="profile.html?username=${encodeURIComponent(post.author)}" class="avatar">
+                                ${renderAvatar(post.authorAvatar)}
+                            </a>
+                            <div class="author-meta">
+                                <a href="profile.html?username=${encodeURIComponent(post.author)}" class="author-name">${post.author}</a>
+                                <span class="post-time">${post.date}</span>
+                            </div>
+                        </div>
+                        <h1 class="post-title">${post.title}</h1>
                     </div>
-                    <div class="post-tags mb-3">
-                        ${post.tags.map(tag => `<span class="badge bg-secondary me-1">${tag}</span>`).join('')}
-                    </div>
-                    
                     ${coverImagesHTML}
-                    
-                    <div class="post-content">
-                        ${formatPostContent(post.content)}
-                    </div>
-                    <div class="post-actions mt-4">
-                        <button type="button" class="like-btn ${likeButtonClass}" data-post-id="${post.id}" data-liked="${isLiked}">
-                            <i class="bi ${likeIconClass}"></i> <span class="like-count">${post.likes}</span>
-                        </button>
-                        <button type="button" class="favorite-btn ${favoriteButtonClass}" data-post-id="${post.id}" data-favorited="${isFavorited}">
-                            <i class="bi ${favoriteIconClass}"></i> <span class="favorite-count">${post.favorites || 0}</span>
-                        </button>
+                    <div class="post-content">${formatPostContent(post.content)}</div>
+                    <div class="post-footer">
+                        <div class="post-stats">
+                            <span class="views"><i class="bi bi-eye"></i> ${post.views || 0}</span>
+                            <span class="likes"><i class="bi bi-heart${isLiked ? '-fill' : ''}" data-action="like"></i> ${post.likes || 0}</span>
+                            <span class="comments"><i class="bi bi-chat"></i> ${commentCount}</span>
+                            <span class="favorites"><i class="bi bi-bookmark${isFavorited ? '-fill' : ''}" data-action="favorite"></i> ${post.favorites || 0}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -418,7 +441,7 @@ function formatPostContent(content) {
 
 // 添加帖子点赞事件
 function addPostLikeEvent() {
-    const likeBtn = document.querySelector('.post-actions .like-btn');
+    const likeBtn = document.querySelector('.post-footer .likes i');
     if (!likeBtn) return;
 
     likeBtn.addEventListener('click', async () => {
@@ -429,75 +452,75 @@ function addPostLikeEvent() {
                 return;
             }
 
-            const userId = userResponse.userId || userResponse.username;
-            const postId = likeBtn.dataset.postId;
-            const likeCount = likeBtn.querySelector('.like-count');
+            const username = userResponse.username;
+            const postId = likeBtn.closest('.post-footer').dataset.postId;
+            const likeCount = likeBtn.closest('.post-footer').querySelector('.likes-count');
             
-            // 检查是否已经点赞（使用用户特定的点赞列表）
-            const likedPosts = JSON.parse(localStorage.getItem(`userLiked_posts_${userId}`) || '[]');
-            const isLiked = likedPosts.includes(postId);
+            // 获取帖子数据
+            const post = window.mockPosts.find(p => p.id === parseInt(postId));
+            if (!post) {
+                alert('无法获取帖子数据');
+                return;
+            }
             
-            // 更新点赞数
-            const currentLikes = parseInt(likeCount.textContent);
-            const newLikes = isLiked ? currentLikes - 1 : currentLikes + 1;
-            likeCount.textContent = newLikes;
+            // 确保likedBy数组存在
+            if (!post.likedBy) {
+                post.likedBy = [];
+            }
             
-            // 切换点赞状态
+            // 检查用户是否已点赞
+            const userIndex = post.likedBy.indexOf(username);
+            const isLiked = userIndex !== -1;
+            
+            // 更新点赞数和likedBy数组
             if (isLiked) {
-                likeBtn.dataset.liked = 'false';
+                // 取消点赞
+                post.likes = Math.max(0, (post.likes || 0) - 1);
+                post.likedBy.splice(userIndex, 1);
+                
+                // 更新UI
+                likeCount.textContent = post.likes;
                 likeBtn.classList.remove('liked');
+                likeBtn.classList.add('bi-heart');
+                
                 alert('已取消点赞');
             } else {
-                likeBtn.dataset.liked = 'true';
+                // 添加点赞
+                post.likes = (post.likes || 0) + 1;
+                post.likedBy.push(username);
+                
+                // 更新UI
+                likeCount.textContent = post.likes;
+                likeBtn.classList.remove('bi-heart');
                 likeBtn.classList.add('liked');
+                
                 alert('点赞成功！');
             }
             
-            // 保存点赞状态到后端
-            const post = window.mockPosts.find(p => p.id === parseInt(postId));
-            if (post) {
-                post.likes = newLikes;
-                
-                // 使用公共函数处理帖子对象
-                const sanitizedPost = sanitizePostObject(post);
-                
-                // 调用API并处理错误
-                const updateResult = await contentAPI.updatePost(post.id, sanitizedPost);
-                if (updateResult && updateResult.error) {
-                    console.error('更新点赞状态失败:', updateResult.message);
-                    // 由于UI已更新，这里不回滚UI以避免闪烁
-                } else {
-                    console.log('点赞状态更新成功');
-                }
-            }
+            // 使用公共函数处理帖子对象
+            const sanitizedPost = sanitizePostObject(post);
             
-            // 保存用户点赞状态（使用用户特定的键）
-            if (isLiked) {
-                // 移除点赞记录
-                const index = likedPosts.indexOf(postId);
-                if (index > -1) {
-                    likedPosts.splice(index, 1);
-                }
+            // 调用API并处理错误
+            const updateResult = await contentAPI.updatePost(post.id, sanitizedPost);
+            if (updateResult && updateResult.error) {
+                console.error('更新点赞状态失败:', updateResult.message);
+                // 重新加载以恢复正确状态
+                await loadPostContent();
             } else {
-                // 添加点赞记录
-                if (!likedPosts.includes(postId)) {
-                    likedPosts.push(postId);
-                }
+                console.log('点赞状态更新成功');
             }
-            localStorage.setItem(`userLiked_posts_${userId}`, JSON.stringify(likedPosts));
-            
         } catch (error) {
             console.error('点赞失败:', error);
             alert('点赞失败，请重试');
             // 回滚UI状态
-            location.reload();
+            await loadPostContent();
         }
     });
 }
 
 // 添加帖子收藏事件
 function addPostFavoriteEvent() {
-    const favoriteBtn = document.querySelector('.post-actions .favorite-btn');
+    const favoriteBtn = document.querySelector('.post-footer .favorites i');
     if (!favoriteBtn) return;
 
     favoriteBtn.addEventListener('click', async () => {
@@ -508,76 +531,68 @@ function addPostFavoriteEvent() {
                 return;
             }
 
-            const userId = userResponse.userId || userResponse.username;
-            const postId = favoriteBtn.dataset.postId;
-            const favoriteCount = favoriteBtn.querySelector('.favorite-count');
+            const username = userResponse.username;
+            const postId = favoriteBtn.closest('.post-footer').dataset.postId;
+            const favoriteCount = favoriteBtn.closest('.post-footer').querySelector('.favorites-count');
             
-            // 检查是否已经收藏 - 使用用户特定的收藏列表
-            const favoritedPosts = JSON.parse(localStorage.getItem(`userFavorites_posts_${userId}`) || '[]');
-            const isFavorited = favoritedPosts.includes(postId);
-            
-            // 更新收藏数
-            const currentFavorites = parseInt(favoriteCount.textContent);
-            const newFavorites = isFavorited ? currentFavorites - 1 : currentFavorites + 1;
-            favoriteCount.textContent = newFavorites;
-            
-            // 更新统计区域的收藏数
-            const postFavoriteCount = document.getElementById('post-favorite-count');
-            if (postFavoriteCount) {
-                postFavoriteCount.textContent = newFavorites;
+            // 获取帖子数据
+            const post = window.mockPosts.find(p => p.id === parseInt(postId));
+            if (!post) {
+                alert('无法获取帖子数据');
+                return;
             }
             
-            // 切换收藏状态
+            // 确保favoritedBy数组存在
+            if (!post.favoritedBy) {
+                post.favoritedBy = [];
+            }
+            
+            // 检查用户是否已收藏
+            const userIndex = post.favoritedBy.indexOf(username);
+            const isFavorited = userIndex !== -1;
+            
+            // 更新收藏数和favoritedBy数组
             if (isFavorited) {
-                favoriteBtn.dataset.favorited = 'false';
+                // 取消收藏
+                post.favorites = Math.max(0, (post.favorites || 0) - 1);
+                post.favoritedBy.splice(userIndex, 1);
+                
+                // 更新UI
+                favoriteCount.textContent = post.favorites;
                 favoriteBtn.classList.remove('favorited');
-                favoriteBtn.querySelector('i').classList.replace('bi-bookmark-fill', 'bi-bookmark');
+                favoriteBtn.classList.add('bi-bookmark');
+                
                 alert('已取消收藏');
             } else {
-                favoriteBtn.dataset.favorited = 'true';
+                // 添加收藏
+                post.favorites = (post.favorites || 0) + 1;
+                post.favoritedBy.push(username);
+                
+                // 更新UI
+                favoriteCount.textContent = post.favorites;
+                favoriteBtn.classList.remove('bi-bookmark');
                 favoriteBtn.classList.add('favorited');
-                favoriteBtn.querySelector('i').classList.replace('bi-bookmark', 'bi-bookmark-fill');
+                
                 alert('收藏成功！');
             }
             
-            // 保存收藏状态到后端
-            const post = window.mockPosts.find(p => p.id === parseInt(postId));
-            if (post) {
-                post.favorites = newFavorites;
-                
-                // 使用公共函数处理帖子对象
-                const sanitizedPost = sanitizePostObject(post);
-                
-                // 调用API并处理错误
-                const updateResult = await contentAPI.updatePost(post.id, sanitizedPost);
-                if (updateResult && updateResult.error) {
-                    console.error('更新收藏状态失败:', updateResult.message);
-                    // 由于UI已更新，这里不回滚UI以避免闪烁
-                } else {
-                    console.log('收藏状态更新成功');
-                }
-            }
+            // 使用公共函数处理帖子对象
+            const sanitizedPost = sanitizePostObject(post);
             
-            // 保存用户收藏状态 - 使用用户特定的键
-            if (isFavorited) {
-                // 移除收藏记录
-                const index = favoritedPosts.indexOf(postId);
-                if (index > -1) {
-                    favoritedPosts.splice(index, 1);
-                }
+            // 调用API并处理错误
+            const updateResult = await contentAPI.updatePost(post.id, sanitizedPost);
+            if (updateResult && updateResult.error) {
+                console.error('更新收藏状态失败:', updateResult.message);
+                // 重新加载以恢复正确状态
+                await loadPostContent();
             } else {
-                // 添加收藏记录
-                if (!favoritedPosts.includes(postId)) {
-                    favoritedPosts.push(postId);
-                }
+                console.log('收藏状态更新成功');
             }
-            localStorage.setItem(`userFavorites_posts_${userId}`, JSON.stringify(favoritedPosts));
-            
         } catch (error) {
             console.error('收藏操作失败:', error);
             alert('收藏操作失败，请重试');
             // 回滚UI状态
-            location.reload();
+            await loadPostContent();
         }
     });
 }
@@ -614,7 +629,7 @@ function addSortButtonEvent() {
     }
 }
 
-// 修改 loadComments 函数
+// 修改 loadComments 函数中的回复显示部分，处理没有 replyTo 的情况
 async function loadComments() {
     try {
         const commentsList = document.getElementById('commentsList');
@@ -651,16 +666,13 @@ async function loadComments() {
         
         // 获取当前用户信息以检查点赞状态
         const userResponse = await userAPI.getStatus();
-        let likedComments = [];
-        
-        if (userResponse && userResponse.isLoggedIn) {
-            const userId = userResponse.userId || userResponse.username;
-            likedComments = JSON.parse(localStorage.getItem(`userLiked_comments_${userId}`) || '[]');
-        }
+        let currentUsername = userResponse && userResponse.isLoggedIn ? userResponse.username : null;
         
         // 渲染评论列表，包括回复
         commentsList.innerHTML = comments.map(comment => {
-            const isLiked = likedComments.includes(comment.id.toString());
+            // 检查当前用户是否点赞了该评论
+            const likedBy = comment.likedBy || [];
+            const isLiked = currentUsername && likedBy.includes(currentUsername);
             const likedClass = isLiked ? 'liked' : '';
             const likeIcon = isLiked ? 'bi-hand-thumbs-up-fill' : 'bi-hand-thumbs-up';
             
@@ -672,7 +684,7 @@ async function loadComments() {
                         ${comment.images.map(image => {
                             const imageUrl = typeof image === 'string' ? image : (image.url || '');
                             if (!imageUrl) return '';
-                            return `<div class="comment-image"><img src="${imageUrl}" alt="评论图片"></div>`;
+                            return `<div class="comment-image"><img src="${imageUrl.startsWith('http') ? imageUrl : (window.location.origin + imageUrl)}" alt="评论图片"></div>`;
                         }).join('')}
                     </div>
                 `;
@@ -684,32 +696,62 @@ async function loadComments() {
             if (replies.length > 0) {
                 repliesHTML = `
                     <div class="replies">
-                        ${replies.map(reply => `
-                            <div class="reply-item">
-                                <div class="reply-header">
-                                    <div class="reply-author">
-                                        <a href="profile.html?username=${encodeURIComponent(reply.author)}">
-                                            <img src="https://placehold.jp/32x32.png" alt="${reply.author}">
-                                        </a>
-                                        <a href="profile.html?username=${encodeURIComponent(reply.author)}" class="author-name">
-                                            ${reply.author}
-                                        </a>
+                        ${replies.map(reply => {
+                            // 检查当前用户是否点赞了该回复
+                            const replyLikedBy = reply.likedBy || [];
+                            const isReplyLiked = currentUsername && replyLikedBy.includes(currentUsername);
+                            const replyLikedClass = isReplyLiked ? 'liked' : '';
+                            const replyLikeIcon = isReplyLiked ? 'bi-hand-thumbs-up-fill' : 'bi-hand-thumbs-up';
+                            
+                            // 处理回复对象信息，显示"xxx回复xxx"
+                            // 对于没有replyTo字段的旧数据，默认显示为回复评论作者
+                            const replyToUser = reply.replyTo || comment.author;
+                            const replyToInfo = `<span class="reply-to-info">回复 <a href="profile.html?username=${encodeURIComponent(replyToUser)}">${replyToUser}</a></span>`;
+                            
+                            return `
+                                <div class="reply-item" data-id="${reply.id}">
+                                    <div class="reply-header">
+                                        <div class="reply-author">
+                                            <a href="profile.html?username=${encodeURIComponent(reply.author)}">
+                                                ${renderAvatar(reply.authorAvatar)}
+                                            </a>
+                                            <a href="profile.html?username=${encodeURIComponent(reply.author)}" class="author-name">
+                                                ${reply.author}
+                                            </a>
+                                            ${replyToInfo}
+                                        </div>
+                                        <span class="reply-time">${reply.date}</span>
                                     </div>
-                                    <span class="reply-time">${reply.date}</span>
+                                    <div class="reply-content">${reply.content}</div>
+                                    <div class="reply-actions">
+                                        <button type="button" class="reply-btn" data-reply-id="${reply.id}" data-comment-id="${comment.id}" data-author="${reply.author}">
+                                            <i class="bi bi-reply"></i> 回复
+                                        </button>
+                                        <button type="button" class="like-btn ${replyLikedClass}" data-reply-id="${reply.id}" data-comment-id="${comment.id}">
+                                            <i class="bi ${replyLikeIcon}"></i>
+                                            <span class="like-count">${reply.likes || 0}</span>
+                                        </button>
+                                    </div>
+                                    <div class="nested-reply-form" style="display: none;">
+                                        <textarea placeholder="回复 ${reply.author}..."></textarea>
+                                        <div class="reply-actions">
+                                            <button type="button" class="submit-nested-reply btn btn-primary btn-sm">发表回复</button>
+                                            <button type="button" class="cancel-nested-reply btn btn-light btn-sm">取消</button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="reply-content">${reply.content}</div>
-                            </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
                 `;
             }
             
             return `
-                <div class="comment-item" data-id="${comment.id}" data-liked="${isLiked}">
+                <div class="comment-item" data-id="${comment.id}" data-liked="${isLiked}" data-author="${comment.author}">
                     <div class="comment-header">
                         <div class="comment-author">
                             <a href="profile.html?username=${encodeURIComponent(comment.author)}">
-                                <img src="https://placehold.jp/32x32.png" alt="${comment.author}">
+                                ${renderAvatar(comment.authorAvatar)}
                             </a>
                             <a href="profile.html?username=${encodeURIComponent(comment.author)}" class="author-name">
                                 ${comment.author}
@@ -720,7 +762,7 @@ async function loadComments() {
                     <div class="comment-content">${comment.content}</div>
                     ${imagesHTML}
                     <div class="comment-actions">
-                        <button type="button" class="reply-btn" data-comment-id="${comment.id}">
+                        <button type="button" class="reply-btn" data-comment-id="${comment.id}" data-author="${comment.author}">
                             <i class="bi bi-reply"></i> 回复
                         </button>
                         <button type="button" class="like-btn ${likedClass}" data-comment-id="${comment.id}">
@@ -748,10 +790,10 @@ async function loadComments() {
     }
 }
 
-// 添加评论操作事件
+// 修改 addCommentActions 函数，添加对嵌套回复的处理
 function addCommentActions() {
-    // 点赞功能
-    document.querySelectorAll('.comment-item .like-btn').forEach(btn => {
+    // 评论点赞功能
+    document.querySelectorAll('.comment-item > .comment-actions .like-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             try {
                 const userResponse = await userAPI.getStatus();
@@ -760,7 +802,7 @@ function addCommentActions() {
                     return;
                 }
 
-                const userId = userResponse.userId || userResponse.username;
+                const username = userResponse.username;
                 const commentItem = btn.closest('.comment-item');
                 if (!commentItem) return;
                 
@@ -768,67 +810,192 @@ function addCommentActions() {
                 const likeCount = btn.querySelector('.like-count');
                 if (!likeCount) return;
                 
-                // 使用用户特定的点赞记录
-                const likedComments = JSON.parse(localStorage.getItem(`userLiked_comments_${userId}`) || '[]');
-                const isLiked = likedComments.includes(commentId);
+                // 获取帖子ID
+                const postId = new URLSearchParams(window.location.search).get('id');
                 
-                // 更新点赞数
-                const currentLikes = parseInt(likeCount.textContent);
-                const newLikes = isLiked ? currentLikes - 1 : currentLikes + 1;
-                likeCount.textContent = newLikes;
+                // 获取评论数据
+                const comments = await loadCommentsData(postId);
+                const comment = comments.find(c => c.id.toString() === commentId.toString());
                 
-                // 切换点赞状态
+                if (!comment) {
+                    console.error('未找到评论:', commentId);
+                    return;
+                }
+                
+                // 确保 likedBy 数组存在
+                if (!comment.likedBy) {
+                    comment.likedBy = [];
+                }
+                
+                // 检查用户是否已点赞
+                const userIndex = comment.likedBy.indexOf(username);
+                const isLiked = userIndex !== -1;
+                
+                // 更新点赞数和likedBy数组
                 if (isLiked) {
+                    // 取消点赞
+                    comment.likes = Math.max(0, (comment.likes || 0) - 1);
+                    comment.likedBy.splice(userIndex, 1);
+                    
+                    // 更新UI
+                    likeCount.textContent = comment.likes;
                     commentItem.dataset.liked = 'false';
                     btn.classList.remove('liked');
+                    btn.querySelector('i').classList.replace('bi-hand-thumbs-up-fill', 'bi-hand-thumbs-up');
+                    
                     alert('已取消点赞');
                 } else {
+                    // 添加点赞
+                    comment.likes = (comment.likes || 0) + 1;
+                    comment.likedBy.push(username);
+                    
+                    // 更新UI
+                    likeCount.textContent = comment.likes;
                     commentItem.dataset.liked = 'true';
                     btn.classList.add('liked');
+                    btn.querySelector('i').classList.replace('bi-hand-thumbs-up', 'bi-hand-thumbs-up-fill');
+                    
                     alert('点赞成功！');
                 }
                 
-                // 保存点赞状态到后端
-                const postId = new URLSearchParams(window.location.search).get('id');
-                const post = window.mockPosts.find(p => p.id === parseInt(postId));
-                if (post && post.comments) {
-                    const comment = post.comments.find(c => c.id === parseInt(commentId));
-                    if (comment) {
-                        comment.likes = newLikes;
-                        await contentAPI.updatePost(post.id, post);
-                    }
-                }
+                // 保存更新后的评论数据到服务器
+                const updateResult = await contentAPI.updateComment(postId, commentId, comment);
                 
-                // 保存用户点赞状态（使用用户特定的键）
-                if (isLiked) {
-                    // 移除点赞记录
-                    const index = likedComments.indexOf(commentId);
-                    if (index > -1) {
-                        likedComments.splice(index, 1);
-                    }
-                } else {
-                    // 添加点赞记录
-                    if (!likedComments.includes(commentId)) {
-                        likedComments.push(commentId);
-                    }
+                if (updateResult && !updateResult.success) {
+                    console.error('更新评论点赞状态失败:', updateResult.message);
+                    alert('操作失败，请重试');
+                    // 重新加载评论，以恢复正确状态
+                    await loadComments();
                 }
-                localStorage.setItem(`userLiked_comments_${userId}`, JSON.stringify(likedComments));
                 
             } catch (error) {
                 console.error('点赞失败:', error);
                 alert('点赞失败，请重试');
                 // 回滚UI状态
-                location.reload();
+                await loadComments();
+            }
+        });
+    });
+    
+    // 回复点赞功能
+    document.querySelectorAll('.reply-item .like-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            try {
+                const userResponse = await userAPI.getStatus();
+                if (!userResponse.isLoggedIn) {
+                    alert('请先登录后再点赞');
+                    return;
+                }
+
+                const username = userResponse.username;
+                const replyItem = btn.closest('.reply-item');
+                if (!replyItem) return;
+                
+                const replyId = btn.dataset.replyId;
+                const commentId = btn.dataset.commentId;
+                const likeCount = btn.querySelector('.like-count');
+                if (!likeCount) return;
+                
+                // 获取帖子ID
+                const postId = new URLSearchParams(window.location.search).get('id');
+                
+                // 获取评论数据
+                const comments = await loadCommentsData(postId);
+                const comment = comments.find(c => c.id.toString() === commentId.toString());
+                
+                if (!comment || !comment.replies) {
+                    console.error('未找到评论或回复:', commentId, replyId);
+                    return;
+                }
+                
+                // 找到对应的回复
+                const reply = comment.replies.find(r => r.id.toString() === replyId.toString());
+                if (!reply) {
+                    console.error('未找到回复:', replyId);
+                    return;
+                }
+                
+                // 确保 likedBy 数组存在
+                if (!reply.likedBy) {
+                    reply.likedBy = [];
+                }
+                
+                // 检查用户是否已点赞
+                const userIndex = reply.likedBy.indexOf(username);
+                const isLiked = userIndex !== -1;
+                
+                // 更新点赞数和likedBy数组
+                if (isLiked) {
+                    // 取消点赞
+                    reply.likes = Math.max(0, (reply.likes || 0) - 1);
+                    reply.likedBy.splice(userIndex, 1);
+                    
+                    // 更新UI
+                    likeCount.textContent = reply.likes;
+                    replyItem.dataset.liked = 'false';
+                    btn.classList.remove('liked');
+                    btn.querySelector('i').classList.replace('bi-hand-thumbs-up-fill', 'bi-hand-thumbs-up');
+                    
+                    alert('已取消点赞');
+                } else {
+                    // 添加点赞
+                    reply.likes = (reply.likes || 0) + 1;
+                    reply.likedBy.push(username);
+                    
+                    // 更新UI
+                    likeCount.textContent = reply.likes;
+                    replyItem.dataset.liked = 'true';
+                    btn.classList.add('liked');
+                    btn.querySelector('i').classList.replace('bi-hand-thumbs-up', 'bi-hand-thumbs-up-fill');
+                    
+                    alert('点赞成功！');
+                }
+                
+                // 保存更新后的评论数据到服务器
+                const updateResult = await contentAPI.updateComment(postId, commentId, comment);
+                
+                if (updateResult && !updateResult.success) {
+                    console.error('更新回复点赞状态失败:', updateResult.message);
+                    alert('操作失败，请重试');
+                    // 重新加载评论，以恢复正确状态
+                    await loadComments();
+                }
+                
+            } catch (error) {
+                console.error('点赞失败:', error);
+                alert('点赞失败，请重试');
+                // 回滚UI状态
+                await loadComments();
             }
         });
     });
 
-    // 回复功能
-    document.querySelectorAll('.reply-btn').forEach(btn => {
+    // 评论回复功能
+    document.querySelectorAll('.comment-item > .comment-actions .reply-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const commentId = btn.dataset.commentId;
-            const replyForm = btn.closest('.comment-item').querySelector('.reply-form');
-            replyForm.style.display = 'block';
+            const commentItem = btn.closest('.comment-item');
+            if (!commentItem) return;
+            
+            const replyForm = commentItem.querySelector('.reply-form');
+            if (replyForm) {
+                replyForm.style.display = 'block';
+                replyForm.querySelector('textarea').focus();
+            }
+        });
+    });
+    
+    // 嵌套回复功能 - 回复回复
+    document.querySelectorAll('.reply-item .reply-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const replyItem = btn.closest('.reply-item');
+            if (!replyItem) return;
+            
+            const nestedReplyForm = replyItem.querySelector('.nested-reply-form');
+            if (nestedReplyForm) {
+                nestedReplyForm.style.display = 'block';
+                nestedReplyForm.querySelector('textarea').focus();
+            }
         });
     });
 
@@ -836,12 +1003,25 @@ function addCommentActions() {
     document.querySelectorAll('.cancel-reply').forEach(btn => {
         btn.addEventListener('click', () => {
             const replyForm = btn.closest('.reply-form');
+            if (!replyForm) return;
+            
             replyForm.style.display = 'none';
             replyForm.querySelector('textarea').value = '';
         });
     });
+    
+    // 取消嵌套回复
+    document.querySelectorAll('.cancel-nested-reply').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const nestedReplyForm = btn.closest('.nested-reply-form');
+            if (!nestedReplyForm) return;
+            
+            nestedReplyForm.style.display = 'none';
+            nestedReplyForm.querySelector('textarea').value = '';
+        });
+    });
 
-    // 提交回复
+    // 提交回复到评论
     document.querySelectorAll('.submit-reply').forEach(btn => {
         btn.addEventListener('click', async () => {
             try {
@@ -867,22 +1047,21 @@ function addCommentActions() {
                     return;
                 }
                 
-                // 获取评论ID
+                // 获取评论ID和评论作者
                 const commentItem = replyForm.closest('.comment-item');
                 const commentId = commentItem.dataset.id;
+                const commentAuthor = commentItem.dataset.author;
+                
                 if (!commentId) {
                     alert('评论ID无效');
                     return;
                 }
                 
-                // 准备回复内容
-                const finalContent = content;
-                
                 // 创建新回复
                 const newReply = {
                     id: Date.now(),
                     author: userResponse.username,
-                    content: finalContent,
+                    content: content,
                     date: new Date().toLocaleString('zh-CN', {
                         year: 'numeric',
                         month: '2-digit',
@@ -890,16 +1069,11 @@ function addCommentActions() {
                         hour: '2-digit',
                         minute: '2-digit'
                     }),
-                    likes: 0
+                    likes: 0,
+                    likedBy: [],
+                    replyTo: commentAuthor  // 添加回复对象信息 - 评论作者
                 };
 
-                // 获取当前帖子数据
-                const post = window.mockPosts.find(p => p.id === parseInt(postId));
-                if (!post) {
-                    alert('无法获取帖子数据');
-                    return;
-                }
-                
                 // 获取评论数据
                 let comments = await loadCommentsData(postId);
                 const comment = comments.find(c => c.id.toString() === commentId.toString());
@@ -919,35 +1093,104 @@ function addCommentActions() {
                 const updateResult = await contentAPI.updateComment(postId, commentId, comment);
                 
                 if (updateResult && updateResult.success) {
-                    // 添加回复到评论下方
-                    const repliesContainer = commentItem.querySelector('.replies') || 
-                        (() => {
-                            const container = document.createElement('div');
-                            container.className = 'replies';
-                            commentItem.appendChild(container);
-                            return container;
-                        })();
-
-                    repliesContainer.innerHTML += `
-                        <div class="reply-item">
-                            <div class="reply-header">
-                                <div class="reply-author">
-                                    <a href="profile.html?username=${encodeURIComponent(newReply.author)}">
-                                        <img src="https://placehold.jp/32x32.png" alt="${newReply.author}">
-                                    </a>
-                                    <a href="profile.html?username=${encodeURIComponent(newReply.author)}" class="author-name">
-                                        ${newReply.author}
-                                    </a>
-                                </div>
-                                <span class="reply-time">${newReply.date}</span>
-                            </div>
-                            <div class="reply-content">${newReply.content}</div>
-                        </div>
-                    `;
-
                     // 清空并隐藏回复框
                     textarea.value = '';
                     replyForm.style.display = 'none';
+                    
+                    // 重新加载评论以显示新回复
+                    await loadComments();
+                    
+                    alert('回复成功');
+                } else {
+                    alert(updateResult.message || '回复失败，请重试');
+                }
+            } catch (error) {
+                console.error('回复失败:', error);
+                alert('回复失败，请重试');
+            }
+        });
+    });
+    
+    // 提交嵌套回复 - 回复回复
+    document.querySelectorAll('.submit-nested-reply').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            try {
+                const userResponse = await userAPI.getStatus();
+                if (!userResponse.isLoggedIn) {
+                    alert('请先登录后再回复');
+                    return;
+                }
+
+                const nestedReplyForm = btn.closest('.nested-reply-form');
+                const textarea = nestedReplyForm.querySelector('textarea');
+                const content = textarea.value.trim();
+                
+                if (!content) {
+                    alert('请输入回复内容');
+                    return;
+                }
+
+                // 获取帖子ID
+                const postId = new URLSearchParams(window.location.search).get('id');
+                if (!postId) {
+                    alert('帖子ID无效');
+                    return;
+                }
+                
+                // 获取评论ID和回复ID
+                const replyItem = nestedReplyForm.closest('.reply-item');
+                const replyId = replyItem.dataset.id;
+                const commentId = replyItem.closest('.comment-item').dataset.id;
+                if (!commentId || !replyId) {
+                    alert('评论或回复ID无效');
+                    return;
+                }
+                
+                // 获取被回复的用户名
+                const replyToAuthor = replyItem.querySelector('.reply-author .author-name').textContent.trim();
+                
+                // 创建新回复
+                const newReply = {
+                    id: Date.now(),
+                    author: userResponse.username,
+                    content: content,
+                    date: new Date().toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }),
+                    likes: 0,
+                    likedBy: [],
+                    replyTo: replyToAuthor  // 添加回复对象信息
+                };
+
+                // 获取评论数据
+                let comments = await loadCommentsData(postId);
+                const comment = comments.find(c => c.id.toString() === commentId.toString());
+                
+                if (!comment) {
+                    alert('无法获取评论数据');
+                    return;
+                }
+                
+                // 将回复添加到评论的replies数组中
+                if (!comment.replies) {
+                    comment.replies = [];
+                }
+                comment.replies.push(newReply);
+                
+                // 更新评论数据
+                const updateResult = await contentAPI.updateComment(postId, commentId, comment);
+                
+                if (updateResult && updateResult.success) {
+                    // 清空并隐藏回复框
+                    textarea.value = '';
+                    nestedReplyForm.style.display = 'none';
+                    
+                    // 重新加载评论以显示新回复
+                    await loadComments();
                     
                     alert('回复成功');
                 } else {
@@ -1183,6 +1426,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         // 初始化帖子数据
         await initMockPosts();
+        
+        // 初始化导航栏
+        await initNavbar();
         
         // 加载帖子内容
         await loadPostContent();

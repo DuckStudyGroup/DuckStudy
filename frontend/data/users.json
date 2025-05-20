@@ -6,7 +6,8 @@
             "password": "admin123",
             "email": "admin@example.com",
             "role": "admin",
-            "registrationDate": "2023-01-15"
+            "registrationDate": "2023-01-15",
+            "avatar": "https://placehold.jp/100x100.png"
         },
         {
             "id": 2,
@@ -14,7 +15,8 @@
             "password": "123456",
             "email": "zhangsan@example.com",
             "role": "user",
-            "registrationDate": "2023-03-20"
+            "registrationDate": "2023-03-20",
+            "avatar": "https://placehold.jp/100x100.png"
         },
         {
             "id": 3,
@@ -22,7 +24,8 @@
             "password": "123456",
             "email": "lisi@example.com",
             "role": "user",
-            "registrationDate": "2023-05-10"
+            "registrationDate": "2023-05-10",
+            "avatar": "https://placehold.jp/100x100.png"
         },
         {
             "id": 4,
@@ -30,7 +33,8 @@
             "email": "wangwu@example.com",
             "password": "wangwu123",
             "role": "user",
-            "registrationDate": "2023-08-05T16:45:00"
+            "registrationDate": "2023-08-05T16:45:00",
+            "avatar": "https://placehold.jp/100x100.png"
         },
         {
             "id": 5,
@@ -38,14 +42,15 @@
             "email": "zhaoliu@example.com",
             "password": "zhaoliu456",
             "role": "user",
-            "registrationDate": "2023-09-12T11:20:00"
+            "registrationDate": "2023-09-12T11:20:00",
+            "avatar": "https://placehold.jp/100x100.png"
         },
         {
             "id": 6,
             "username": "测试1",
             "password": "1",
             "email": "12345678@qq.com",
-            "avatar": "https://placehold.jp/40x40.png",
+            "avatar": "/images/avatars/1747753322_2025-04-28_233728.png",
             "role": "user",
             "registerDate": "2025-04-16"
         },
@@ -54,7 +59,7 @@
             "username": "测试2",
             "password": "1",
             "email": "123456789@qq.com",
-            "avatar": "https://placehold.jp/40x40.png",
+            "avatar": "https://placehold.jp/100x100.png",
             "role": "user",
             "registerDate": "2025-04-16"
         },
@@ -62,10 +67,228 @@
             "id": 8,
             "username": "测试3",
             "password": "1",
-            "email": "123456788@qq.com",
-            "avatar": "https://placehold.jp/40x40.png",
+            "email": "12233@qq.com",
+            "avatar": "/images/avatars/3__20250224104200.jpg",
+            "role": "user",
+            "registerDate": "2025-05-16",
+            "nickname": "测试3",
+            "bio": "11111"
+        },
+        {
+            "id": 9,
+            "username": "摄影社社长",
+            "password": "photo123",
+            "email": "photo@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-01"
+        },
+        {
+            "id": 10,
+            "username": "创业达人",
+            "password": "startup123",
+            "email": "startup@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-02"
+        },
+        {
+            "id": 11,
+            "username": "美食达人",
+            "password": "food123",
+            "email": "food@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-03"
+        },
+        {
+            "id": 12,
+            "username": "考研成功者",
+            "password": "study123",
+            "email": "study@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-04"
+        },
+        {
+            "id": 13,
+            "username": "学生会文艺部",
+            "password": "art123",
+            "email": "art@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-05"
+        },
+        {
+            "id": 14,
+            "username": "技术大牛",
+            "password": "tech123",
+            "email": "tech@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-06"
+        },
+        {
+            "id": 15,
+            "username": "丢失者",
+            "password": "lost123",
+            "email": "lost@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-07"
+        },
+        {
+            "id": 16,
+            "username": "数码控",
+            "password": "digital123",
+            "email": "digital@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-08"
+        },
+        {
+            "id": 17,
+            "username": "摄影爱好者",
+            "password": "photo456",
+            "email": "photo2@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-09"
+        },
+        {
+            "id": 18,
+            "username": "艺术系学生",
+            "password": "art456",
+            "email": "art2@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-10"
+        },
+        {
+            "id": 19,
+            "username": "技术大神",
+            "password": "tech456",
+            "email": "tech2@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-11"
+        },
+        {
+            "id": 20,
+            "username": "商科学霸",
+            "password": "business123",
+            "email": "business@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-12"
+        },
+        {
+            "id": 21,
+            "username": "吃货一号",
+            "password": "foodie123",
+            "email": "foodie@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-13"
+        },
+        {
+            "id": 22,
+            "username": "吃货二号",
+            "password": "foodie456",
+            "email": "foodie2@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-14"
+        },
+        {
+            "id": 23,
+            "username": "考研人",
+            "password": "exam123",
+            "email": "exam@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-15"
+        },
+        {
+            "id": 24,
+            "username": "奋斗者",
+            "password": "fight123",
+            "email": "fight@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
             "role": "user",
             "registerDate": "2025-05-16"
+        },
+        {
+            "id": 25,
+            "username": "音乐爱好者",
+            "password": "music123",
+            "email": "music@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-17"
+        },
+        {
+            "id": 26,
+            "username": "才艺达人",
+            "password": "talent123",
+            "email": "talent@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-18"
+        },
+        {
+            "id": 27,
+            "username": "程序员",
+            "password": "coder123",
+            "email": "coder@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-19"
+        },
+        {
+            "id": 28,
+            "username": "代码爱好者",
+            "password": "code123",
+            "email": "code@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-20"
+        },
+        {
+            "id": 29,
+            "username": "热心人",
+            "password": "help123",
+            "email": "help@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-21"
+        },
+        {
+            "id": 30,
+            "username": "图书馆管理员",
+            "password": "library123",
+            "email": "library@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-22"
+        },
+        {
+            "id": 31,
+            "username": "显示器爱好者",
+            "password": "monitor123",
+            "email": "monitor@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-23"
+        },
+        {
+            "id": 32,
+            "username": "数码发烧友",
+            "password": "digital456",
+            "email": "digital2@example.com",
+            "avatar": "https://placehold.jp/100x100.png",
+            "role": "user",
+            "registerDate": "2025-05-24"
         }
     ]
 }

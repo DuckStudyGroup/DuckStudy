@@ -7,47 +7,52 @@ export const BASE_URL = window.location.hostname === 'localhost' || window.locat
 // 用户相关API
 const userAPI = {
     // 获取用户状态
-    getStatus: async () => {
+    async getStatus() {
         try {
-            // 从localStorage获取用户信息
-            const userData = JSON.parse(localStorage.getItem('userData'));
-            if (userData) {
-                return {
-                    isLoggedIn: true,
-                    username: userData.username,
-                    role: userData.role || 'user',
-                    avatar: userData.avatar || 'https://placehold.jp/40x40.png'
-                };
+            const response = await fetch('/api/user/status');
+            const data = await response.json();
+            
+            // 保存用户数据到本地存储
+            if (data.isLoggedIn) {
+                localStorage.setItem('username', data.username);
+                localStorage.setItem('userData', JSON.stringify({
+                    username: data.username,
+                    avatar: data.avatar.startsWith('http') ? data.avatar : BASE_URL + data.avatar,
+                    role: data.role
+                }));
             }
-            return {
-                isLoggedIn: false
-            };
+            
+            return data;
         } catch (error) {
             console.error('获取用户状态失败:', error);
-            return {
-                isLoggedIn: false
-            };
+            return { isLoggedIn: false, avatar: 'https://placehold.jp/100x100.png' };
         }
     },
 
     // 用户登录
-    login: async (username, password) => {
+    async login(username, password) {
         try {
-            const response = await fetch(`${BASE_URL}/api/user/login`, {
+            const response = await fetch('/api/user/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ username, password }),
-                credentials: 'include'
+                body: JSON.stringify({ username, password })
             });
             
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || '登录失败');
+            const data = await response.json();
+            
+            if (data.success) {
+                // 保存用户数据到本地存储，确保头像路径正确
+                const userData = {
+                    ...data.user,
+                    avatar: data.user.avatar.startsWith('http') ? data.user.avatar : BASE_URL + data.user.avatar
+                };
+                localStorage.setItem('username', userData.username);
+                localStorage.setItem('userData', JSON.stringify(userData));
             }
             
-            return await response.json();
+            return data;
         } catch (error) {
             console.error('登录失败:', error);
             throw error;
@@ -79,17 +84,86 @@ const userAPI = {
     },
 
     // 用户退出
-    logout: async () => {
+    async logout() {
         try {
-            // 清除本地存储的用户信息
-            localStorage.removeItem('userData');
+            const response = await fetch('/api/user/logout', {
+                method: 'POST'
+            });
+            const data = await response.json();
             
-            return {
-                success: true,
-                message: '退出成功'
-            };
+            if (data.success) {
+                // 清除本地存储的用户数据
+                localStorage.removeItem('username');
+                localStorage.removeItem('userData');
+            }
+            
+            return data;
         } catch (error) {
-            console.error('退出失败:', error);
+            console.error('登出失败:', error);
+            throw error;
+        }
+    },
+
+    // 获取用户头像
+    getUserAvatar() {
+        try {
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const avatar = userData.avatar || 'https://placehold.jp/100x100.png';
+            // 如果是相对路径，添加BASE_URL
+            return avatar.startsWith('http') ? avatar : BASE_URL + avatar;
+        } catch (error) {
+            console.error('获取用户头像失败:', error);
+            return 'https://placehold.jp/100x100.png';
+        }
+    },
+
+    // 更新用户信息
+    async updateUserInfo(updateData) {
+        try {
+            const response = await fetch('/api/user/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // 更新本地存储的用户数据
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                const newUserData = {
+                    ...userData,
+                    ...data.user,
+                    avatar: data.user.avatar.startsWith('http') ? data.user.avatar : BASE_URL + data.user.avatar
+                };
+                localStorage.setItem('userData', JSON.stringify(newUserData));
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('更新用户信息失败:', error);
+            throw error;
+        }
+    },
+
+    // 获取用户资料
+    async getUserProfile(username) {
+        try {
+            const response = await fetch(`/api/user/profile/${username}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                // 处理头像路径
+                data.user.avatar = data.user.avatar.startsWith('http') 
+                    ? data.user.avatar 
+                    : BASE_URL + data.user.avatar;
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('获取用户资料失败:', error);
             throw error;
         }
     }

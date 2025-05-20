@@ -1,10 +1,11 @@
 import { userAPI, contentAPI } from './api.js';
+import { initNavbar } from './nav-utils.js';
 
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // 首先更新用户状态
-        await updateUserStatus();
+        // 首先初始化导航栏
+        await initNavbar();
         
         // 然后加载其他内容
         await Promise.all([
@@ -20,80 +21,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('加载数据失败，请刷新页面重试');
     }
 });
-
-// 更新用户状态
-async function updateUserStatus() {
-    const userData = JSON.parse(localStorage.getItem('userData'));
-    const userSection = document.getElementById('userSection');
-    
-    if (!userSection) {
-        console.error('未找到用户区域元素');
-        return;
-    }
-    
-    if (userData) {
-        userSection.innerHTML = `
-            <div class="user-profile">
-                <div class="avatar-container">
-                    <div class="avatar">
-                        <i class="bi bi-person-circle"></i>
-                    </div>
-                    <div class="dropdown-menu">
-                        <a href="pages/profile.html" class="dropdown-item">
-                            <i class="bi bi-person"></i> 个人中心
-                        </a>
-                        <a href="pages/favorites.html" class="dropdown-item">
-                            <i class="bi bi-heart"></i> 我的收藏
-                        </a>
-                        <a href="pages/history.html" class="dropdown-item">
-                            <i class="bi bi-clock-history"></i> 历史观看
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item" id="logoutBtn">
-                            <i class="bi bi-box-arrow-right"></i> 退出登录
-                        </a>
-                    </div>
-                </div>
-                <span class="username">${userData.username}</span>
-            </div>
-        `;
-        
-        // 添加退出登录事件
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                localStorage.removeItem('userData');
-                window.location.reload();
-            });
-        }
-        
-        // 添加头像下拉菜单事件
-        const avatarContainer = document.querySelector('.avatar-container');
-        if (avatarContainer) {
-            avatarContainer.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const dropdownMenu = avatarContainer.querySelector('.dropdown-menu');
-                if (dropdownMenu) {
-                    dropdownMenu.classList.toggle('show');
-                }
-            });
-            
-            // 点击其他地方关闭下拉菜单
-            document.addEventListener('click', () => {
-                const dropdownMenu = avatarContainer.querySelector('.dropdown-menu');
-                if (dropdownMenu && dropdownMenu.classList.contains('show')) {
-                    dropdownMenu.classList.remove('show');
-                }
-            });
-        }
-    } else {
-        userSection.innerHTML = `
-            <a href="pages/login.html" class="btn btn-outline-primary me-2">登录</a>
-            <a href="pages/register.html" class="btn btn-primary">注册</a>
-        `;
-    }
-}
 
 // 加载课程评价 - 已不再使用，由loadHotCourses替代
 // 保留此函数是为了避免修改太多代码，但不再调用它

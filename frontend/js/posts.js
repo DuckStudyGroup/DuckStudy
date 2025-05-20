@@ -1,4 +1,5 @@
 import { userAPI, contentAPI } from './api.js';
+import { initNavbar, isDefaultAvatar, renderAvatar } from './nav-utils.js';
 
 // 初始化全局帖子列表
 async function initMockPosts() {
@@ -33,8 +34,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 初始化帖子数据
         await initMockPosts();
         
-        // 更新用户状态
-        await updateUserStatus();
+        // 更新用户状态 (使用共享的导航栏初始化函数)
+        await initNavbar();
         
         // 加载帖子列表
         await loadPosts();
@@ -49,78 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('加载数据失败，请刷新页面重试');
     }
 });
-
-// 更新用户状态
-async function updateUserStatus() {
-    try {
-        console.log('开始获取用户状态...');
-        const response = await userAPI.getStatus();
-        console.log('获取用户状态成功:', response);
-        const userSection = document.getElementById('userSection');
-        
-        if (!userSection) {
-            console.error('未找到用户区域元素');
-            return;
-        }
-        
-        if (response.isLoggedIn) {
-            userSection.innerHTML = `
-                <div class="user-profile">
-                    <div class="avatar-container">
-                        <div class="avatar">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <div class="dropdown-menu">
-                            <a href="profile.html" class="dropdown-item">
-                                <i class="bi bi-person"></i> 个人中心
-                            </a>
-                            <a href="favorites.html" class="dropdown-item">
-                                <i class="bi bi-heart"></i> 我的收藏
-                            </a>
-                            <a href="history.html" class="dropdown-item">
-                                <i class="bi bi-clock-history"></i> 历史观看
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item" id="logoutBtn">
-                                <i class="bi bi-box-arrow-right"></i> 退出登录
-                            </a>
-                        </div>
-                    </div>
-                    <span class="username">${response.username}</span>
-                </div>
-            `;
-
-            // 添加退出登录事件监听
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    try {
-                        await userAPI.logout();
-                        window.location.reload();
-                    } catch (error) {
-                        console.error('退出登录失败:', error);
-                        alert('退出登录失败，请重试');
-                    }
-                });
-            }
-        } else {
-            userSection.innerHTML = `
-                <a href="pages/login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="pages/register.html" class="btn btn-primary">注册</a>
-            `;
-        }
-    } catch (error) {
-        console.error('获取用户状态失败:', error);
-        const userSection = document.getElementById('userSection');
-        if (userSection) {
-            userSection.innerHTML = `
-                <a href="pages/login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="pages/register.html" class="btn btn-primary">注册</a>
-            `;
-        }
-    }
-}
 
 // 获取分类名称和对应的图标
 function getCategoryInfo(category) {
@@ -232,16 +161,15 @@ function addCreatePostEvent() {
     if (createPostBtn) {
         createPostBtn.addEventListener('click', async () => {
             try {
-                const response = await userAPI.getStatus();
-                if (!response.isLoggedIn) {
-                    alert('请先登录后再发帖');
-                    window.location.href = 'login.html';
+                const userStatus = await userAPI.getStatus();
+                if (!userStatus.isLoggedIn) {
+                    alert('请先登录后再发布');
                     return;
                 }
-                window.location.href = 'create-post.html';
+                window.location.href = 'post-editor.html';
             } catch (error) {
-                console.error('检查登录状态失败:', error);
-                alert('操作失败，请重试');
+                console.error('检查用户状态失败', error);
+                alert('系统错误，请稍后再试');
             }
         });
     }
@@ -356,10 +284,10 @@ async function loadPosts(category = '', searchTerm = '') {
                     <div class="post-header">
                         <div class="post-author">
                             <a href="profile.html?username=${encodeURIComponent(post.author)}" class="avatar" onclick="event.stopPropagation();">
-                                <i class="bi bi-person-circle"></i>
+                                ${renderAvatar(post.authorAvatar)}
                             </a>
                             <div class="author-info">
-                                <span class="author-name">${post.author}</span>
+                                <a href="profile.html?username=${encodeURIComponent(post.author)}" class="author-name" onclick="event.stopPropagation();">${post.author}</a>
                                 <span class="post-time">${post.date}</span>
                             </div>
                         </div>
@@ -411,4 +339,42 @@ async function loadAllCommentsCount() {
         console.error('获取评论数据失败:', error);
         return {};
     }
+}
+
+// 渲染帖子列表
+function renderPosts(posts) {
+    const postsContainer = document.getElementById('postsContainer');
+    if (!postsContainer) return;
+
+    const postsHtml = posts.map(post => `
+        <div class="post-item" data-id="${post.id}">
+            <div class="post-header">
+                <a href="profile.html?username=${encodeURIComponent(post.author)}" class="avatar" onclick="event.stopPropagation();">
+                    ${renderAvatar(post.authorAvatar)}
+                </a>
+                <div class="post-meta">
+                    <a href="profile.html?username=${encodeURIComponent(post.author)}" class="author-link" onclick="event.stopPropagation();">${post.author}</a>
+                    <span class="post-time">${formatDate(post.date)}</span>
+                </div>
+            </div>
+            <div class="post-body">
+                <h3 class="post-title">${post.title}</h3>
+                <p class="post-summary">${post.summary || post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}</p>
+                ${post.coverImage ? `<div class="post-cover"><img src="${post.coverImage}" alt="封面图"></div>` : ''}
+            </div>
+            <div class="post-footer">
+                <div class="post-stats">
+                    <span><i class="bi bi-eye"></i> ${post.views || 0}</span>
+                    <span><i class="bi bi-chat-dots"></i> ${post.commentCount || 0}</span>
+                    <span><i class="bi bi-hand-thumbs-up"></i> ${post.likes || 0}</span>
+                    <span><i class="bi bi-bookmark-star"></i> ${post.favorites || 0}</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    postsContainer.innerHTML = postsHtml;
+
+    // 添加点击事件
+    addPostClickEvents();
 } 

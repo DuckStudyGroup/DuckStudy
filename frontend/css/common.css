@@ -107,26 +107,41 @@ body {
     position: relative;
 }
 
-.avatar-container {
+.user-profile .avatar-container {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
     position: relative;
 }
 
-.avatar {
-    width: 40px;
-    height: 40px;
+.user-profile .avatar-container img {
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    background-color: var(--light-bg);
+    object-fit: cover;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary-color);
-    font-size: 1.5rem;
-    transition: all 0.3s ease;
+    background-color: #f0f0f0;
+    overflow: hidden;
 }
 
-.avatar:hover {
-    background-color: var(--primary-color);
-    color: #fff;
+.avatar i.bi-person-circle {
+    font-size: 24px;
+    color: #6c757d;
+}
+
+.avatar-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .username {
