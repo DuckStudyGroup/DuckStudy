@@ -1,7 +1,11 @@
 import { BASE_URL } from './api.js';
+import { initNavbar } from './nav-utils.js';
 
 // 登录功能
 document.addEventListener('DOMContentLoaded', () => {
+    // 初始化导航栏
+    initNavbar();
+    
     const loginForm = document.getElementById('loginForm');
     const loginError = document.getElementById('loginError');
 
