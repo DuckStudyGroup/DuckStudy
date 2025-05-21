@@ -30,7 +30,7 @@
                 "考试技巧"
             ],
             "title": "大学生如何高效复习期末考试",
-            "views": 425
+            "views": 430
         },
         {
             "author": "admin",
@@ -282,7 +282,7 @@
                 "探店",
                 "校园生活"
             ],
-            "views": 567,
+            "views": 577,
             "likes": 234,
             "favorites": 189,
             "coverImages": [],
@@ -306,7 +306,7 @@
                 "经验分享",
                 "学习"
             ],
-            "views": 796,
+            "views": 802,
             "likes": 302,
             "favorites": 267,
             "likedBy": [
@@ -329,7 +329,7 @@
                 "校园活动",
                 "才艺展示"
             ],
-            "views": 456,
+            "views": 461,
             "likes": 178,
             "favorites": 89,
             "coverImages": [],
@@ -353,7 +353,7 @@
                 "技术社区",
                 "学习交流"
             ],
-            "views": 373,
+            "views": 376,
             "likes": 145,
             "favorites": 98,
             "likedBy": [
@@ -398,7 +398,7 @@
                 "数码设备",
                 "换物"
             ],
-            "views": 235,
+            "views": 238,
             "likes": 34,
             "favorites": 23,
             "coverImages": [],
@@ -409,6 +409,23 @@
             "favoritedBy": [
                 "二手交易者"
             ]
+        },
+        {
+            "id": 1747826993046,
+            "title": "我爱中大",
+            "author": "张三",
+            "category": "study",
+            "content": "<p>中山大学是我最喜欢的学校，我爱中大</p>",
+            "date": "2025/05/21 19:29",
+            "tags": [],
+            "views": 0,
+            "likes": 0,
+            "favorites": 0,
+            "coverImages": [
+                "/images/posts/1747826962_post_1747826962252_pcwquy.png"
+            ],
+            "likedBy": [],
+            "favoritedBy": []
         }
     ]
 }

@@ -137,7 +137,10 @@
                                 <a href="#" class="nav-item" data-section="notification">
                                     <i class="bi bi-bell"></i> 消息通知
                                 </a>
-                                <a href="favorites.html" class="nav-item">
+                                <!-- The following link is correctly structured for navigation.
+                                     If it doesn't navigate, the issue is likely due to JavaScript
+                                     in profile.js preventing the default link behavior. -->
+                                <a href="favorites.html" id="favoritesLink" class="nav-item">
                                     <i class="bi bi-heart"></i> 我的收藏
                                 </a>
                             </div>
