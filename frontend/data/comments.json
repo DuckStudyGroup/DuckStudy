@@ -50,27 +50,29 @@
         ],
         "1747314615290": [
             {
-                "id": 1747314615295,
                 "author": "李四",
-                "content": "我也想去！约个时间？",
-                "date": "2025/05/15 14:35",
-                "likes": 3,
-                "likedBy": [
-                    "张三",
-                    "王五"
-                ],
-                "replies": []
+                "authorAvatar": "https://placehold.jp/100x100.png",
+                "content": "111",
+                "date": "2025/05/21 09:30",
+                "id": 1747791006353,
+                "images": [],
+                "likedBy": [],
+                "likes": 0,
+                "replies": [],
+                "timestamp": 1747791006353
             },
             {
-                "id": 1747314615296,
                 "author": "王五",
+                "authorAvatar": "https://placehold.jp/100x100.png",
                 "content": "今天确实很适合骑车，我下午有空，一起？",
                 "date": "2025/05/15 14:40",
-                "likes": 2,
+                "id": 1747314615296,
                 "likedBy": [
                     "张三"
                 ],
-                "replies": []
+                "likes": 2,
+                "replies": [],
+                "timestamp": 1747314615296
             }
         ],
         "1747314615291": [
@@ -247,16 +249,18 @@
                 ]
             },
             {
-                "id": 1747314615310,
                 "author": "赵六",
+                "authorAvatar": "https://placehold.jp/100x100.png",
                 "content": "我也在健身，可以一起！",
                 "date": "2025/05/16 16:50",
-                "likes": 6,
+                "id": 1747314615310,
                 "likedBy": [
                     "张三",
                     "王五"
                 ],
-                "replies": []
+                "likes": 6,
+                "replies": [],
+                "timestamp": 1747314615310
             },
             {
                 "id": 1747314615311,
@@ -478,28 +482,32 @@
         ],
         "1747314615302": [
             {
-                "id": 1747314715302,
                 "author": "考研人",
+                "authorAvatar": "https://placehold.jp/100x100.png",
                 "content": "学长好厉害！请问如何报名参加分享会？",
                 "date": "2025/05/20 14:35",
-                "likes": 20,
+                "id": 1747314715302,
                 "likedBy": [
                     "考研成功者",
                     "奋斗者"
                 ],
+                "likes": 20,
                 "replies": [
                     {
-                        "id": 1747314725302,
                         "author": "考研成功者",
+                        "authorAvatar": "https://placehold.jp/100x100.png",
                         "content": "可以扫描我的二维码加群报名，现场限额50人",
                         "date": "2025/05/20 14:40",
-                        "likes": 8,
+                        "id": 1747314725302,
                         "likedBy": [
                             "考研人"
                         ],
-                        "replyTo": "考研人"
+                        "likes": 8,
+                        "replyTo": "考研人",
+                        "timestamp": 1747314725302
                     }
-                ]
+                ],
+                "timestamp": 1747314715302
             }
         ],
         "1747314615303": [
@@ -530,28 +538,32 @@
         ],
         "1747314615304": [
             {
-                "id": 1747314715304,
                 "author": "程序员",
+                "authorAvatar": "https://placehold.jp/100x100.png",
                 "content": "很期待！请问第一次活动需要准备什么吗？",
                 "date": "2025/05/20 16:35",
-                "likes": 10,
+                "id": 1747314715304,
                 "likedBy": [
                     "技术大牛",
                     "代码爱好者"
                 ],
+                "likes": 10,
                 "replies": [
                     {
-                        "id": 1747314725304,
                         "author": "技术大牛",
+                        "authorAvatar": "https://placehold.jp/100x100.png",
                         "content": "带上笔记本电脑就可以了，最好提前安装VSCode",
                         "date": "2025/05/20 16:40",
-                        "likes": 5,
+                        "id": 1747314725304,
                         "likedBy": [
                             "程序员"
                         ],
-                        "replyTo": "程序员"
+                        "likes": 5,
+                        "replyTo": "程序员",
+                        "timestamp": 1747314725304
                     }
-                ]
+                ],
+                "timestamp": 1747314715304
             }
         ],
         "1747314615305": [

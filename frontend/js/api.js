@@ -316,6 +316,36 @@ const contentAPI = {
         }
     },
 
+    // 删除评论
+    deleteComment: async (postId, commentId) => {
+        try {
+            const response = await fetch(`${BASE_URL}/api/comments/${postId}/${commentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'  // 添加这行确保发送 cookies
+            });
+
+            const data = await response.json();
+            
+            // 检查 HTTP 状态码
+            if (!response.ok) {
+                throw new Error(data.message || `删除评论失败: ${response.status}`);
+            }
+            
+            // 检查业务状态
+            if (!data.success) {
+                throw new Error(data.message || '删除评论失败');
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('删除评论失败:', error);
+            throw error;
+        }
+    },
+
     // 获取课程评价
     getReviews: async () => {
         try {
@@ -518,6 +548,36 @@ const contentAPI = {
                 success: false,
                 message: error.message || '更新评论失败'
             };
+        }
+    },
+
+    // 删除回复
+    deleteReply: async (postId, commentId, replyId) => {
+        try {
+            const response = await fetch(`${BASE_URL}/api/comments/${postId}/${commentId}/replies/${replyId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'  // 确保发送 cookies
+            });
+
+            const data = await response.json();
+            
+            // 检查 HTTP 状态码
+            if (!response.ok) {
+                throw new Error(data.message || `删除回复失败: ${response.status}`);
+            }
+            
+            // 检查业务状态
+            if (!data.success) {
+                throw new Error(data.message || '删除回复失败');
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('删除回复失败:', error);
+            throw error;
         }
     }
 };

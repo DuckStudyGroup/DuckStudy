@@ -720,7 +720,14 @@ async function loadComments() {
                                             </a>
                                             ${replyToInfo}
                                         </div>
-                                        <span class="reply-time">${reply.date}</span>
+                                        <div class="reply-header-right">
+                                            <span class="reply-time">${reply.date}</span>
+                                            ${currentUsername === reply.author ? `
+                                                <button type="button" class="delete-btn" data-reply-id="${reply.id}" data-comment-id="${comment.id}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            ` : ''}
+                                        </div>
                                     </div>
                                     <div class="reply-content">${reply.content}</div>
                                     <div class="reply-actions">
@@ -757,7 +764,14 @@ async function loadComments() {
                                 ${comment.author}
                             </a>
                         </div>
-                        <span class="comment-time">${comment.date}</span>
+                        <div class="comment-header-right">
+                            <span class="comment-time">${comment.date}</span>
+                            ${currentUsername === comment.author ? `
+                                <button type="button" class="delete-btn" data-comment-id="${comment.id}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
                     <div class="comment-content">${comment.content}</div>
                     ${imagesHTML}
@@ -1199,6 +1213,111 @@ function addCommentActions() {
             } catch (error) {
                 console.error('回复失败:', error);
                 alert('回复失败，请重试');
+            }
+        });
+    });
+
+    // 删除评论功能
+    document.querySelectorAll('.comment-item .delete-btn').forEach(btn => {
+        // 移除可能存在的旧事件监听器
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            try {
+                const commentId = newBtn.dataset.commentId;
+                const postId = new URLSearchParams(window.location.search).get('id');
+                
+                if (!confirm('确定要删除这条评论吗？')) {
+                    return;
+                }
+
+                // 禁用删除按钮，防止重复点击
+                newBtn.disabled = true;
+                newBtn.style.opacity = '0.5';
+                const originalText = newBtn.innerHTML;
+                newBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+
+                try {
+                    // 调用删除评论API
+                    const result = await contentAPI.deleteComment(postId, commentId);
+                    
+                    // 删除成功，重新加载评论列表
+                    await loadComments();
+                    alert('评论已删除');
+                } catch (error) {
+                    console.error('删除评论失败:', error);
+                    alert(error.message || '删除评论失败，请重试');
+                    // 重新加载评论列表以恢复正确状态
+                    await loadComments();
+                } finally {
+                    // 恢复按钮状态
+                    newBtn.disabled = false;
+                    newBtn.style.opacity = '1';
+                    newBtn.innerHTML = originalText;
+                }
+            } catch (error) {
+                console.error('删除评论失败:', error);
+                alert('删除评论失败，请重试');
+            }
+        });
+    });
+
+    // 删除回复功能
+    document.querySelectorAll('.reply-item .delete-btn').forEach(btn => {
+        // 移除可能存在的旧事件监听器
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const replyItem = newBtn.closest('.reply-item');
+            if (!replyItem) return;
+            
+            const replyId = newBtn.dataset.replyId;
+            const commentId = newBtn.dataset.commentId;
+            if (!replyId || !commentId) return;
+            
+            // 获取帖子ID
+            const postId = new URLSearchParams(window.location.search).get('id');
+            if (!postId) {
+                alert('帖子ID无效');
+                return;
+            }
+
+            // 确认删除
+            if (!confirm('确定要删除这条回复吗？')) {
+                return;
+            }
+
+            // 禁用删除按钮，防止重复点击
+            newBtn.disabled = true;
+            newBtn.style.opacity = '0.5';
+            const originalText = newBtn.innerHTML;
+            newBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+
+            try {
+                // 调用删除回复API
+                const result = await contentAPI.deleteReply(postId, commentId, replyId);
+                
+                // 删除成功，重新加载评论列表
+                await loadComments();
+                alert('回复已删除');
+            } catch (error) {
+                console.error('删除回复失败:', error);
+                alert(error.message || '删除回复失败，请重试');
+                // 重新加载评论列表以恢复正确状态
+                await loadComments();
+            } finally {
+                // 恢复按钮状态
+                newBtn.disabled = false;
+                newBtn.style.opacity = '1';
+                newBtn.innerHTML = originalText;
             }
         });
     });

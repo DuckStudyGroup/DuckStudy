@@ -740,7 +740,50 @@ def update_comment(post_id, comment_id):
     except Exception as e:
         return jsonify({"success": False, "message": f"更新评论失败: {str(e)}"}), 500
 
-# API路由：添加评论
+# API路由：删除评论
+@app.route('/api/comments/<post_id>/<comment_id>', methods=['DELETE'])
+def delete_comment(post_id, comment_id):
+    """删除评论"""
+    try:
+        # 检查用户是否登录
+        username = session.get('username')
+        if not username:
+            return jsonify({"success": False, "message": "请先登录"}), 401
+
+        data = read_comments()
+        
+        # 确保帖子存在
+        if post_id not in data['comments']:
+            return jsonify({"success": False, "message": "帖子不存在"}), 404
+        
+        # 查找要删除的评论
+        comment_index = None
+        for i, comment in enumerate(data['comments'][post_id]):
+            if str(comment['id']) == str(comment_id):
+                # 检查是否是评论作者
+                if comment['author'] != username:
+                    return jsonify({"success": False, "message": "只能删除自己的评论"}), 403
+                comment_index = i
+                break
+        
+        if comment_index is None:
+            return jsonify({"success": False, "message": "评论不存在"}), 404
+        
+        # 删除评论
+        del data['comments'][post_id][comment_index]
+        
+        # 如果帖子没有评论了，删除帖子的评论列表
+        if not data['comments'][post_id]:
+            del data['comments'][post_id]
+        
+        # 保存数据
+        if save_comments(data):
+            return jsonify({"success": True, "message": "评论删除成功"})
+        else:
+            return jsonify({"success": False, "message": "评论保存失败"}), 500
+    except Exception as e:
+        return jsonify({"success": False, "message": f"删除评论失败: {str(e)}"}), 500
+
 @app.route('/api/comments/<post_id>', methods=['POST'])
 def add_comment(post_id):
     """添加评论"""
@@ -1023,6 +1066,77 @@ def serve_static(path):
 
 # 注册蓝图
 app.register_blueprint(user_bp)
+
+# API路由：删除回复
+@app.route('/api/comments/<post_id>/<comment_id>/replies/<reply_id>', methods=['DELETE'])
+def delete_reply(post_id, comment_id, reply_id):
+    """删除评论下的回复"""
+    try:
+        # 检查用户是否登录
+        username = session.get('username')
+        if not username:
+            return jsonify({"success": False, "message": "请先登录"}), 401
+
+        data = read_comments()
+        
+        # 确保帖子存在
+        if post_id not in data['comments']:
+            return jsonify({"success": False, "message": "帖子不存在"}), 404
+        
+        # 查找评论
+        comment_index = None
+        for i, comment in enumerate(data['comments'][post_id]):
+            if str(comment['id']) == str(comment_id):
+                comment_index = i
+                break
+        
+        if comment_index is None:
+            return jsonify({"success": False, "message": "评论不存在"}), 404
+
+        comment = data['comments'][post_id][comment_index]
+        
+        # 确保回复数组存在
+        if 'replies' not in comment:
+            comment['replies'] = []
+            return jsonify({"success": False, "message": "回复不存在"}), 404
+        
+        # 查找要删除的回复
+        reply_index = None
+        for i, reply in enumerate(comment['replies']):
+            if str(reply['id']) == str(reply_id):
+                # 检查是否是回复作者
+                if reply['author'] != username:
+                    return jsonify({"success": False, "message": "只能删除自己的回复"}), 403
+                reply_index = i
+                break
+        
+        if reply_index is None:
+            return jsonify({"success": False, "message": "回复不存在"}), 404
+        
+        # 删除回复
+        del comment['replies'][reply_index]
+        
+        # 保存数据
+        if not save_comments(data):
+            return jsonify({"success": False, "message": "保存数据失败"}), 500
+            
+        # 返回成功响应，确保包含 success 字段
+        return jsonify({
+            "success": True, 
+            "message": "回复删除成功",
+            "data": {
+                "postId": post_id,
+                "commentId": comment_id,
+                "replyId": reply_id
+            }
+        })
+            
+    except Exception as e:
+        print(f"删除回复失败: {str(e)}")
+        return jsonify({
+            "success": False, 
+            "message": f"删除回复失败: {str(e)}"
+        }), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000) 
