@@ -64,8 +64,8 @@ async function updateProfileDisplay(username, isOwnProfile) {
         // 更新用户名显示
         document.getElementById('profileUsername').textContent = username;
         
-        // 加载用户详细信息
-        await loadUserProfile(username);
+        // 加载用户详细信息，并传递 isOwnProfile
+        await loadUserProfile(username, isOwnProfile);
         
         // 根据是否是自己的主页来调整界面
         const forms = document.querySelectorAll('.profile-form');
@@ -88,6 +88,19 @@ async function updateProfileDisplay(username, isOwnProfile) {
                 }
             });
         }
+
+        // 更新“我的收藏”链接
+        const favoritesLink = document.getElementById('favoritesLink');
+        if (favoritesLink) {
+            if (isOwnProfile) {
+                favoritesLink.href = `favorites.html`; // 自己的收藏页面
+                favoritesLink.innerHTML = '<i class="bi bi-heart-fill"></i> 我的收藏';
+            } else {
+                favoritesLink.href = `favorites.html?username=${username}`; // 他人的收藏页面
+                favoritesLink.innerHTML = `<i class="bi bi-heart-fill"></i> TA的收藏`;
+            }
+        }
+
     } catch (error) {
         console.error('更新个人资料显示失败:', error);
         throw error;
@@ -95,10 +108,10 @@ async function updateProfileDisplay(username, isOwnProfile) {
 }
 
 // 加载用户详细信息
-async function loadUserProfile(username) {
+async function loadUserProfile(username, isOwnProfile) { // 接收 isOwnProfile 参数
     try {
-        // 获取当前登录用户
-        const currentUser = localStorage.getItem('username');
+        // 获取当前登录用户 (不再需要在此计算 isOwnProfile)
+        // const currentUser = localStorage.getItem('username'); 
         
         // 如果没有用户名，跳转到登录页
         if (!username) {
@@ -117,40 +130,53 @@ async function loadUserProfile(username) {
             
             // 检测是否为默认头像
             const avatarImage = document.getElementById('avatarImage');
-            const isDefaultAvatar = user.avatar.includes('placehold.jp');
+            const avatarIconContainer = document.querySelector('.profile-avatar .avatar-icon');
             
-            if (isDefaultAvatar) {
-                // 如果是默认头像，将img标签替换为图标
-                const parentElement = avatarImage.parentElement;
-                parentElement.innerHTML = `
-                    <div class="avatar-icon">
-                        <i class="bi bi-person-circle"></i>
-                    </div>`;
+            if (user.avatar && !user.avatar.includes('placehold.jp')) {
+                // 如果有自定义头像
+                if (avatarIconContainer) {
+                    // 如果当前是图标，替换回img
+                    avatarImage.parentElement.innerHTML = `<img id="avatarImage" src="${user.avatar}" alt="用户头像">`;
+                } else if (avatarImage) {
+                    avatarImage.src = user.avatar;
+                }
             } else {
-                // 如果是自定义头像，直接设置src
-                avatarImage.src = user.avatar;
+                // 如果是默认头像或无头像
+                if (avatarImage && !avatarIconContainer) { // 确保 avatarImage 存在且当前不是图标
+                     avatarImage.parentElement.innerHTML = `
+                        <div class="avatar-icon">
+                            <i class="bi bi-person-circle"></i>
+                        </div>`;
+                } else if (!avatarImage && !avatarIconContainer) { // 如果连img标签的父容器都没有，则尝试创建
+                    const avatarParent = document.querySelector('.profile-avatar');
+                    if (avatarParent) {
+                        avatarParent.innerHTML = `
+                        <div class="avatar-icon">
+                            <i class="bi bi-person-circle"></i>
+                        </div>`;
+                    }
+                }
             }
             
-            // 如果是查看自己的资料，显示编辑选项
-            const isOwnProfile = currentUser === username;
+            // 始终填充表单信息
+            document.getElementById('username').value = user.username; // username 字段通常是 readonly
+            document.getElementById('nickname').value = user.nickname || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('bio').value = user.bio || '';
+
+            // 根据传入的 isOwnProfile 控制编辑功能
             const avatarUploadSection = document.getElementById('avatarUploadSection');
             if (avatarUploadSection) {
                 avatarUploadSection.style.display = isOwnProfile ? 'block' : 'none';
             }
             
             if (isOwnProfile) {
-                // 填充表单
-                document.getElementById('username').value = user.username;
-                document.getElementById('nickname').value = user.nickname || '';
-                document.getElementById('email').value = user.email || '';
-                document.getElementById('bio').value = user.bio || '';
-                
-                // 启用表单编辑
+                // 启用表单编辑 (username 字段在HTML中通常已设为 readonly)
                 document.getElementById('nickname').removeAttribute('readonly');
                 document.getElementById('email').removeAttribute('readonly');
                 document.getElementById('bio').removeAttribute('readonly');
             } else {
-                // 禁用表单编辑
+                // 禁用表单编辑 (确保这些字段为只读)
                 document.getElementById('nickname').setAttribute('readonly', true);
                 document.getElementById('email').setAttribute('readonly', true);
                 document.getElementById('bio').setAttribute('readonly', true);
@@ -171,21 +197,25 @@ function addNavEvents() {
     
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            // 移除所有活动状态
-            navItems.forEach(nav => nav.classList.remove('active'));
-            sections.forEach(section => section.classList.remove('active'));
-            
-            // 添加当前活动状态
-            item.classList.add('active');
             const sectionId = item.getAttribute('data-section');
+            
+            // 仅当存在 data-section 属性时才阻止默认行为并切换内容
             if (sectionId) {
+                e.preventDefault();
+                
+                // 移除所有活动状态
+                navItems.forEach(nav => nav.classList.remove('active'));
+                sections.forEach(section => section.classList.remove('active'));
+                
+                // 添加当前活动状态
+                item.classList.add('active');
                 const section = document.getElementById(sectionId);
                 if (section) {
                     section.classList.add('active');
                 }
             }
+            // 如果没有 data-section 属性，则不调用 e.preventDefault()，
+            // 允许链接的默认行为（例如，跳转到 favorites.html）
         });
     });
 }
@@ -253,22 +283,28 @@ function addFormEvents() {
 function initAvatarUpload() {
     const fileInput = document.getElementById('avatarInput');
     const uploadBtn = document.getElementById('uploadAvatarBtn');
-    const avatarImg = document.querySelector('.profile-avatar img');
     const uploadSection = document.getElementById('avatarUploadSection');
 
-    // 如果未找到必要元素，退出初始化
-    if (!fileInput || !uploadBtn || !avatarImg) {
-        console.log('头像上传功能初始化：未找到必要的DOM元素');
+    // 如果未找到文件输入框或上传按钮，则无法继续初始化。
+    if (!fileInput || !uploadBtn) {
+        console.warn('头像上传功能初始化：未找到 avatarInput 或 uploadAvatarBtn。更换头像功能可能无法正常工作。');
         return;
     }
 
     // 确保上传按钮是可见的，针对自己的资料页面
     const currentUser = localStorage.getItem('username');
-    const urlUsername = getUrlUsername();
+    const urlUsername = getUrlUsername(); // 假设 getUrlUsername 函数已定义并可用
     
-    if (uploadSection && (urlUsername === currentUser || !urlUsername)) {
-        uploadSection.style.display = 'block';
+    if (uploadSection) { // 检查 uploadSection 是否存在
+        if ((urlUsername === currentUser || !urlUsername)) { // !urlUsername 暗示如果是自己的主页（无用户名参数）
+            uploadSection.style.display = 'block';
+        } else {
+            uploadSection.style.display = 'none'; // 如果不是自己的主页，则隐藏
+        }
+    } else {
+        console.warn('头像上传功能初始化：未找到 avatarUploadSection。更换头像区域的可见性可能无法正确控制。');
     }
+    
 
     uploadBtn.addEventListener('click', () => {
         fileInput.click();
@@ -284,9 +320,9 @@ function initAvatarUpload() {
             return;
         }
 
-        // 验证文件大小（最大 2MB）
-        if (file.size > 2 * 1024 * 1024) {
-            alert('图片大小不能超过 2MB');
+        // 验证文件大小（最大 3MB）
+        if (file.size > 3 * 1024 * 1024) {
+            alert('图片大小不能超过 3MB');
             return;
         }
 
@@ -373,4 +409,4 @@ async function handleAvatarUpload(file) {
         console.error('上传头像失败:', error);
         alert('上传失败，请重试');
     }
-} 
+}

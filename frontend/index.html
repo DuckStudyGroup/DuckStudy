@@ -117,6 +117,59 @@
                 </div>
             </section>
 
+            <!-- 3D魔方小游戏 -->
+            <section class="rubiks-cube-game">
+                <div class="section-header">
+                    <h2><a href="pages/mofang.html">小游戏</a></h2>
+                </div>
+                <div class="text-center my-4">
+                    <a href="pages/mofang.html" class="btn btn-lg rubiks-cube-btn">
+                        <div class="cube-icon">
+                            <div class="cube-face" style="background-color: #ff4136;"></div>
+                            <div class="cube-face" style="background-color: #ffdc00;"></div>
+                            <div class="cube-face" style="background-color: #0074d9;"></div>
+                        </div>
+                        <span>3D魔方</span>
+                        <i class="bi bi-arrow-right-circle-fill ms-2"></i>
+                    </a>
+                </div>
+                <style>
+                    .rubiks-cube-btn {
+                        background: linear-gradient(135deg, #7928CA, #FF0080);
+                        color: white;
+                        border-radius: 15px;
+                        padding: 15px 30px;
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                        transition: all 0.3s ease;
+                        border: none;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        display: inline-flex;
+                        align-items: center;
+                    }
+                    .rubiks-cube-btn:hover {
+                        transform: translateY(-5px);
+                        box-shadow: 0 7px 20px rgba(0,0,0,0.3);
+                        color: white;
+                    }
+                    .cube-icon {
+                        display: inline-flex;
+                        margin-right: 12px;
+                        position: relative;
+                        width: 30px;
+                        height: 30px;
+                    }
+                    .cube-face {
+                        width: 15px;
+                        height: 15px;
+                        position: absolute;
+                        border: 1px solid rgba(255,255,255,0.6);
+                    }
+                    .cube-face:nth-child(1) { top: 0; left: 0; }
+                    .cube-face:nth-child(2) { top: 8px; left: 8px; }
+                    .cube-face:nth-child(3) { top: 15px; left: 15px; }
+                </style>
+            </section>
             <!-- 二手市场 -->
             <!-- <section class="second-hand">
                 <div class="section-header">
@@ -140,7 +193,6 @@
             </section> -->
         </div>
     </div>
-
     <!-- 使用本地 Bootstrap JS -->
     <script src="lib/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="js/api.js"></script>

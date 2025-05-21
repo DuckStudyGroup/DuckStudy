@@ -16,7 +16,9 @@
             "email": "zhangsan@example.com",
             "role": "user",
             "registrationDate": "2023-03-20",
-            "avatar": "https://placehold.jp/100x100.png"
+            "avatar": "/images/avatars/1747826293_cool.png",
+            "nickname": "张三",
+            "bio": "5月21日测试：目前收藏点击时会出现“无法加载帖子数据”提示"
         },
         {
             "id": 3,
@@ -25,7 +27,9 @@
             "email": "lisi@example.com",
             "role": "user",
             "registrationDate": "2023-05-10",
-            "avatar": "https://placehold.jp/100x100.png"
+            "avatar": "/images/avatars/1747827801_20241016172231.png",
+            "nickname": "李四",
+            "bio": "我是李四，呱呱呱"
         },
         {
             "id": 4,
