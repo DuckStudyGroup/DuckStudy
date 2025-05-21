@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // 更新用户状态
-        await updateNavUserStatus();
+        await updateNavUserStatus(response);
         
         // 初始化富文本编辑器
         initQuillEditor();
@@ -130,6 +130,10 @@ function imageHandler() {
             imageUploadCount++;
             
             try {
+                // 加载图片并检查尺寸
+                const image = await loadImage(file);
+                const resizedFile = await resizeImageIfNeeded(file, image, 600, 600);  // 限制宽度为600px，高度为800px
+                
                 // 生成文件名
                 const timestamp = Date.now();
                 const randomStr = Math.random().toString(36).substring(2, 8);
@@ -138,7 +142,7 @@ function imageHandler() {
                 
                 // 创建FormData对象
                 const formData = new FormData();
-                formData.append('image', file);
+                formData.append('image', resizedFile);
                 formData.append('filename', filename);
                 
                 // 发送到后端保存图片
@@ -159,6 +163,20 @@ function imageHandler() {
                 
                 // 插入图片
                 quill.insertEmbed(range.index, 'image', imageUrl);
+                
+                // 为插入的图片添加样式
+                setTimeout(() => {
+                    const imgElements = quill.root.querySelectorAll('img');
+                    imgElements.forEach(img => {
+                        if (img.src === imageUrl) {
+                            img.className = 'post-content-image';
+                            img.style.maxWidth = '100%';
+                            img.style.height = 'auto';
+                            img.style.marginTop = '10px';
+                            img.style.marginBottom = '10px';
+                        }
+                    });
+                }, 10);
                 
                 // 添加一个换行
                 quill.insertText(range.index + 1, '\n');
@@ -182,6 +200,59 @@ function imageHandler() {
             }
         }
     };
+}
+
+// 加载图片文件为Image对象
+function loadImage(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// 如果图片超过指定最大宽度或高度，调整图片尺寸
+function resizeImageIfNeeded(file, img, maxWidth, maxHeight) {
+    return new Promise((resolve) => {
+        // 如果图片尺寸已经在限制范围内，不需要调整
+        if (img.width <= maxWidth && img.height <= maxHeight) {
+            resolve(file);
+            return;
+        }
+
+        // 计算调整后的尺寸，保持宽高比
+        // 分别计算宽度和高度的缩放比例，取较小的一个确保两个维度都不超过最大值
+        const widthRatio = maxWidth / img.width;
+        const heightRatio = maxHeight / img.height;
+        const ratio = Math.min(widthRatio, heightRatio);
+        
+        const width = Math.floor(img.width * ratio);
+        const height = Math.floor(img.height * ratio);
+
+        // 使用Canvas调整图片尺寸
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // 将Canvas转换为Blob
+        canvas.toBlob((blob) => {
+            // 创建调整后的文件对象
+            const resizedFile = new File([blob], file.name, {
+                type: file.type,
+                lastModified: Date.now()
+            });
+            resolve(resizedFile);
+        }, file.type, 0.9); // 0.9为质量参数
+    });
 }
 
 // 添加表单提交事件

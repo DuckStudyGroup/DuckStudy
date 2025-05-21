@@ -1,7 +1,11 @@
 import { BASE_URL } from './api.js';
+import { initNavbar } from './nav-utils.js';
 
 // 注册功能
 document.addEventListener('DOMContentLoaded', () => {
+    // 初始化导航栏
+    initNavbar();
+    
     const registerForm = document.getElementById('registerForm');
     const registerError = document.getElementById('registerError');
 

@@ -166,7 +166,7 @@ function addCreatePostEvent() {
                     alert('请先登录后再发布');
                     return;
                 }
-                window.location.href = 'post-editor.html';
+                window.location.href = 'create-post.html';
             } catch (error) {
                 console.error('检查用户状态失败', error);
                 alert('系统错误，请稍后再试');
