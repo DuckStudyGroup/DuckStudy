@@ -257,11 +257,21 @@ function addRemoveFavoriteEvents() {
                             favoritedPosts.splice(index, 1);
                             localStorage.setItem(`userFavorites_posts_${userId}`, JSON.stringify(favoritedPosts));
                             
-                            // 更新帖子数据中的收藏数
+                            // 更新帖子数据中的收藏状态
                             const post = window.mockPosts.find(p => p.id.toString() === itemId);
-                            if (post && post.favorites > 0) {
-                                post.favorites--;
-                                await contentAPI.updatePost(post.id, post);
+                            if (post) {
+                                // 确保favoritedBy数组存在
+                                if (!post.favoritedBy) {
+                                    post.favoritedBy = [];
+                                }
+                                // 从favoritedBy数组中移除用户
+                                const userIndex = post.favoritedBy.indexOf(userId);
+                                if (userIndex !== -1) {
+                                    post.favoritedBy.splice(userIndex, 1);
+                                    post.favorites = Math.max(0, (post.favorites || 0) - 1);
+                                    // 更新帖子数据
+                                    await contentAPI.updatePost(post.id, post);
+                                }
                             }
                             
                             // 更新收藏计数
