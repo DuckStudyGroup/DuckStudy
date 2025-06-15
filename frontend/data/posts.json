@@ -165,7 +165,7 @@
                 "校园生活",
                 "美食"
             ],
-            "views": 124,
+            "views": 125,
             "likes": 45,
             "favorites": 18,
             "coverImages": [
@@ -306,7 +306,7 @@
                 "经验分享",
                 "学习"
             ],
-            "views": 802,
+            "views": 805,
             "likes": 302,
             "favorites": 267,
             "likedBy": [
@@ -329,7 +329,7 @@
                 "校园活动",
                 "才艺展示"
             ],
-            "views": 461,
+            "views": 464,
             "likes": 178,
             "favorites": 89,
             "coverImages": [],
@@ -353,7 +353,7 @@
                 "技术社区",
                 "学习交流"
             ],
-            "views": 376,
+            "views": 378,
             "likes": 145,
             "favorites": 98,
             "likedBy": [
@@ -375,7 +375,7 @@
                 "失物招领",
                 "求助"
             ],
-            "views": 236,
+            "views": 237,
             "likes": 45,
             "favorites": 12,
             "likedBy": [
@@ -398,7 +398,7 @@
                 "数码设备",
                 "换物"
             ],
-            "views": 238,
+            "views": 242,
             "likes": 34,
             "favorites": 23,
             "coverImages": [],
@@ -418,12 +418,27 @@
             "content": "<p>中山大学是我最喜欢的学校，我爱中大</p>",
             "date": "2025/05/21 19:29",
             "tags": [],
-            "views": 0,
+            "views": 5,
             "likes": 0,
             "favorites": 0,
             "coverImages": [
                 "/images/posts/1747826962_post_1747826962252_pcwquy.png"
             ],
+            "likedBy": [],
+            "favoritedBy": []
+        },
+        {
+            "id": 1749636310001,
+            "title": "啊啊啊啊啊啊",
+            "author": "张三",
+            "category": "love",
+            "content": "<p>哼哼哼啊啊啊啊啊啊啊啊啊啊啊</p>",
+            "date": "2025/06/11 18:05",
+            "tags": [],
+            "views": 8,
+            "likes": 0,
+            "favorites": 0,
+            "coverImages": [],
             "likedBy": [],
             "favoritedBy": []
         }

@@ -537,28 +537,33 @@
         ],
         "1747314615303": [
             {
-                "id": 1747314715303,
                 "author": "音乐爱好者",
+                "authorAvatar": "https://placehold.jp/100x100.png",
                 "content": "请问可以组乐队参加吗？",
                 "date": "2025/05/20 15:50",
-                "likes": 15,
+                "id": 1747314715303,
                 "likedBy": [
                     "学生会文艺部",
-                    "才艺达人"
+                    "才艺达人",
+                    "张三"
                 ],
+                "likes": 16,
                 "replies": [
                     {
-                        "id": 1747314725303,
                         "author": "学生会文艺部",
+                        "authorAvatar": "https://placehold.jp/100x100.png",
                         "content": "可以的，乐队限制在6人以内",
                         "date": "2025/05/20 15:55",
-                        "likes": 7,
+                        "id": 1747314725303,
                         "likedBy": [
                             "音乐爱好者"
                         ],
-                        "replyTo": "音乐爱好者"
+                        "likes": 7,
+                        "replyTo": "音乐爱好者",
+                        "timestamp": 1747314725303
                     }
-                ]
+                ],
+                "timestamp": 1747314715303
             }
         ],
         "1747314615304": [
