@@ -278,12 +278,12 @@ async function loadPostContent() {
                     </div>
                     ${coverImagesHTML}
                     <div class="post-content">${formatPostContent(post.content)}</div>
-                    <div class="post-footer">
+                    <div class="post-footer" data-post-id="${post.id}">
                         <div class="post-stats">
                             <span class="views"><i class="bi bi-eye"></i> ${post.views || 0}</span>
                             <span class="likes"><i class="bi bi-heart${isLiked ? '-fill' : ''}" data-action="like"></i> ${post.likes || 0}</span>
                             <span class="comments"><i class="bi bi-chat"></i> ${commentCount}</span>
-                            <span class="favorites"><i class="bi bi-bookmark${isFavorited ? '-fill' : ''}" data-action="favorite"></i> ${post.favorites || 0}</span>
+                            <span class="favorites"><i class="bi bi-bookmark${isFavorited ? '-fill' : ''}" data-action="favorite"></i> <span class="favorites-count">${post.favorites || 0}</span></span>
                         </div>
                     </div>
                 </div>
@@ -441,7 +441,7 @@ function formatPostContent(content) {
 
 // 添加帖子点赞事件
 function addPostLikeEvent() {
-    const likeBtn = document.querySelector('.post-footer .likes i');
+    const likeBtn = document.querySelector('.likes i[data-action="like"]');
     if (!likeBtn) return;
 
     likeBtn.addEventListener('click', async () => {
@@ -453,25 +453,26 @@ function addPostLikeEvent() {
             }
 
             const username = userResponse.username;
-            const postId = likeBtn.closest('.post-footer').dataset.postId;
-            const likeCount = likeBtn.closest('.post-footer').querySelector('.likes-count');
+            const postFooter = likeBtn.closest('.post-footer');
+            const postId = parseInt(postFooter.dataset.postId);
+            const likeCount = postFooter.querySelector('.likes-count');
             
             // 获取帖子数据
-            const post = window.mockPosts.find(p => p.id === parseInt(postId));
+            const post = window.mockPosts.find(p => p.id === postId);
             if (!post) {
                 alert('无法获取帖子数据');
                 return;
             }
-            
+
             // 确保likedBy数组存在
             if (!post.likedBy) {
                 post.likedBy = [];
             }
-            
+
             // 检查用户是否已点赞
             const userIndex = post.likedBy.indexOf(username);
             const isLiked = userIndex !== -1;
-            
+
             // 更新点赞数和likedBy数组
             if (isLiked) {
                 // 取消点赞
@@ -480,10 +481,8 @@ function addPostLikeEvent() {
                 
                 // 更新UI
                 likeCount.textContent = post.likes;
-                likeBtn.classList.remove('liked');
+                likeBtn.classList.remove('bi-heart-fill');
                 likeBtn.classList.add('bi-heart');
-                
-                alert('已取消点赞');
             } else {
                 // 添加点赞
                 post.likes = (post.likes || 0) + 1;
@@ -492,27 +491,18 @@ function addPostLikeEvent() {
                 // 更新UI
                 likeCount.textContent = post.likes;
                 likeBtn.classList.remove('bi-heart');
-                likeBtn.classList.add('liked');
-                
-                alert('点赞成功！');
+                likeBtn.classList.add('bi-heart-fill');
             }
-            
-            // 使用公共函数处理帖子对象
+
+            // 更新帖子数据
             const sanitizedPost = sanitizePostObject(post);
-            
-            // 调用API并处理错误
             const updateResult = await contentAPI.updatePost(post.id, sanitizedPost);
             if (updateResult && updateResult.error) {
                 console.error('更新点赞状态失败:', updateResult.message);
-                // 重新加载以恢复正确状态
                 await loadPostContent();
-            } else {
-                console.log('点赞状态更新成功');
             }
         } catch (error) {
-            console.error('点赞失败:', error);
-            alert('点赞失败，请重试');
-            // 回滚UI状态
+            console.error('点赞操作失败:', error);
             await loadPostContent();
         }
     });
@@ -520,7 +510,7 @@ function addPostLikeEvent() {
 
 // 添加帖子收藏事件
 function addPostFavoriteEvent() {
-    const favoriteBtn = document.querySelector('.post-footer .favorites i');
+    const favoriteBtn = document.querySelector('.favorites i[data-action="favorite"]');
     if (!favoriteBtn) return;
 
     favoriteBtn.addEventListener('click', async () => {
@@ -532,25 +522,26 @@ function addPostFavoriteEvent() {
             }
 
             const username = userResponse.username;
-            const postId = favoriteBtn.closest('.post-footer').dataset.postId;
-            const favoriteCount = favoriteBtn.closest('.post-footer').querySelector('.favorites-count');
+            const postFooter = favoriteBtn.closest('.post-footer');
+            const postId = parseInt(postFooter.dataset.postId);
+            const favoriteCount = postFooter.querySelector('.favorites-count');
             
             // 获取帖子数据
-            const post = window.mockPosts.find(p => p.id === parseInt(postId));
+            const post = window.mockPosts.find(p => p.id === postId);
             if (!post) {
                 alert('无法获取帖子数据');
                 return;
             }
-            
+
             // 确保favoritedBy数组存在
             if (!post.favoritedBy) {
                 post.favoritedBy = [];
             }
-            
+
             // 检查用户是否已收藏
             const userIndex = post.favoritedBy.indexOf(username);
             const isFavorited = userIndex !== -1;
-            
+
             // 更新收藏数和favoritedBy数组
             if (isFavorited) {
                 // 取消收藏
@@ -559,8 +550,13 @@ function addPostFavoriteEvent() {
                 
                 // 更新UI
                 favoriteCount.textContent = post.favorites;
-                favoriteBtn.classList.remove('favorited');
+                favoriteBtn.classList.remove('bi-bookmark-fill');
                 favoriteBtn.classList.add('bi-bookmark');
+                
+                // 更新本地存储
+                const favoritedPostIds = JSON.parse(localStorage.getItem(`userFavorites_posts_${username}`) || '[]');
+                const updatedFavorites = favoritedPostIds.filter(id => id !== post.id.toString());
+                localStorage.setItem(`userFavorites_posts_${username}`, JSON.stringify(updatedFavorites));
                 
                 alert('已取消收藏');
             } else {
@@ -571,27 +567,28 @@ function addPostFavoriteEvent() {
                 // 更新UI
                 favoriteCount.textContent = post.favorites;
                 favoriteBtn.classList.remove('bi-bookmark');
-                favoriteBtn.classList.add('favorited');
+                favoriteBtn.classList.add('bi-bookmark-fill');
+                
+                // 更新本地存储
+                const favoritedPostIds = JSON.parse(localStorage.getItem(`userFavorites_posts_${username}`) || '[]');
+                if (!favoritedPostIds.includes(post.id.toString())) {
+                    favoritedPostIds.push(post.id.toString());
+                    localStorage.setItem(`userFavorites_posts_${username}`, JSON.stringify(favoritedPostIds));
+                }
                 
                 alert('收藏成功！');
             }
-            
-            // 使用公共函数处理帖子对象
+
+            // 更新帖子数据
             const sanitizedPost = sanitizePostObject(post);
-            
-            // 调用API并处理错误
             const updateResult = await contentAPI.updatePost(post.id, sanitizedPost);
             if (updateResult && updateResult.error) {
                 console.error('更新收藏状态失败:', updateResult.message);
-                // 重新加载以恢复正确状态
                 await loadPostContent();
-            } else {
-                console.log('收藏状态更新成功');
             }
         } catch (error) {
             console.error('收藏操作失败:', error);
             alert('收藏操作失败，请重试');
-            // 回滚UI状态
             await loadPostContent();
         }
     });
