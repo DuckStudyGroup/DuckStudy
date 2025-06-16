@@ -241,4 +241,74 @@
     .profile-avatar .avatar-icon i {
         font-size: 50px;
     }
+}
+
+/* 历史浏览样式 */
+.history-list {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.history-header {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+    color: #666;
+}
+
+.history-items {
+    padding: 0;
+}
+
+.history-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-item:hover {
+    background-color: #f8f9fa;
+}
+
+.history-item .post-title {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.history-item .post-title:hover {
+    color: #007bff;
+}
+
+.history-item .view-time {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.history-item .actions {
+    display: flex;
+    gap: 10px;
+}
+
+.history-item .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.history-empty {
+    padding: 40px;
+    text-align: center;
+    color: #666;
+}
+
+.history-empty i {
+    font-size: 3rem;
+    color: #ddd;
+    margin-bottom: 15px;
 } 
