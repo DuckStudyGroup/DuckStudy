@@ -3,135 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>浏览历史 - DuckStudy</title>
+    <title>历史观看 - DuckStudy</title>
     <link rel="icon" type="image/x-icon" href="../images/duckstudy.ico">
     <link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../lib/bootstrap-icons/css/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/history.css">
-    <style>
-        .history-content {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-            padding: 24px;
-            margin-top: 24px;
-        }
-
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .content-header h2 {
-            font-size: 24px;
-            font-weight: 600;
-            color: #333;
-            margin: 0;
-        }
-
-        .history-stats {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .history-stats span {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .history-item {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .history-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .item-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .item-info {
-            flex: 1;
-        }
-
-        .item-title {
-            font-size: 16px;
-            font-weight: 500;
-            margin: 0 0 8px 0;
-        }
-
-        .item-title a {
-            color: #333;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .item-title a:hover {
-            color: #0d6efd;
-        }
-
-        .item-meta {
-            color: #666;
-            font-size: 13px;
-        }
-
-        .view-time {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .item-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 13px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 48px 24px;
-            color: #666;
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            color: #ccc;
-            margin-bottom: 16px;
-        }
-
-        .empty-state p {
-            font-size: 16px;
-            margin-bottom: 24px;
-        }
-
-        #clearHistoryBtn {
-            padding: 6px 16px;
-            font-size: 14px;
-        }
-
-        #clearHistoryBtn i {
-            margin-right: 4px;
-        }
-    </style>
 </head>
 <body>
     <div class="container-fluid main-container">
@@ -141,7 +18,6 @@
                 <a class="navbar-brand" href="../index.html">DuckStudy</a>
                 <div class="d-flex align-items-center">
                     <div class="nav-links">
-                        <a href="platforms.html" class="nav-link">导航</a>
                         <a href="posts.html" class="nav-link">论坛</a>
                         <a href="market.html" class="nav-link">市场</a>
                         <a href="courses.html" class="nav-link">课程</a>
@@ -164,11 +40,31 @@
         <div class="main-content">
             <div class="container">
                 <div class="row">
+                    <!-- 左侧导航 -->
+                    <div class="col-md-3">
+                        <div class="history-nav">
+                            <div class="nav-list">
+                                <a href="#" class="nav-item active" data-type="all">
+                                    <i class="bi bi-grid"></i> 全部记录
+                                </a>
+                                <a href="#" class="nav-item" data-type="courses">
+                                    <i class="bi bi-book"></i> 课程记录
+                                </a>
+                                <a href="#" class="nav-item" data-type="posts">
+                                    <i class="bi bi-file-text"></i> 文章记录
+                                </a>
+                                <a href="#" class="nav-item" data-type="videos">
+                                    <i class="bi bi-play-circle"></i> 视频记录
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 右侧内容 -->
-                    <div class="col-md-12">
+                    <div class="col-md-9">
                         <div class="history-content">
                             <div class="content-header">
-                                <h2>浏览历史</h2>
+                                <h2>历史观看</h2>
                                 <div class="history-stats">
                                     <span>共 <span id="totalCount">0</span> 条记录</span>
                                     <button class="btn btn-outline-danger" id="clearHistoryBtn">
@@ -185,8 +81,8 @@
                             <!-- 空状态 -->
                             <div class="empty-state" id="emptyState" style="display: none;">
                                 <i class="bi bi-clock-history"></i>
-                                <p>暂无浏览记录</p>
-                                <a href="posts.html" class="btn btn-primary">去论坛看看</a>
+                                <p>暂无观看记录</p>
+                                <a href="../index.html" class="btn btn-primary">去首页逛逛</a>
                             </div>
                         </div>
                     </div>

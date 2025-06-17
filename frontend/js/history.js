@@ -5,27 +5,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         // 更新用户状态
         await updateUserStatus();
-        // 初始化帖子数据
-        await initPostsData();
+        
+        // 添加导航切换事件
+        addNavEvents();
+        
         // 加载历史记录
-        await loadHistory();
+        await loadHistory('all');
+        
         // 添加清空历史事件
         addClearHistoryEvent();
     } catch (error) {
         console.error('加载数据失败:', error);
+        alert('加载数据失败，请刷新页面重试');
     }
 });
-
-// 初始化帖子数据
-async function initPostsData() {
-    try {
-        const response = await contentAPI.getPosts();
-        window.mockPosts = response.posts || [];
-    } catch (error) {
-        console.error('加载帖子数据失败:', error);
-        window.mockPosts = [];
-    }
-}
 
 // 更新用户状态
 async function updateUserStatus() {
@@ -42,7 +35,9 @@ async function updateUserStatus() {
             userSection.innerHTML = `
                 <div class="user-profile">
                     <div class="avatar-container">
-                        <img src="${response.avatar}" alt="用户头像" class="avatar">
+                        <div class="avatar">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
                         <div class="dropdown-menu">
                             <a href="profile.html" class="dropdown-item">
                                 <i class="bi bi-person"></i> 个人中心
@@ -51,7 +46,7 @@ async function updateUserStatus() {
                                 <i class="bi bi-heart"></i> 我的收藏
                             </a>
                             <a href="history.html" class="dropdown-item">
-                                <i class="bi bi-clock-history"></i> 浏览历史
+                                <i class="bi bi-clock-history"></i> 历史观看
                             </a>
                             <div class="dropdown-divider"></div>
                             <a href="#" class="dropdown-item" id="logoutBtn">
@@ -78,10 +73,7 @@ async function updateUserStatus() {
                 });
             }
         } else {
-            userSection.innerHTML = `
-                <a href="login.html" class="btn btn-outline-primary me-2">登录</a>
-                <a href="register.html" class="btn btn-primary">注册</a>
-            `;
+            window.location.href = 'login.html';
         }
     } catch (error) {
         console.error('获取用户状态失败:', error);
@@ -90,142 +82,273 @@ async function updateUserStatus() {
 }
 
 // 加载历史记录
-async function loadHistory() {
-    const historyList = document.getElementById('historyList');
-    const emptyState = document.getElementById('emptyState');
-    const totalCount = document.getElementById('totalCount');
-
+async function loadHistory(type) {
     try {
-        // 从localStorage获取浏览历史
-        const history = JSON.parse(localStorage.getItem('viewHistory') || '[]');
+        const historyList = document.getElementById('historyList');
+        const emptyState = document.getElementById('emptyState');
+        const totalCount = document.getElementById('totalCount');
         
-        // 按时间倒序排序
-        history.sort((a, b) => b.timestamp - a.timestamp);
-        
-        // 更新总数
-        totalCount.textContent = history.length;
-
-        if (history.length === 0) {
-            historyList.style.display = 'none';
-            emptyState.style.display = 'flex';
-            // 更新空状态显示
-            emptyState.innerHTML = `
-                <div class="empty-state-content">
-                    <i class="bi bi-clock-history empty-icon"></i>
-                    <h3>暂无浏览记录</h3>
-                    <p>去论坛发现更多精彩内容</p>
-                    <a href="posts.html" class="btn">
-                        <i class="bi bi-arrow-right"></i>浏览论坛
-                    </a>
-                </div>
-            `;
+        if (!historyList) {
+            console.error('未找到历史记录列表元素');
             return;
         }
-
-        // 显示历史记录
-        historyList.style.display = 'block';
-        emptyState.style.display = 'none';
         
-        // 生成历史记录HTML
-        const historyHTML = history.map(item => {
-            // 从全局帖子列表中查找帖子
-            const post = window.mockPosts.find(p => p.id === parseInt(item.id));
-            if (!post) {
-                console.warn(`未找到帖子数据: ${item.id}`);
-                return null;
+        // 显示加载状态
+        historyList.innerHTML = `
+            <div class="loading">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </div>
+        `;
+        
+        // 这里应该调用后端API获取历史记录
+        // 目前使用模拟数据
+        const mockHistory = {
+            all: [
+                {
+                    type: 'course',
+                    id: 1,
+                    title: 'Python基础教程',
+                    description: '从零开始学习Python编程',
+                    image: '../images/course1.jpg',
+                    instructor: '张老师',
+                    duration: '2小时30分',
+                    progress: 75,
+                    lastWatchTime: '2024-03-15 14:30'
+                },
+                {
+                    type: 'post',
+                    id: 2,
+                    title: '如何提高学习效率',
+                    description: '分享一些实用的学习方法',
+                    image: '../images/post1.jpg',
+                    author: '李同学',
+                    readTime: '10分钟',
+                    lastReadTime: '2024-03-15 13:15'
+                },
+                {
+                    type: 'video',
+                    id: 3,
+                    title: 'Web开发入门',
+                    description: 'HTML、CSS和JavaScript基础教程',
+                    image: '../images/video1.jpg',
+                    duration: '1小时45分',
+                    progress: 60,
+                    lastWatchTime: '2024-03-14 16:20'
+                }
+            ]
+        };
+        
+        const history = mockHistory[type] || [];
+        
+        // 更新总数
+        if (totalCount) {
+            totalCount.textContent = history.length;
+        }
+        
+        if (history.length === 0) {
+            historyList.style.display = 'none';
+            if (emptyState) {
+                emptyState.style.display = 'block';
             }
-
-            return `
-                <div class="history-item" data-id="${item.id}">
-                    <div class="item-content">
-                        <div class="item-info">
-                            <h3 class="item-title">
-                                <a href="post-detail.html?id=${item.id}">${post.title}</a>
-                            </h3>
-                            <div class="item-meta">
-                                <span class="view-time">
-                                    <i class="bi bi-clock"></i>
-                                    ${formatDate(item.timestamp)}
-                                </span>
+            return;
+        }
+        
+        // 显示历史记录列表
+        historyList.style.display = 'block';
+        if (emptyState) {
+            emptyState.style.display = 'none';
+        }
+        
+        // 渲染历史记录
+        historyList.innerHTML = history.map(item => {
+            switch (item.type) {
+                case 'course':
+                    return `
+                        <div class="history-item course-item">
+                            <img src="${item.image}" alt="${item.title}">
+                            <div class="history-info">
+                                <h3>${item.title}</h3>
+                                <p>${item.description}</p>
+                                <div class="history-meta">
+                                    <span>
+                                        <i class="bi bi-person"></i> ${item.instructor}
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-clock"></i> ${item.duration}
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-check-circle"></i> 进度 ${item.progress}%
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-calendar"></i> ${item.lastWatchTime}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="history-actions">
+                                <button class="btn btn-link" title="继续学习">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-link" title="删除记录">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="item-actions">
-                            <a href="post-detail.html?id=${item.id}" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-eye"></i> 查看
-                            </a>
-                            <button class="btn btn-outline-danger btn-sm" onclick="removeFromHistory('${item.id}')">
-                                <i class="bi bi-trash"></i> 删除
-                            </button>
+                    `;
+                case 'post':
+                    return `
+                        <div class="history-item post-item">
+                            <img src="${item.image}" alt="${item.title}">
+                            <div class="history-info">
+                                <h3>${item.title}</h3>
+                                <p>${item.description}</p>
+                                <div class="history-meta">
+                                    <span>
+                                        <i class="bi bi-person"></i> ${item.author}
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-clock"></i> ${item.readTime}
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-calendar"></i> ${item.lastReadTime}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="history-actions">
+                                <button class="btn btn-link" title="继续阅读">
+                                    <i class="bi bi-book"></i>
+                                </button>
+                                <button class="btn btn-link" title="删除记录">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            `;
-        }).filter(Boolean).join(''); // 过滤掉未找到帖子的记录
-
-        historyList.innerHTML = historyHTML;
+                    `;
+                case 'video':
+                    return `
+                        <div class="history-item video-item">
+                            <img src="${item.image}" alt="${item.title}">
+                            <div class="history-info">
+                                <h3>${item.title}</h3>
+                                <p>${item.description}</p>
+                                <div class="history-meta">
+                                    <span>
+                                        <i class="bi bi-clock"></i> ${item.duration}
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-check-circle"></i> 进度 ${item.progress}%
+                                    </span>
+                                    <span>
+                                        <i class="bi bi-calendar"></i> ${item.lastWatchTime}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="history-actions">
+                                <button class="btn btn-link" title="继续观看">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-link" title="删除记录">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                default:
+                    return '';
+            }
+        }).join('');
+        
+        // 添加删除记录事件
+        addDeleteHistoryEvents();
+        
     } catch (error) {
         console.error('加载历史记录失败:', error);
-        historyList.style.display = 'none';
-        emptyState.style.display = 'flex';
-        // 更新错误状态显示
-        emptyState.innerHTML = `
-            <div class="empty-state-content">
-                <i class="bi bi-exclamation-circle empty-icon text-danger"></i>
-                <h3>加载失败</h3>
-                <p>请刷新页面重试</p>
-                <button onclick="window.location.reload()" class="btn">
-                    <i class="bi bi-arrow-clockwise"></i>刷新
-                </button>
+        historyList.innerHTML = `
+            <div class="error-state">
+                <i class="bi bi-exclamation-circle"></i>
+                <p>加载失败，请重试</p>
             </div>
         `;
     }
 }
 
-// 添加清空历史事件
-function addClearHistoryEvent() {
-    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-    clearHistoryBtn.addEventListener('click', () => {
-        if (confirm('确定要清空所有浏览历史吗？')) {
-            localStorage.removeItem('viewHistory');
-            loadHistory();
-        }
+// 添加导航切换事件
+function addNavEvents() {
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            // 移除所有活动状态
+            navItems.forEach(nav => nav.classList.remove('active'));
+            
+            // 添加当前活动状态
+            item.classList.add('active');
+            
+            // 加载对应类型的历史记录
+            const type = item.getAttribute('data-type');
+            await loadHistory(type);
+        });
     });
 }
 
-// 从历史记录中删除
-window.removeFromHistory = function(postId) {
-    if (confirm('确定要删除这条浏览记录吗？')) {
-        const history = JSON.parse(localStorage.getItem('viewHistory') || '[]');
-        // 确保 postId 是数字类型
-        const postIdNum = Number(postId);
-        const newHistory = history.filter(item => Number(item.id) !== postIdNum);
-        localStorage.setItem('viewHistory', JSON.stringify(newHistory));
-        loadHistory();
+// 添加清空历史事件
+function addClearHistoryEvent() {
+    const clearBtn = document.getElementById('clearHistoryBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', async () => {
+            if (!confirm('确定要清空所有历史记录吗？此操作不可恢复。')) {
+                return;
+            }
+            
+            try {
+                // 这里应该调用后端API清空历史记录
+                console.log('清空历史记录');
+                alert('清空成功！');
+                
+                // 重新加载历史记录
+                await loadHistory('all');
+            } catch (error) {
+                console.error('清空历史记录失败:', error);
+                alert('清空失败，请重试');
+            }
+        });
     }
-};
+}
 
-// 格式化日期
-function formatDate(timestamp) {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now - date;
+// 添加删除记录事件
+function addDeleteHistoryEvents() {
+    const deleteButtons = document.querySelectorAll('.history-actions .bi-trash');
     
-    // 小于1分钟
-    if (diff < 60000) {
-        return '刚刚';
-    }
-    // 小于1小时
-    if (diff < 3600000) {
-        return `${Math.floor(diff / 60000)}分钟前`;
-    }
-    // 小于24小时
-    if (diff < 86400000) {
-        return `${Math.floor(diff / 3600000)}小时前`;
-    }
-    // 小于30天
-    if (diff < 2592000000) {
-        return `${Math.floor(diff / 86400000)}天前`;
-    }
-    // 大于30天
-    return date.toLocaleDateString();
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const historyItem = e.target.closest('.history-item');
+            const itemId = historyItem.dataset.id;
+            
+            if (!confirm('确定要删除这条历史记录吗？')) {
+                return;
+            }
+            
+            try {
+                // 这里应该调用后端API删除历史记录
+                console.log('删除历史记录:', itemId);
+                historyItem.remove();
+                
+                // 检查是否还有历史记录
+                const remainingItems = document.querySelectorAll('.history-item');
+                if (remainingItems.length === 0) {
+                    const emptyState = document.getElementById('emptyState');
+                    if (emptyState) {
+                        emptyState.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('删除历史记录失败:', error);
+                alert('删除失败，请重试');
+            }
+        });
+    });
 } 
