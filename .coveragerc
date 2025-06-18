@@ -1,0 +1,30 @@
+[run]
+source = backend
+omit =
+    */tests/*
+    */venv/*
+    */env/*
+    */migrations/*
+    */__pycache__/*
+    */lib/*
+    */libs/*
+    */site-packages/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
+
+[html]
+directory = coverage/pytest/html
+title = DuckStudy Backend Coverage Report
+
+[xml]
+output = coverage/pytest/coverage.xml
+
+[json]
+output = coverage/pytest/coverage.json 
