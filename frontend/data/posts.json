@@ -30,7 +30,7 @@
                 "考试技巧"
             ],
             "title": "大学生如何高效复习期末考试",
-            "views": 434,
+            "views": 437,
             "authorAvatar": "/images/avatars/1747826293_cool.png",
             "likedBy": [],
             "favoritedBy": [
@@ -287,9 +287,9 @@
                 "探店",
                 "校园生活"
             ],
-            "views": 641,
+            "views": 644,
             "likes": 238,
-            "favorites": 190,
+            "favorites": 189,
             "coverImages": [],
             "likedBy": [
                 "吃货一号",
@@ -297,8 +297,7 @@
                 "李四"
             ],
             "favoritedBy": [
-                "美食家",
-                "李四"
+                "美食家"
             ],
             "authorAvatar": "https://placehold.jp/100x100.png"
         },
@@ -314,7 +313,7 @@
                 "经验分享",
                 "学习"
             ],
-            "views": 849,
+            "views": 860,
             "likes": 307,
             "favorites": 267,
             "likedBy": [
@@ -338,7 +337,7 @@
                 "校园活动",
                 "才艺展示"
             ],
-            "views": 464,
+            "views": 469,
             "likes": 178,
             "favorites": 89,
             "coverImages": [],
@@ -348,7 +347,8 @@
             ],
             "favoritedBy": [
                 "文艺青年"
-            ]
+            ],
+            "authorAvatar": "https://placehold.jp/100x100.png"
         },
         {
             "id": 1747314615304,
@@ -362,16 +362,15 @@
                 "技术社区",
                 "学习交流"
             ],
-            "views": 376,
+            "views": 377,
             "likes": 145,
-            "favorites": 98,
+            "favorites": 97,
             "likedBy": [
                 "程序员",
                 "技术控"
             ],
             "favoritedBy": [
-                "代码爱好者",
-                "李四"
+                "代码爱好者"
             ],
             "authorAvatar": "https://placehold.jp/100x100.png"
         },
@@ -429,7 +428,7 @@
             "content": "<p>中山大学是我最喜欢的学校，我爱中大</p>",
             "date": "2025/05/21 19:29",
             "tags": [],
-            "views": 17,
+            "views": 23,
             "likes": 0,
             "favorites": 1,
             "coverImages": [
@@ -446,7 +445,7 @@
             "content": "<p>哼哼哼啊啊啊啊啊啊啊啊啊啊啊</p>",
             "date": "2025/06/11 18:05",
             "tags": [],
-            "views": 8,
+            "views": 9,
             "likes": 0,
             "favorites": 0,
             "coverImages": [],

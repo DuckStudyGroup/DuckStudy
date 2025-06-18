@@ -43,7 +43,7 @@ USERS = {}
 POSTS_FILE = os.path.join(BASE_DIR, 'frontend', 'data', 'posts.json')
 COMMENTS_FILE = os.path.join(BASE_DIR, 'frontend', 'data', 'comments.json')
 USERS_FILE = os.path.join(BASE_DIR, 'frontend', 'data', 'users.json')
-
+COURSES_FILE = os.path.join(BASE_DIR, 'frontend', 'data', 'courses.json')
 # 配置上传文件夹
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'frontend', 'images', 'posts')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -67,7 +67,7 @@ def ensure_file_exists(file_path, default_data=None):
 ensure_file_exists(POSTS_FILE, [])
 ensure_file_exists(COMMENTS_FILE, {})
 ensure_file_exists(USERS_FILE, [])
-
+ensure_file_exists(COURSES_FILE, [])
 # 读取帖子数据
 def read_posts():
     """读取帖子数据"""
@@ -1138,5 +1138,55 @@ def delete_reply(post_id, comment_id, reply_id):
             "message": f"删除回复失败: {str(e)}"
         }), 500
 
+# 读取课程数据
+def read_courses():
+    try:
+        with open(COURSES_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"读取课程数据失败: {str(e)}")
+        return []
+
+# 保存课程数据
+def save_courses(data):
+    try:
+        json_string = json.dumps(data, ensure_ascii=False, indent=4)
+        temp_file = f"{COURSES_FILE}.temp"
+        with open(temp_file, 'w', encoding='utf-8') as f:
+            f.write(json_string)
+        if os.path.exists(temp_file):
+            if os.path.exists(COURSES_FILE) and os.name == 'nt':
+                try:
+                    os.remove(COURSES_FILE)
+                except Exception as e:
+                    print(f"删除原课程文件失败: {str(e)}")
+            os.replace(temp_file, COURSES_FILE)
+        return True
+    except Exception as e:
+        print(f"保存课程数据失败: {str(e)}")
+        return False
+
+# 添加课程接口
+@app.route('/api/courses', methods=['POST'])
+def add_course():
+    try:
+        course = request.get_json()
+        if not course:
+            return jsonify({'success': False, 'message': '缺少课程数据'}), 400
+        # 读取现有课程
+        courses = read_courses()
+        # 自动生成ID
+        course['id'] = int(time.time() * 1000)
+        # 默认字段补全
+        course.setdefault('rating', 0)
+        course.setdefault('reviewCount', 0)
+        courses.append(course)
+        if save_courses(courses):
+            return jsonify({'success': True, 'message': '课程添加成功', 'course': course})
+        else:
+            return jsonify({'success': False, 'message': '保存课程失败'}), 500
+    except Exception as e:
+        print(f"添加课程失败: {str(e)}")
+        return jsonify({'success': False, 'message': f'添加课程失败: {str(e)}'}), 500
 if __name__ == '__main__':
     app.run(debug=True, port=5000) 

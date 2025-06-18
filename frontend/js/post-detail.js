@@ -131,6 +131,42 @@ async function saveCommentsData(postId, comment) {
     }
 }
 
+// 记录浏览历史
+function addToViewHistory(post) {
+    try {
+        // 从localStorage获取历史记录
+        const history = JSON.parse(localStorage.getItem('viewHistory') || '[]');
+        
+        // 创建新的历史记录项
+        const historyItem = {
+            id: post.id,
+            title: post.title,
+            timestamp: Date.now()
+        };
+        
+        // 检查是否已存在相同帖子的记录
+        const existingIndex = history.findIndex(item => item.id === post.id);
+        if (existingIndex !== -1) {
+            // 如果存在，更新时间戳
+            history[existingIndex].timestamp = historyItem.timestamp;
+        } else {
+            // 如果不存在，添加新记录
+            history.push(historyItem);
+        }
+        
+        // 限制历史记录数量为50条
+        if (history.length > 50) {
+            history.sort((a, b) => b.timestamp - a.timestamp);
+            history.splice(50);
+        }
+        
+        // 保存更新后的历史记录
+        localStorage.setItem('viewHistory', JSON.stringify(history));
+    } catch (error) {
+        console.error('记录浏览历史失败:', error);
+    }
+}
+
 // 加载帖子内容
 async function loadPostContent() {
     try {
@@ -153,6 +189,9 @@ async function loadPostContent() {
             postContent.innerHTML = '<div class="alert alert-danger">帖子不存在</div>';
             return;
         }
+
+        // 记录浏览历史
+        addToViewHistory(post);
 
         // 开发阶段：每次访问都增加浏览量，不再检查是否已访问过
         post.views++;
