@@ -33,117 +33,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 // 加载课程详情
 async function loadCourseDetail(courseId) {
     try {
-        // 模拟课程数据
-        const mockCourses = [
-            {
-                id: 1,
-                title: '高等数学(上)',
-                teacher: '张明教授',
-                rating: 4.8,
-                reviewCount: 156,
-                department: '数学学院',
-                category: '必修',
-                campus: '中心校区',
-                credits: 4,
-                hours: 64,
-                semester: '2023-2024学年第一学期',
-                location: '教学楼A-301',
-                description: '本课程主要研究函数、极限、微积分学的基本概念和计算方法，培养学生的逻辑思维能力和运算能力。课程内容包括：函数、极限与连续性、导数与微分、导数的应用、不定积分、定积分及其应用等。通过本课程的学习，学生能够掌握微积分的基本理论和方法，为后续课程如高等数学(下)、概率论、复变函数等打下坚实基础。'
-            },
-            {
-                id: 2,
-                title: '数据结构与算法',
-                teacher: '李华教授',
-                rating: 4.9,
-                reviewCount: 142,
-                department: '计算机学院',
-                category: '必修',
-                campus: '东校区',
-                credits: 3,
-                hours: 48,
-                semester: '2023-2024学年第一学期',
-                location: '计算机楼B-201',
-                description: '本课程介绍了常用的数据结构和算法设计与分析方法，包括数组、链表、栈、队列、树、图等数据结构，以及排序、搜索等算法。通过本课程的学习，学生将掌握数据的逻辑结构、存储结构及基本操作的实现，学会分析算法的时间复杂度和空间复杂度，培养学生的抽象思维能力和解决实际问题的能力。课程注重理论与实践相结合，设有多个编程实验，帮助学生巩固所学知识。'
-            },
-            {
-                id: 3,
-                title: '大学英语(三)',
-                teacher: '王丽副教授',
-                rating: 4.5,
-                reviewCount: 128,
-                department: '外国语学院',
-                category: '必修',
-                campus: '南校区',
-                credits: 2,
-                hours: 32,
-                semester: '2023-2024学年第一学期',
-                location: '外语楼C-401',
-                description: '本课程旨在进一步提高学生的英语听说读写能力，培养学生的跨文化交际能力，使学生能够用英语有效地进行交流。课程内容包括高级英语阅读理解、学术写作、口语表达和听力训练等，涵盖了科技、文化、商业、环境等多个主题。采用多元化的教学方法，如小组讨论、角色扮演、演讲、辩论等，鼓励学生积极参与课堂活动，提高语言运用能力。'
-            },
-            {
-                id: 4,
-                title: '人工智能导论',
-                teacher: '刘强教授',
-                rating: 4.7,
-                reviewCount: 94,
-                department: '计算机学院',
-                category: '选修',
-                campus: '中心校区',
-                credits: 3,
-                hours: 48,
-                semester: '2023-2024学年第一学期',
-                location: '计算机楼A-505',
-                description: '本课程介绍人工智能的基本概念、历史发展、主要方法和应用领域，包括知识表示、搜索方法、机器学习、自然语言处理等。课程将探讨人工智能的基本原理和关键技术，如专家系统、神经网络、深度学习、强化学习等，并分析当前热门的AI应用如计算机视觉、语音识别、智能机器人等。课程采用理论与实践相结合的方式，设有Python编程实验，学生将有机会亲自实现简单的AI算法和应用。'
-            },
-            {
-                id: 5,
-                title: '大学物理(下)',
-                teacher: '赵刚教授',
-                rating: 4.6,
-                reviewCount: 118,
-                department: '物理学院',
-                category: '必修',
-                campus: '北校区',
-                credits: 4,
-                hours: 64,
-                semester: '2023-2024学年第一学期',
-                location: '物理楼D-101',
-                description: '本课程主要介绍电磁学、光学和近代物理学的基本概念、理论和实验方法，培养学生的科学思维和实验能力。课程内容包括：电场与电势、高斯定律、电容器、电流与磁场、电磁感应、麦克斯韦方程组、电磁波、几何光学、波动光学、量子物理基础等。课程配有演示实验和实验课，帮助学生理解物理现象和原理，提高动手能力和科学素养。'
-            },
-            {
-                id: 6,
-                title: '市场营销学',
-                teacher: '周明教授',
-                rating: 4.4,
-                reviewCount: 86,
-                department: '商学院',
-                category: '专业',
-                campus: '东校区',
-                credits: 3,
-                hours: 48,
-                semester: '2023-2024学年第一学期',
-                location: '商学院楼A-201',
-                description: '本课程介绍市场营销的基本概念、理论和方法，包括市场环境分析、消费者行为、市场细分、定位、营销组合策略等。通过案例分析、市场调研、营销计划制定等实践活动，培养学生的营销思维和实战能力。课程关注当代营销新趋势，如数字营销、社交媒体营销、内容营销等，帮助学生了解营销领域的最新发展。本课程注重理论与实践相结合，将邀请业界营销专家进行专题讲座，拓展学生视野。'
-            },
-            {
-                id: 7,
-                title: '中国文学史',
-                teacher: '孙红副教授',
-                rating: 4.8,
-                reviewCount: 76,
-                department: '文学院',
-                category: '通识',
-                campus: '南校区',
-                credits: 2,
-                hours: 32,
-                semester: '2023-2024学年第一学期',
-                location: '人文楼B-301',
-                description: '本课程系统介绍中国文学的发展历程，重点讲解各个时期的代表作家、作品及其艺术特色，培养学生的文学鉴赏能力。课程从先秦文学开始，依次讲述汉魏六朝文学、唐代文学、宋代文学、元明清文学，直至现当代文学，全面梳理中国文学的发展脉络和演变规律。课程采用讲授与讨论相结合的方式，鼓励学生阅读原著，撰写读书笔记和文学评论，提高文学素养和人文情怀。'
+        // 优先从 JSON 文件加载课程数据
+        let courses = [];
+        try {
+            const response = await fetch('/data/courses.json', {cache: 'no-store'});
+            if (response.ok) {
+                courses = await response.json();
             }
-        ];
-        
-        // 根据ID查找课程
-        currentCourse = mockCourses.find(course => course.id === courseId);
+        } catch (err) {
+            console.error('加载 courses.json 失败:', err);
+        }
+        // 兼容旧数据结构
+        if (!Array.isArray(courses) || courses.length === 0) {
+            courses = [];
+        }
+        // 查找当前课程
+        currentCourse = courses.find(course => course.id === courseId);
         
         if (!currentCourse) {
             showError('未找到该课程信息');
