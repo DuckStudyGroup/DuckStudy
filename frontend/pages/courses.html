@@ -34,6 +34,10 @@
         </nav>
 
         <div class="main-content">
+            <!-- 添加课程按钮 -->
+            <div class="add-course-section" style="text-align:right;margin-bottom:1rem;">
+                <button id="addCourseBtn" class="btn btn-success"><i class="bi bi-plus-circle"></i> 添加课程</button>
+            </div>
             <!-- 搜索框 -->
             <div class="search-section">
                 <div class="search-container">
@@ -59,10 +63,11 @@
                         <label>校区</label>
                         <select id="campusFilter">
                             <option value="">全部校区</option>
-                            <option value="中心校区">中心校区</option>
+                            <option value="珠海校区">珠海校区</option>
+                            <option value="深圳校区">深圳校区</option>
+                            <option value="东校区">东校区</option>
                             <option value="南校区">南校区</option>
                             <option value="北校区">北校区</option>
-                            <option value="东校区">东校区</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -94,7 +99,77 @@
             </div>
         </div>
     </div>
-
+    <!-- 添加课程弹窗表单 -->
+    <div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form id="addCourseForm">
+              <div class="modal-header">
+                <h5 class="modal-title" id="addCourseModalLabel">添加新课程</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label for="courseTitle" class="form-label">课程名称</label>
+                  <input type="text" class="form-control" id="courseTitle" name="title" required>
+                </div>
+                <div class="mb-3">
+                  <label for="courseTeacher" class="form-label">教师</label>
+                  <input type="text" class="form-control" id="courseTeacher" name="teacher" required>
+                </div>
+                <div class="mb-3">
+                  <label for="courseDepartment" class="form-label">学院</label>
+                  <input type="text" class="form-control" id="courseDepartment" name="department" required>
+                </div>
+                <div class="mb-3">
+                  <label for="courseCategory" class="form-label">类别</label>
+                  <select class="form-select" id="courseCategory" name="category" required>
+                    <option value="必修">必修</option>
+                    <option value="选修">选修</option>
+                    <option value="通识">通识</option>
+                    <option value="专业">专业课</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="courseCampus" class="form-label">校区</label>
+                  <select class="form-select" id="courseCampus" name="campus" required>
+                    <option value="珠海校区">珠海校区</option>
+                    <option value="深圳校区">深圳校区</option>
+                    <option value="东校区">东校区</option>
+                    <option value="南校区">南校区</option>
+                    <option value="北校区">北校区</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="courseCredits" class="form-label">学分</label>
+                  <input type="number" class="form-control" id="courseCredits" name="credits" min="0" required>
+                </div>
+                <div class="mb-3">
+                  <label for="courseHours" class="form-label">学时</label>
+                  <input type="number" class="form-control" id="courseHours" name="hours" min="0" required>
+                </div>
+                <div class="mb-3">
+                  <label for="courseSemester" class="form-label">学期</label>
+                  <input type="text" class="form-control" id="courseSemester" name="semester" required>
+                </div>
+                <div class="mb-3">
+                  <label for="courseLocation" class="form-label">上课地点</label>
+                  <input type="text" class="form-control" id="courseLocation" name="location" required>
+                </div>
+                <div class="mb-3">
+                  <label for="courseDescription" class="form-label">课程简介</label>
+                  <textarea class="form-control" id="courseDescription" name="description" rows="2" required></textarea>
+                </div>
+                <div id="addCourseError" class="text-danger mb-2" style="display:none;"></div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary">提交</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     <script src="../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="../js/api.js"></script>
     <script type="module" src="../js/courses.js"></script>

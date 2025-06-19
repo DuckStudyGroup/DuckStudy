@@ -6,6 +6,8 @@ let allCourses = [];
 let filteredCourses = [];
 
 // 页面加载完成后执行
+import { BASE_URL } from './api.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // 更新用户状态（使用共享的导航栏初始化函数）
@@ -25,123 +27,84 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('courseSearch').value = searchQuery;
             filterCourses();
         }
+        // 添加课程按钮和表单交互
+        setupAddCourseFeature();
     } catch (error) {
         console.error('加载数据失败:', error);
         alert('加载数据失败，请刷新页面重试');
     }
 });
+// 添加课程功能
+function setupAddCourseFeature() {
+    const addBtn = document.getElementById('addCourseBtn');
+    const modal = document.getElementById('addCourseModal');
+    const form = document.getElementById('addCourseForm');
+    const errorDiv = document.getElementById('addCourseError');
+    let bsModal = null;
+    if (window.bootstrap && window.bootstrap.Modal) {
+        bsModal = window.bootstrap.Modal.getOrCreateInstance(modal);
+    } else if (window.bootstrap && window.bootstrap.Modal) {
+        bsModal = new window.bootstrap.Modal(modal);
+    }
+    if (addBtn && modal && form) {
+        addBtn.addEventListener('click', () => {
+            form.reset();
+            errorDiv.style.display = 'none';
+            if (bsModal) bsModal.show();
+        });
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorDiv.style.display = 'none';
+            const formData = new FormData(form);
+            const courseData = {};
+            for (const [key, value] of formData.entries()) {
+                courseData[key] = value;
+            }
+            // 类型转换
+            courseData.credits = Number(courseData.credits);
+            courseData.hours = Number(courseData.hours);
+            try {
+                const res = await createCourse(courseData);
+                if (res.success) {
+                    if (bsModal) bsModal.hide();
+                    // 重新加载课程数据
+                    await loadCourses();
+                } else {
+                    errorDiv.textContent = res.message || '添加失败';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                errorDiv.textContent = err.message || '添加失败';
+                errorDiv.style.display = 'block';
+            }
+        });
+    }
+}
 
+// 创建课程API
+async function createCourse(courseData) {
+    const response = await fetch(`${BASE_URL}/api/courses`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(courseData)
+    });
+    return await response.json();
+}
 // 加载课程数据
 async function loadCourses() {
     try {
-        // 模拟课程数据
-        allCourses = [
-            {
-                id: 1,
-                title: '高等数学(上)',
-                teacher: '张明教授',
-                rating: 4.8,
-                reviewCount: 156,
-                department: '数学学院',
-                category: '必修',
-                campus: '中心校区',
-                credits: 4,
-                hours: 64,
-                semester: '2023-2024学年第一学期',
-                location: '教学楼A-301',
-                description: '本课程主要研究函数、极限、微积分学的基本概念和计算方法，培养学生的逻辑思维能力和运算能力。'
-            },
-            {
-                id: 2,
-                title: '数据结构与算法',
-                teacher: '李华教授',
-                rating: 4.9,
-                reviewCount: 142,
-                department: '计算机学院',
-                category: '必修',
-                campus: '东校区',
-                credits: 3,
-                hours: 48,
-                semester: '2023-2024学年第一学期',
-                location: '计算机楼B-201',
-                description: '本课程介绍了常用的数据结构和算法设计与分析方法，包括数组、链表、栈、队列、树、图等数据结构，以及排序、搜索等算法。'
-            },
-            {
-                id: 3,
-                title: '大学英语(三)',
-                teacher: '王丽副教授',
-                rating: 4.5,
-                reviewCount: 128,
-                department: '外国语学院',
-                category: '必修',
-                campus: '南校区',
-                credits: 2,
-                hours: 32,
-                semester: '2023-2024学年第一学期',
-                location: '外语楼C-401',
-                description: '本课程旨在进一步提高学生的英语听说读写能力，培养学生的跨文化交际能力，使学生能够用英语有效地进行交流。'
-            },
-            {
-                id: 4,
-                title: '人工智能导论',
-                teacher: '刘强教授',
-                rating: 4.7,
-                reviewCount: 94,
-                department: '计算机学院',
-                category: '选修',
-                campus: '中心校区',
-                credits: 3,
-                hours: 48,
-                semester: '2023-2024学年第一学期',
-                location: '计算机楼A-505',
-                description: '本课程介绍人工智能的基本概念、历史发展、主要方法和应用领域，包括知识表示、搜索方法、机器学习、自然语言处理等。'
-            },
-            {
-                id: 5,
-                title: '大学物理(下)',
-                teacher: '赵刚教授',
-                rating: 4.6,
-                reviewCount: 118,
-                department: '物理学院',
-                category: '必修',
-                campus: '北校区',
-                credits: 4,
-                hours: 64,
-                semester: '2023-2024学年第一学期',
-                location: '物理楼D-101',
-                description: '本课程主要介绍电磁学、光学和近代物理学的基本概念、理论和实验方法，培养学生的科学思维和实验能力。'
-            },
-            {
-                id: 6,
-                title: '市场营销学',
-                teacher: '周明教授',
-                rating: 4.4,
-                reviewCount: 86,
-                department: '商学院',
-                category: '专业',
-                campus: '东校区',
-                credits: 3,
-                hours: 48,
-                semester: '2023-2024学年第一学期',
-                location: '商学院楼A-201',
-                description: '本课程介绍市场营销的基本概念、理论和方法，包括市场环境分析、消费者行为、市场细分、定位、营销组合策略等。'
-            },
-            {
-                id: 7,
-                title: '中国文学史',
-                teacher: '孙红副教授',
-                rating: 4.8,
-                reviewCount: 76,
-                department: '文学院',
-                category: '通识',
-                campus: '南校区',
-                credits: 2,
-                hours: 32,
-                semester: '2023-2024学年第一学期',
-                location: '人文楼B-301',
-                description: '本课程系统介绍中国文学的发展历程，重点讲解各个时期的代表作家、作品及其艺术特色，培养学生的文学鉴赏能力。'
-            }
-        ];
+        // 只从 JSON 文件加载课程数据
+        const response = await fetch('/data/courses.json', {cache: 'no-store'});
+        let json = [];
+        if (response.ok) {
+            json = await response.json();
+        }
+        if (!Array.isArray(json)) {
+            json = [];
+        }
+        allCourses = json;
         
         filteredCourses = [...allCourses];
         renderCoursesList(filteredCourses);
@@ -275,21 +238,23 @@ function renderCoursesList(courses) {
     let localReviews = savedReviews ? JSON.parse(savedReviews) : [];
     
     coursesContainer.innerHTML = courses.map(course => {
-        // 生成星级评分HTML
-        const starsHtml = generateStars(course.rating);
-        
-        // 计算用户提交的额外评价数量
-        const userReviewCount = localReviews.filter(r => r.courseId === course.id).length;
-        const totalReviewCount = course.reviewCount + userReviewCount;
-        
-        // 如果有用户评价，重新计算平均评分
-        let displayRating = course.rating;
-        if (userReviewCount > 0) {
-            const userReviews = localReviews.filter(r => r.courseId === course.id);
-            const totalRating = userReviews.reduce((sum, review) => sum + review.rating, 0) + (course.rating * course.reviewCount);
-            displayRating = (totalRating / totalReviewCount).toFixed(1);
+        // 获取所有评价（本地+课程自带）
+        let savedReviews = localStorage.getItem('courseReviews');
+        let localReviews = savedReviews ? JSON.parse(savedReviews) : [];
+        const userReviews = localReviews.filter(r => r.courseId === course.id);
+        // 构造所有评价数组
+        let allReviews = [];
+        for (let i = 0; i < course.reviewCount; i++) {
+            allReviews.push({ rating: course.rating });
         }
-        
+        allReviews = allReviews.concat(userReviews);
+        // 动态计算平均分
+        let displayRating = course.rating;
+        if (allReviews.length > 0) {
+            const totalRating = allReviews.reduce((sum, review) => sum + review.rating, 0);
+            displayRating = (totalRating / allReviews.length).toFixed(1);
+        }
+        const totalReviewCount = allReviews.length;
         return `
         <div class="course-card" data-id="${course.id}">
             <div class="course-card-content">
