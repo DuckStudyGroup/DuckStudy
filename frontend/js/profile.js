@@ -469,7 +469,7 @@ async function handleAvatarUpload(file) {
             }
             
             // 更新用户信息
-            await userAPI.updateUser({
+            await userAPI.updateUserInfo({
                 avatar: data.imageUrl
             });
             
