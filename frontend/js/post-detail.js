@@ -231,10 +231,14 @@ async function loadPostContent() {
         const userResponse = await userAPI.getStatus();
         let isFavorited = false;
         let isLiked = false;
+        let isAuthor = false;
         
         // 如果用户已登录，检查收藏和点赞状态
         if (userResponse && userResponse.isLoggedIn) {
             const username = userResponse.username;
+            
+            // 检查是否是帖子作者
+            isAuthor = (username === post.author);
             
             // 检查点赞状态 - 使用likedBy数组
             if (!post.likedBy) {
@@ -313,6 +317,13 @@ async function loadPostContent() {
                                 <span class="post-time">${post.date}</span>
                             </div>
                         </div>
+                        <div class="post-actions">
+                            ${isAuthor ? `
+                                <button id="deletePostBtn" class="btn btn-danger btn-sm" title="删除帖子">
+                                    <i class="bi bi-trash"></i> 删除帖子
+                                </button>
+                            ` : ''}
+                        </div>
                         <h1 class="post-title">${post.title}</h1>
                     </div>
                     ${coverImagesHTML}
@@ -334,6 +345,11 @@ async function loadPostContent() {
         
         // 添加收藏事件监听
         addPostFavoriteEvent();
+        
+        // 添加删除帖子事件监听
+        if (isAuthor) {
+            addDeletePostEvent();
+        }
         
         // 如果有封面图片轮播，使用自定义轮播逻辑
         if (post.coverImages && Array.isArray(post.coverImages) && post.coverImages.length > 0) {
@@ -1572,6 +1588,53 @@ function addCommentSubmitEvent() {
         } catch (error) {
             console.error('发表评论失败:', error);
             alert('发表评论失败，请重试');
+        }
+    });
+}
+
+// 添加删除帖子事件监听
+function addDeletePostEvent() {
+    const deletePostBtn = document.getElementById('deletePostBtn');
+    if (!deletePostBtn) return;
+
+    deletePostBtn.addEventListener('click', async () => {
+        if (!confirm('确定要删除这个帖子吗？')) {
+            return;
+        }
+
+        try {
+            // 获取帖子ID
+            const postId = new URLSearchParams(window.location.search).get('id');
+            if (!postId) {
+                alert('帖子ID无效');
+                return;
+            }
+            
+            // 禁用删除按钮，防止重复点击
+            deletePostBtn.disabled = true;
+            deletePostBtn.style.opacity = '0.5';
+            const originalText = deletePostBtn.innerHTML;
+            deletePostBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 删除中...';
+
+            // 调用删除帖子API
+            const result = await contentAPI.deletePost(postId);
+            
+            if (result && result.success) {
+                // 删除成功，重定向到帖子列表页面
+                alert('帖子已成功删除');
+                window.location.href = 'posts.html';
+            } else {
+                console.error('删除帖子失败:', result.message || '删除帖子失败，请重试');
+                alert(result.message || '删除帖子失败，请重试');
+            }
+        } catch (error) {
+            console.error('删除帖子失败:', error);
+            alert('删除帖子失败，请重试');
+        } finally {
+            // 恢复按钮状态
+            deletePostBtn.disabled = false;
+            deletePostBtn.style.opacity = '1';
+            deletePostBtn.innerHTML = '<i class="bi bi-trash"></i> 删除帖子';
         }
     });
 }

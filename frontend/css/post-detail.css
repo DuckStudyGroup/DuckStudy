@@ -244,10 +244,29 @@
 /* 帖子操作样式 */
 .post-actions {
     display: flex;
-    gap: 1.5rem;
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+/* 删除帖子按钮样式 */
+#deletePostBtn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+#deletePostBtn:hover {
+    background-color: #dc3545;
+    color: white;
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+}
+
+#deletePostBtn i {
+    font-size: 16px;
 }
 
 .post-actions button {
@@ -1151,4 +1170,25 @@
 .reply .reply-avatar a .avatar {
     width: 100%;
     height: 100%;
+}
+
+/* 帖子操作按钮样式 */
+#deletePostBtn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+#deletePostBtn:hover {
+    background-color: #dc3545;
+    color: white;
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+}
+
+#deletePostBtn i {
+    font-size: 16px;
 } 
