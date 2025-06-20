@@ -293,6 +293,15 @@
             "avatar": "https://placehold.jp/100x100.png",
             "role": "user",
             "registerDate": "2025-05-24"
+        },
+        {
+            "id": 33,
+            "username": "王朝",
+            "password": "123456",
+            "email": "1234567890@qq.com",
+            "avatar": "https://placehold.jp/40x40.png",
+            "role": "user",
+            "registerDate": "2025-06-20"
         }
     ]
 }

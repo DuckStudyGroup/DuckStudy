@@ -200,13 +200,13 @@ async function loadHotCourses() {
                 rating: 4.8,
                 department: '数学学院',
                 category: '必修',
-                campus: '中心校区'
+                campus: '珠海校区'
             },
             {
                 id: 2,
                 title: '数据结构与算法',
                 teacher: '李华教授',
-                rating: 4.9,
+                rating: 5.0,
                 department: '计算机学院',
                 category: '必修',
                 campus: '东校区'
@@ -227,7 +227,7 @@ async function loadHotCourses() {
                 rating: 4.7,
                 department: '计算机学院',
                 category: '选修',
-                campus: '中心校区'
+                campus: '珠海校区'
             }
         ];
         
