@@ -239,6 +239,19 @@ MOCK_HOT_PROJECTS = [
     }
 ]
 
+# 获取当前用户信息
+def get_current_user():
+    """获取当前登录用户的信息"""
+    username = session.get('username')
+    if not username:
+        return None
+    
+    # 从JSON文件获取用户数据
+    users_data = read_users()
+    user = next((u for u in users_data['users'] if u['username'] == username), None)
+    
+    return user
+
 # 用户相关路由
 @app.route('/api/user/status', methods=['GET'])
 def get_user_status():
@@ -1188,5 +1201,71 @@ def add_course():
     except Exception as e:
         print(f"添加课程失败: {str(e)}")
         return jsonify({'success': False, 'message': f'添加课程失败: {str(e)}'}), 500
+
+@app.route('/api/posts/<int:post_id>', methods=['DELETE'])
+def delete_post(post_id):
+    """删除指定的帖子，只有帖子作者才能删除"""
+    try:
+        # 检查用户是否已登录
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({"success": False, "message": "请先登录"}), 401
+        
+        # 加载帖子数据
+        posts_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'data', 'posts.json')
+        with open(posts_file_path, 'r', encoding='utf-8') as f:
+            posts_data = json.load(f)
+        
+        # 查找要删除的帖子
+        post_index = None
+        for i, post in enumerate(posts_data['posts']):
+            if post['id'] == post_id:
+                post_index = i
+                break
+        
+        # 如果帖子不存在
+        if post_index is None:
+            return jsonify({"success": False, "message": "帖子不存在"}), 404
+        
+        # 检查当前用户是否是帖子作者
+        post = posts_data['posts'][post_index]
+        if post['author'] != current_user['username'] and current_user['role'] != 'admin':
+            return jsonify({"success": False, "message": "您没有权限删除此帖子"}), 403
+        
+        # 删除帖子
+        deleted_post = posts_data['posts'].pop(post_index)
+        
+        # 保存更新后的帖子数据
+        with open(posts_file_path, 'w', encoding='utf-8') as f:
+            json.dump(posts_data, f, ensure_ascii=False, indent=4)
+        
+        # 删除该帖子的所有评论
+        try:
+            comments_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'data', 'comments.json')
+            if os.path.exists(comments_file_path):
+                with open(comments_file_path, 'r', encoding='utf-8') as f:
+                    comments_data = json.load(f)
+                
+                # 删除该帖子的评论
+                if str(post_id) in comments_data:
+                    del comments_data[str(post_id)]
+                    
+                    # 保存更新后的评论数据
+                    with open(comments_file_path, 'w', encoding='utf-8') as f:
+                        json.dump(comments_data, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            # 即使删除评论失败，也继续返回成功（帖子已删除）
+            print(f"删除帖子评论时出错: {str(e)}")
+        
+        return jsonify({
+            "success": True,
+            "message": "帖子已成功删除",
+            "deletedPost": deleted_post
+        })
+    
+    except Exception as e:
+        print(f"删除帖子时出错: {str(e)}")
+        return jsonify({"success": False, "message": f"删除帖子失败: {str(e)}"}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000) 
