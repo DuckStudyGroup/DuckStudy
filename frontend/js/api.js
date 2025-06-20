@@ -219,6 +219,29 @@ const contentAPI = {
         }
     },
 
+    // 删除帖子
+    deletePost: async (postId) => {
+        try {
+            const response = await fetch(`${BASE_URL}/api/posts/${postId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'  // 确保发送cookies，用于验证用户身份
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `删除帖子失败: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('删除帖子失败:', error);
+            throw error;
+        }
+    },
+
     // 更新帖子
     updatePost: async (postId, postData) => {
         try {
