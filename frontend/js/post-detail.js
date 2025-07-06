@@ -1667,3 +1667,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert('加载数据失败，请刷新页面重试');
     }
 }); 
+
+// 导出函数供测试使用
+export {
+    getAvatarUrl,
+    sanitizePostObject,
+    formatPostContent,
+    addCommentActions,
+    initCommentImageUpload,
+    loadCommentsData,
+    saveCommentsData,
+    updateSortButton,
+    addSortButtonEvent,
+    savePostsToJson,
+    currentSortOrder,
+    addCommentSubmitEvent,
+    loadPostContent,
+    loadComments,
+    addPostLikeEvent,
+    addPostFavoriteEvent
+}; 
