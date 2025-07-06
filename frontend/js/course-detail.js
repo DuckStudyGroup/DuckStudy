@@ -68,11 +68,8 @@ async function loadCourseDetail(courseId) {
 
 // 更新课程详情
 function updateCourseDetail(course) {
-    // 更新标题和Meta信息
+    // 更新标题
     document.getElementById('courseTitle').textContent = course.title;
-    document.getElementById('courseRating').innerHTML = generateStars(course.rating);
-    document.getElementById('ratingScore').textContent = course.rating.toFixed(1);
-    document.getElementById('reviewsCount').textContent = course.reviewCount;
     
     // 更新课程信息
     document.getElementById('courseTeacher').textContent = course.teacher;
@@ -86,6 +83,8 @@ function updateCourseDetail(course) {
     
     // 更新课程描述
     document.getElementById('courseDescription').textContent = course.description;
+    
+    // 注意：评分和评价数将在 loadCourseReviews 函数中动态更新
 }
 
 // 加载课程评价
@@ -169,12 +168,31 @@ function loadCourseReviews(courseId) {
 // 更新评价统计
 function updateReviewStats(reviews) {
     if (!reviews || reviews.length === 0) {
+        // 如果没有评价，设置默认值
+        const defaultRating = 0.0;
+        const defaultCount = 0;
+        
+        // 更新课程基本信息中的评分和评价数
+        document.getElementById('courseRating').innerHTML = generateStars(defaultRating);
+        document.getElementById('ratingScore').textContent = defaultRating.toFixed(1);
+        document.getElementById('reviewsCount').textContent = defaultCount;
+        
+        // 更新大评分显示
+        document.getElementById('bigRatingScore').textContent = defaultRating.toFixed(1);
+        document.getElementById('bigStars').innerHTML = generateStars(defaultRating);
+        document.getElementById('totalReviewCount').textContent = defaultCount;
+        
         return;
     }
     
     // 计算平均评分
     const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
     const averageRating = totalRating / reviews.length;
+    
+    // 更新课程基本信息中的评分和评价数
+    document.getElementById('courseRating').innerHTML = generateStars(averageRating);
+    document.getElementById('ratingScore').textContent = averageRating.toFixed(1);
+    document.getElementById('reviewsCount').textContent = reviews.length;
     
     // 更新大评分显示
     document.getElementById('bigRatingScore').textContent = averageRating.toFixed(1);

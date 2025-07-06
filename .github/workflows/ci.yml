@@ -1,0 +1,174 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pip'
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '16'
+        cache: 'npm'
+    
+    - name: Install Python dependencies
+      run: |
+        pip install -r backend/requirements.txt
+        pip install pytest pytest-cov flake8 black
+    
+    - name: Install Node.js dependencies
+      run: npm install
+    
+    - name: Run Python linting
+      run: |
+        cd backend
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Run Python tests
+      run: |
+        cd tests
+        pytest --cov=backend --cov-report=xml --cov-report=html
+    
+    - name: Run JavaScript tests
+      run: npm test
+    
+    - name: Upload Python coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./tests/coverage.xml
+        flags: python
+        name: python-coverage
+        fail_ci_if_error: false
+    
+    - name: Upload coverage reports to GitHub
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-reports
+        path: |
+          tests/coverage.xml
+          tests/htmlcov/
+          tests/coverage/
+
+  security:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install security tools
+      run: |
+        pip install bandit safety
+    
+    - name: Run security scan
+      run: |
+        cd backend
+        bandit -r . -f json -o bandit-report.json || true
+        safety check --json --output safety-report.json || true
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          backend/bandit-report.json
+          backend/safety-report.json
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false
+        tags: duckstudy:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy to staging
+      run: |
+        echo "部署到测试环境"
+        # 这里添加实际的测试环境部署脚本
+        # 例如：SSH到测试服务器并执行部署命令
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy to production
+      run: |
+        echo "部署到生产环境"
+        # 这里添加实际的生产环境部署脚本
+        # 例如：SSH到生产服务器并执行部署命令
+    
+    - name: Health check
+      run: |
+        echo "执行健康检查"
+        # 等待服务启动
+        sleep 30
+        # 检查服务是否正常运行
+        curl -f http://your-domain.com/api/health || exit 1
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+    - name: Notify deployment status
+      run: |
+        if [ "${{ needs.deploy-staging.result }}" == "success" ] || [ "${{ needs.deploy-production.result }}" == "success" ]; then
+          echo "部署成功"
+          # 发送成功通知
+        else
+          echo "部署失败"
+          # 发送失败通知
+        fi 

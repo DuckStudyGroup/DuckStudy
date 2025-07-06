@@ -287,7 +287,7 @@
                 "探店",
                 "校园生活"
             ],
-            "views": 651,
+            "views": 652,
             "likes": 238,
             "favorites": 189,
             "coverImages": [],
@@ -313,8 +313,8 @@
                 "经验分享",
                 "学习"
             ],
-            "views": 868,
-            "likes": 307,
+            "views": 879,
+            "likes": 308,
             "favorites": 267,
             "likedBy": [
                 "考研人",
@@ -428,7 +428,7 @@
             "content": "<p>中山大学是我最喜欢的学校，我爱中大</p>",
             "date": "2025/05/21 19:29",
             "tags": [],
-            "views": 44,
+            "views": 48,
             "likes": 4,
             "favorites": 1,
             "coverImages": [
@@ -445,7 +445,7 @@
             "content": "<p>哼哼哼啊啊啊啊啊啊啊啊啊啊啊</p>",
             "date": "2025/06/11 18:05",
             "tags": [],
-            "views": 48,
+            "views": 53,
             "likes": 2,
             "favorites": 0,
             "coverImages": [],
@@ -463,29 +463,15 @@
             "tags": [
                 "123123"
             ],
-            "views": 9,
-            "likes": 0,
-            "favorites": 0,
+            "views": 20,
+            "likes": 1,
+            "favorites": 1,
             "coverImages": [],
             "likedBy": [],
-            "favoritedBy": []
-        },
-        {
-            "id": 1750383680959,
-            "title": "1",
-            "author": "张三",
-            "category": "resource",
-            "content": "<p>11</p>",
-            "date": "2025/06/20 09:41",
-            "tags": [
-                "1"
+            "favoritedBy": [
+                "999"
             ],
-            "views": 3,
-            "likes": 0,
-            "favorites": 0,
-            "coverImages": [],
-            "likedBy": [],
-            "favoritedBy": []
+            "authorAvatar": "https://placehold.jp/40x40.png"
         }
     ]
 }

@@ -191,50 +191,22 @@ async function loadHotCourses() {
         const coursesGrid = document.getElementById('coursesGrid');
         if (!coursesGrid) return;
         
-        // 模拟课程数据
-        const mockCourses = [
-            {
-                id: 1,
-                title: '高等数学(上)',
-                teacher: '张明教授',
-                rating: 4.8,
-                department: '数学学院',
-                category: '必修',
-                campus: '珠海校区'
-            },
-            {
-                id: 2,
-                title: '数据结构与算法',
-                teacher: '李华教授',
-                rating: 5.0,
-                department: '计算机学院',
-                category: '必修',
-                campus: '东校区'
-            },
-            {
-                id: 3,
-                title: '大学英语(三)',
-                teacher: '王丽副教授',
-                rating: 4.5,
-                department: '外国语学院',
-                category: '必修',
-                campus: '南校区'
-            },
-            {
-                id: 4,
-                title: '人工智能导论',
-                teacher: '刘强教授',
-                rating: 4.7,
-                department: '计算机学院',
-                category: '选修',
-                campus: '珠海校区'
-            }
-        ];
+        // 获取课程数据
+        const courses = await getCoursesData();
+        
+        // 选择前4个课程作为热门课程（这里可以根据实际需求调整选择逻辑）
+        const hotCourses = courses.slice(0, 4);
         
         // 渲染课程卡片
-        coursesGrid.innerHTML = mockCourses.map(course => {
+        coursesGrid.innerHTML = hotCourses.map(course => {
+            // 获取该课程的所有评价数据
+            const courseReviews = getCourseReviews(course.id);
+            
+            // 动态计算评分和评价数
+            const { displayRating, totalReviewCount } = calculateCourseStats(courseReviews);
+            
             // 生成星级评分HTML
-            const ratingStars = generateStars(course.rating);
+            const ratingStars = generateStars(displayRating);
             
             return `
             <div class="home-course-card" data-id="${course.id}">
@@ -243,11 +215,12 @@ async function loadHotCourses() {
                     <div class="home-course-teacher">${course.teacher}</div>
                     <div class="home-course-rating">
                         <div class="stars">${ratingStars}</div>
-                        <span class="rating-score">${course.rating}</span>
+                        <span class="rating-score">${displayRating}</span>
                     </div>
                     <div class="course-meta">
                         <span class="meta-item"><i class="bi bi-building"></i> ${course.department}</span>
                         <span class="meta-item"><i class="bi bi-geo-alt"></i> ${course.campus}</span>
+                        <span class="meta-item"><i class="bi bi-chat-dots"></i> ${totalReviewCount}条评价</span>
                     </div>
                 </div>
             </div>
@@ -266,6 +239,113 @@ async function loadHotCourses() {
         console.error('加载热门课程失败:', error);
         throw error;
     }
+}
+
+// 获取课程数据
+async function getCoursesData() {
+    try {
+        // 从 JSON 文件加载课程数据
+        const response = await fetch('/data/courses.json', {cache: 'no-store'});
+        let courses = [];
+        if (response.ok) {
+            courses = await response.json();
+        }
+        if (!Array.isArray(courses)) {
+            courses = [];
+        }
+        return courses;
+    } catch (error) {
+        console.error('加载课程数据失败:', error);
+        return [];
+    }
+}
+
+// 获取课程的所有评价数据
+function getCourseReviews(courseId) {
+    // 从本地存储中获取保存的评价
+    let savedReviews = localStorage.getItem('courseReviews');
+    let localReviews = savedReviews ? JSON.parse(savedReviews) : [];
+    
+    // 过滤出当前课程的评价
+    const localCourseReviews = localReviews.filter(review => review.courseId === courseId);
+    
+    // 模拟评价数据（与课程详情页面保持一致）
+    const mockReviews = [
+        {
+            id: 1,
+            courseId: 1,
+            username: '学生A',
+            date: '2024-04-01',
+            rating: 5.0,
+            content: '讲得很好，概念清晰，例题丰富，作业也很有针对性。张教授很耐心地解答问题，课堂氛围活跃。推荐这门课！',
+            tags: ['内容充实', '讲解清晰', '推荐']
+        },
+        {
+            id: 2,
+            courseId: 1,
+            username: '学生B',
+            date: '2024-03-28',
+            rating: 4.5,
+            content: '课程内容充实，但难度较大，需要花很多时间自学和做习题。不过老师讲解得很清楚，课后辅导也很到位。',
+            tags: ['内容充实', '讲解清晰']
+        },
+        {
+            id: 3,
+            courseId: 1,
+            username: '学生C',
+            date: '2024-03-15',
+            rating: 5.0,
+            content: '这是我上过的最好的数学课，张教授对教学非常认真负责，能够把抽象的概念讲得很通俗易懂。课件和讲义都很完善，很适合自学。强烈推荐！',
+            tags: ['讲解清晰', '老师负责', '推荐']
+        },
+        {
+            id: 4,
+            courseId: 2,
+            username: '学生D',
+            date: '2024-04-10',
+            rating: 5.0,
+            content: '李教授的数据结构课非常棒，理论与实践结合得很好。每周的编程作业很有挑战性，但是收获也很大。',
+            tags: ['内容充实', '实用性强']
+        },
+        {
+            id: 5,
+            courseId: 3,
+            username: '学生E',
+            date: '2024-03-20',
+            rating: 4.0,
+            content: '王老师的英语课很有趣，课堂活动丰富多样。但期中和期末考试难度较高，需要认真准备。',
+            tags: ['有趣', '作业适量']
+        }
+    ];
+    
+    // 根据课程ID筛选评价，并合并本地保存的评价
+    let courseReviews = mockReviews.filter(review => review.courseId === courseId);
+    
+    // 合并保存在本地的评价
+    if (localCourseReviews.length > 0) {
+        courseReviews = [...courseReviews, ...localCourseReviews];
+    }
+    
+    return courseReviews;
+}
+
+// 计算课程的评分统计
+function calculateCourseStats(reviews) {
+    if (!reviews || reviews.length === 0) {
+        return {
+            displayRating: '0.0',
+            totalReviewCount: 0
+        };
+    }
+    
+    // 计算平均评分
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / reviews.length;
+    
+    return {
+        displayRating: averageRating.toFixed(1),
+        totalReviewCount: reviews.length
+    };
 }
 
 // 生成星级评分HTML

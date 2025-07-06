@@ -148,5 +148,35 @@
         "id": 1750333941462,
         "rating": 0,
         "reviewCount": 0
+    },
+    {
+        "title": "软件工程",
+        "teacher": "agf",
+        "department": "计算机学院",
+        "category": "必修",
+        "campus": "东校区",
+        "credits": 2,
+        "hours": 36,
+        "semester": "下半学期",
+        "location": "D303",
+        "description": "无",
+        "id": 1750386406365,
+        "rating": 0,
+        "reviewCount": 0
+    },
+    {
+        "title": "数值分析",
+        "teacher": "zxc",
+        "department": "计算机",
+        "category": "专业",
+        "campus": "东校区",
+        "credits": 2,
+        "hours": 72,
+        "semester": "下",
+        "location": "D304",
+        "description": "无",
+        "id": 1751731789307,
+        "rating": 0,
+        "reviewCount": 0
     }
 ]
