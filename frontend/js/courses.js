@@ -196,8 +196,10 @@ function filterCourses() {
         // 校区条件
         const matchesCampus = !campus || course.campus === campus;
         
-        // 评分条件
-        const matchesRating = course.rating >= minRating;
+        // 评分条件 - 使用动态计算的评分
+        const courseReviews = getCourseReviews(course.id);
+        const { displayRating } = calculateCourseStats(courseReviews);
+        const matchesRating = parseFloat(displayRating) >= minRating;
         
         return matchesSearch && matchesCategory && matchesCampus && matchesRating;
     });
@@ -205,9 +207,19 @@ function filterCourses() {
     // 排序
     filteredCourses.sort((a, b) => {
         if (sortBy === 'rating') {
-            return b.rating - a.rating;
+            // 使用动态计算的评分进行排序
+            const aReviews = getCourseReviews(a.id);
+            const bReviews = getCourseReviews(b.id);
+            const { displayRating: aRating } = calculateCourseStats(aReviews);
+            const { displayRating: bRating } = calculateCourseStats(bReviews);
+            return parseFloat(bRating) - parseFloat(aRating);
         } else if (sortBy === 'reviews') {
-            return b.reviewCount - a.reviewCount;
+            // 使用动态计算的评价数进行排序
+            const aReviews = getCourseReviews(a.id);
+            const bReviews = getCourseReviews(b.id);
+            const { totalReviewCount: aCount } = calculateCourseStats(aReviews);
+            const { totalReviewCount: bCount } = calculateCourseStats(bReviews);
+            return bCount - aCount;
         } else if (sortBy === 'newest') {
             // 在实际应用中，这里应该比较日期
             // 这里简单地按照ID排序，假设ID越大越新
@@ -233,28 +245,13 @@ function renderCoursesList(courses) {
         return;
     }
     
-    // 获取本地保存的评价数据
-    let savedReviews = localStorage.getItem('courseReviews');
-    let localReviews = savedReviews ? JSON.parse(savedReviews) : [];
-    
     coursesContainer.innerHTML = courses.map(course => {
-        // 获取所有评价（本地+课程自带）
-        let savedReviews = localStorage.getItem('courseReviews');
-        let localReviews = savedReviews ? JSON.parse(savedReviews) : [];
-        const userReviews = localReviews.filter(r => r.courseId === course.id);
-        // 构造所有评价数组
-        let allReviews = [];
-        for (let i = 0; i < course.reviewCount; i++) {
-            allReviews.push({ rating: course.rating });
-        }
-        allReviews = allReviews.concat(userReviews);
-        // 动态计算平均分
-        let displayRating = course.rating;
-        if (allReviews.length > 0) {
-            const totalRating = allReviews.reduce((sum, review) => sum + review.rating, 0);
-            displayRating = (totalRating / allReviews.length).toFixed(1);
-        }
-        const totalReviewCount = allReviews.length;
+        // 获取该课程的所有评价数据
+        const courseReviews = getCourseReviews(course.id);
+        
+        // 动态计算评分和评价数
+        const { displayRating, totalReviewCount } = calculateCourseStats(courseReviews);
+        
         return `
         <div class="course-card" data-id="${course.id}">
             <div class="course-card-content">
@@ -287,6 +284,94 @@ function renderCoursesList(courses) {
             window.location.href = `course-detail.html?id=${courseId}`;
         });
     });
+}
+
+// 获取课程的所有评价数据
+function getCourseReviews(courseId) {
+    // 从本地存储中获取保存的评价
+    let savedReviews = localStorage.getItem('courseReviews');
+    let localReviews = savedReviews ? JSON.parse(savedReviews) : [];
+    
+    // 过滤出当前课程的评价
+    const localCourseReviews = localReviews.filter(review => review.courseId === courseId);
+    
+    // 模拟评价数据（与课程详情页面保持一致）
+    const mockReviews = [
+        {
+            id: 1,
+            courseId: 1,
+            username: '学生A',
+            date: '2024-04-01',
+            rating: 5.0,
+            content: '讲得很好，概念清晰，例题丰富，作业也很有针对性。张教授很耐心地解答问题，课堂氛围活跃。推荐这门课！',
+            tags: ['内容充实', '讲解清晰', '推荐']
+        },
+        {
+            id: 2,
+            courseId: 1,
+            username: '学生B',
+            date: '2024-03-28',
+            rating: 4.5,
+            content: '课程内容充实，但难度较大，需要花很多时间自学和做习题。不过老师讲解得很清楚，课后辅导也很到位。',
+            tags: ['内容充实', '讲解清晰']
+        },
+        {
+            id: 3,
+            courseId: 1,
+            username: '学生C',
+            date: '2024-03-15',
+            rating: 5.0,
+            content: '这是我上过的最好的数学课，张教授对教学非常认真负责，能够把抽象的概念讲得很通俗易懂。课件和讲义都很完善，很适合自学。强烈推荐！',
+            tags: ['讲解清晰', '老师负责', '推荐']
+        },
+        {
+            id: 4,
+            courseId: 2,
+            username: '学生D',
+            date: '2024-04-10',
+            rating: 5.0,
+            content: '李教授的数据结构课非常棒，理论与实践结合得很好。每周的编程作业很有挑战性，但是收获也很大。',
+            tags: ['内容充实', '实用性强']
+        },
+        {
+            id: 5,
+            courseId: 3,
+            username: '学生E',
+            date: '2024-03-20',
+            rating: 4.0,
+            content: '王老师的英语课很有趣，课堂活动丰富多样。但期中和期末考试难度较高，需要认真准备。',
+            tags: ['有趣', '作业适量']
+        }
+    ];
+    
+    // 根据课程ID筛选评价，并合并本地保存的评价
+    let courseReviews = mockReviews.filter(review => review.courseId === courseId);
+    
+    // 合并保存在本地的评价
+    if (localCourseReviews.length > 0) {
+        courseReviews = [...courseReviews, ...localCourseReviews];
+    }
+    
+    return courseReviews;
+}
+
+// 计算课程的评分统计
+function calculateCourseStats(reviews) {
+    if (!reviews || reviews.length === 0) {
+        return {
+            displayRating: '0.0',
+            totalReviewCount: 0
+        };
+    }
+    
+    // 计算平均评分
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / reviews.length;
+    
+    return {
+        displayRating: averageRating.toFixed(1),
+        totalReviewCount: reviews.length
+    };
 }
 
 // 生成星级评分HTML

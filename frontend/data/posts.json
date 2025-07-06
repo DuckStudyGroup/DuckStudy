@@ -30,7 +30,7 @@
                 "考试技巧"
             ],
             "title": "大学生如何高效复习期末考试",
-            "views": 437,
+            "views": 438,
             "authorAvatar": "/images/avatars/1747826293_cool.png",
             "likedBy": [],
             "favoritedBy": [
@@ -98,7 +98,7 @@
                 "校园生活",
                 "运动"
             ],
-            "views": 59,
+            "views": 60,
             "likes": 12,
             "favorites": 3,
             "coverImages": [
@@ -220,7 +220,7 @@
                 "健身",
                 "交友"
             ],
-            "views": 130,
+            "views": 132,
             "likes": 34,
             "favorites": 21,
             "coverImages": [
@@ -287,7 +287,7 @@
                 "探店",
                 "校园生活"
             ],
-            "views": 644,
+            "views": 652,
             "likes": 238,
             "favorites": 189,
             "coverImages": [],
@@ -313,8 +313,8 @@
                 "经验分享",
                 "学习"
             ],
-            "views": 860,
-            "likes": 307,
+            "views": 879,
+            "likes": 308,
             "favorites": 267,
             "likedBy": [
                 "考研人",
@@ -408,8 +408,8 @@
                 "数码设备",
                 "换物"
             ],
-            "views": 242,
-            "likes": 34,
+            "views": 246,
+            "likes": 35,
             "favorites": 23,
             "coverImages": [],
             "likedBy": [
@@ -428,8 +428,8 @@
             "content": "<p>中山大学是我最喜欢的学校，我爱中大</p>",
             "date": "2025/05/21 19:29",
             "tags": [],
-            "views": 23,
-            "likes": 0,
+            "views": 48,
+            "likes": 4,
             "favorites": 1,
             "coverImages": [
                 "/images/posts/1747826962_post_1747826962252_pcwquy.png"
@@ -445,12 +445,33 @@
             "content": "<p>哼哼哼啊啊啊啊啊啊啊啊啊啊啊</p>",
             "date": "2025/06/11 18:05",
             "tags": [],
-            "views": 9,
-            "likes": 0,
+            "views": 53,
+            "likes": 2,
             "favorites": 0,
             "coverImages": [],
             "likedBy": [],
-            "favoritedBy": []
+            "favoritedBy": [],
+            "authorAvatar": "/images/avatars/1747826293_cool.png"
+        },
+        {
+            "id": 1750378794614,
+            "title": "待会删",
+            "author": "王朝",
+            "category": "experience",
+            "content": "<p class=\"ql-align-center\"><span style=\"background-color: rgb(250, 204, 204);\">啊啊啊啊啊啊啊啊</span></p><p class=\"ql-align-center\"><strong><s>啊啊啊啊啊啊</s></strong></p><p class=\"ql-align-center\"><em><u>啊啊啊啊啊啊</u></em></p>",
+            "date": "2025/06/20 08:19",
+            "tags": [
+                "123123"
+            ],
+            "views": 20,
+            "likes": 1,
+            "favorites": 1,
+            "coverImages": [],
+            "likedBy": [],
+            "favoritedBy": [
+                "999"
+            ],
+            "authorAvatar": "https://placehold.jp/40x40.png"
         }
     ]
 }

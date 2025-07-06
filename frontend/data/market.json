@@ -17,10 +17,10 @@
         },
         {
             "id": 1002,
-            "title": "二手笔记本电脑",
+            "title": "二手自行车",
             "price": 2800,
-            "description": "联想小新Pro13，i5处理器，8G内存, 512G SSD。购买两年，性能良好，有轻微磨损。",
-            "category": "electronics",
+            "description": "9成新山地车，铝合金车架轻便耐用，21速变速系统流畅，轮胎磨损小，刹车灵敏。日常通勤使用，保养良好，无磕碰故障。",
+            "category": "others",
             "location": "上海",
             "seller": "李四",
             "contact": "QQ: 123456789",
