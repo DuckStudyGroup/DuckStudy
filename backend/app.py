@@ -136,8 +136,13 @@ def save_comments(data):
 def read_users():
     """读取用户数据"""
     try:
+        print(f"正在读取用户数据文件: {USERS_FILE}")
+        print(f"文件是否存在: {os.path.exists(USERS_FILE)}")
+        
         with open(USERS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            data = json.load(f)
+            print(f"成功读取用户数据，用户数量: {len(data.get('users', []))}")
+            return data
     except Exception as e:
         print(f"读取用户数据失败: {str(e)}")
         return {"users": []}
@@ -146,8 +151,10 @@ def read_users():
 def save_users(data):
     """保存用户数据"""
     try:
+        print(f"正在保存用户数据到文件: {USERS_FILE}")
         with open(USERS_FILE, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
+        print("用户数据保存成功")
         return True
     except Exception as e:
         print(f"保存用户数据失败: {str(e)}")
@@ -351,9 +358,14 @@ def register():
     
     # 添加新用户并保存
     users_data['users'].append(new_user)
-    if save_users(users_data):
+    save_result = save_users(users_data)
+    print(f"保存用户结果: {'成功' if save_result else '失败'}")
+    
+    if save_result:
+        print("注册成功")
         return jsonify({'success': True, 'message': '注册成功'})
     else:
+        print("注册失败: 保存用户数据失败")
         return jsonify({'success': False, 'message': '注册失败，请稍后重试'})
 
 @app.route('/api/user/logout', methods=['POST'])
@@ -697,8 +709,16 @@ def get_comments(post_id):
 @app.route('/api/comments', methods=['GET'])
 def get_all_comments():
     """获取所有评论数据"""
-    data = read_comments()
-    return jsonify({"comments": data['comments']})
+    try:
+        data = read_comments()
+        # 确保返回的数据格式正确
+        if 'comments' in data:
+            return jsonify(data)
+        else:
+            return jsonify({"comments": {}, "success": True})
+    except Exception as e:
+        print(f"获取所有评论失败: {str(e)}")
+        return jsonify({"comments": {}, "success": False, "message": f"获取评论失败: {str(e)}"}), 500
 
 # API路由：更新评论
 @app.route('/api/comments/<post_id>/<comment_id>', methods=['PUT'])

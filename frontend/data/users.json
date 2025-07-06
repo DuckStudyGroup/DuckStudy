@@ -294,32 +294,5 @@
             "role": "user",
             "registerDate": "2025-05-24"
         },
-        {
-            "id": 33,
-            "username": "王朝",
-            "password": "123456",
-            "email": "1234567890@qq.com",
-            "avatar": "https://placehold.jp/40x40.png",
-            "role": "user",
-            "registerDate": "2025-06-20"
-        },
-        {
-            "id": 34,
-            "username": "123",
-            "password": "123456",
-            "email": "1234567891@qq.com",
-            "avatar": "https://placehold.jp/40x40.png",
-            "role": "user",
-            "registerDate": "2025-06-20"
-        },
-        {
-            "id": 35,
-            "username": "999",
-            "password": "456789",
-            "email": "2644244340@qq.com",
-            "avatar": "https://placehold.jp/40x40.png",
-            "role": "user",
-            "registerDate": "2025-07-06"
-        }
     ]
 }

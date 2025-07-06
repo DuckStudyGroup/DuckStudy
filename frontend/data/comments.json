@@ -686,40 +686,6 @@
                 "images": []
             }
         ],
-        "1747826993046": [
-            {
-                "id": 1750378341903,
-                "author": "王朝",
-                "content": "《学习鸭》是由第20组自主设计的一款全新多功能一站式学习平台。中间忘了。总之，发掘【内卷】的真相",
-                "date": "2025/06/20 08:12",
-                "likes": 0,
-                "likedBy": [],
-                "replies": [],
-                "images": [
-                    {
-                        "id": "1750378184_comment_1750378184821_k5ef9g",
-                        "url": "http://127.0.0.1:5000/images/comments/1750378184_comment_1750378184821_k5ef9g.png"
-                    }
-                ]
-            }
-        ],
-        "1750386523771": [
-            {
-                "author": "123",
-                "authorAvatar": "https://placehold.jp/40x40.png",
-                "content": "111",
-                "date": "2025/06/20 10:28",
-                "id": 1750386534144,
-                "images": [
-                    {
-                        "id": "1750386532_comment_1750386532568_1l3i3k",
-                        "url": "http://127.0.0.1:5000/images/comments/1750386532_comment_1750386532568_1l3i3k.png"
-                    }
-                ],
-                "likedBy": [],
-                "likes": 0,
-                "replies": [],
-                "timestamp": 1750386534144
             }
         ]
     }
